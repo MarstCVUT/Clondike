@@ -1,0 +1,8 @@
+2005-05-08  Jan Capek  <capekj@hpecko>
+
+	* tcmi_ccnman.h (tcmi_ccnman_init, tcmi_ccnman_shutdown):Added
+	empty methods that are invoked when the CCN support is disabled in kernel 
+
+	* tcmi_penman.h (tcmi_penman_init, tcmi_penman_shutdown): Added
+	empty methods that are invoked when the CCN support is disabled in kernel
+

@@ -1,0 +1,13 @@
+src/ccfs - Takovej dummy cacheovaci file system. Nema to zadny coherecni mechanismy, pouzity je takovi, ze se to zapmne na veci, kde se proste nic nebude po dobu procesu meni (/usr, /lib...).. Je to vhodny asi jen na naky testiky a mereni
+
+src/director - Tady je jadrove api pro userspace deamona. Primo v tomdle adresari je jen jeden soubor, kterej ma prave ty metody co muze volat jadro, viz director.h je to tam snad nak slusne okomentovany
+
+src/director/netlink - Tady je jadrova cast implementace tech callu dirctor-api pres netlink.. sou to nepekne osklivosti a pridavani dalsi metod je e-e.. mozna by to slo udelat nak hezcejs, ale moc sem nad tim nekoumal.
+
+userspace - Zde je vse k userspace directory.
+
+userspace/director-api - Ceckovi konec netlinku.. je treba vzdy menit spolu s kernelovou casti.. opet pekna osklivost ;)
+
+userspace/ruby-director-api - Ruby wrapper okolo C api
+
+userspace/simple-ruby-director - Ruby userspace deamon

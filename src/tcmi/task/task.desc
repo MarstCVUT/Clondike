@@ -1,0 +1,7 @@
+/** @defgroup tcmi_task_group task component
+ *
+ * @ingroup tcmi_module_class
+ *
+ * Classes in this group represent migrating processes in the
+ * system and related objects.
+ */

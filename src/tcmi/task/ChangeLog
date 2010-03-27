@@ -1,0 +1,29 @@
+2005-05-12  Jan Capek  <capekj@clare.doma>
+
+	* tcmi_taskhelper.h (tcmi_taskhelper_flushfiles): Added method
+	that flushes and closes all regular files that the current process
+	has open.
+
+	* tcmi_guesttask.c (tcmi_guesttask_migrateback_ppm_p):Before
+	sending the migration message, all regular files and directories
+	are flushed(closed).
+	
+	* tcmi_shadowtask.c (tcmi_shadowtask_emigrate_ppm_p): Before
+	sending the migration message, all regular files and directories
+	are flushed (closed).
+	
+	* tcmi_shadowtask.c (tcmi_shadowtask_execve): This method finishes
+	merging of the shadow with the original process - schedules an
+	exit that dettaches TCMI task from the running process.
+	
+
+	* tcmi_task.c (tcmi_task_execve): Prior to issueing the actual
+	execve, the particular instance is notified. This is need by
+	shadow tasks when merging with a process migrating home. 
+
+2005-05-08  Jan Capek  <capekj@hpecko>
+
+	* tcmi_task.c (tcmi_task_prepare_execve): Fixed an issue, the old
+	execve context is now always being released upon preparing a new
+	one. 
+

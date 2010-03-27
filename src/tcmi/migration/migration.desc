@@ -1,0 +1,6 @@
+/** @defgroup tcmi_migration_group migration
+ *
+ * @ingroup tcmi_module_class
+ *
+ * Classes in this group are responsible migration control in the infrastructure. 
+ */

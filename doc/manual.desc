@@ -1,0 +1,157 @@
+/** \page page_manual Manual
+ * \author Jan Capek
+ * \date 2007-08-01
+ *
+ * \section cnt Content
+ * - \ref sec_manual_overview
+ * - \ref sec_manual_load
+ * - \ref sec_manual_listen
+ * - \ref sec_manual_connect
+ * - \ref sec_manual_emig
+ * - \ref sec_manual_mighome
+ *
+ *
+ * \section sec_manual_overview Overview
+ *
+ * Shell scripts in \c scripts/ directory provide a comfortable way to
+ * accomplish basic setup and migration procedures. Full control over
+ * TCMI is provided by the TCMI ctlfs entries provided by CCN and PEN
+ * resp.  In following examples node \em hpecko will be acting as \em
+ * CCN and node \em clare will be acting as \em PEN.
+ * 
+ *
+ * \section sec_manual_load Loading/Unloading 
+ *
+ * The whole framework is loaded via \c load.sh script. After
+ * successful startup, there will be ctlfs entries for \link
+ * tcmi_penman_class PEN \endlink and \link tcmi_ccnman_class CCN
+ * \endlink available in \em /clondike.
+ *
+ * Shutdown of the framework is accomplished by the \c unload.sh shell
+ * script. The script succeeds only if there are no migrated processes.
+ *
+ *
+ * \section sec_manual_listen Setting up Listening on CCN
+ *
+ * On CCN, it is necessary to setup listening, so that PEN's are able
+ * to join the cluster. This is done by the \c listen.sh script:
+ \verbatim
+ hpecko:# ./scripts/listen.sh tcp:192.168.0.5:54321
+ hpecko:# find /clondike/ccn/listening-on/
+ /clondike/ccn/listening-on/
+ /clondike/ccn/listening-on/listen-00
+ /clondike/ccn/listening-on/listen-00/archname
+ /clondike/ccn/listening-on/listen-00/peername
+ /clondike/ccn/listening-on/listen-00/sockname
+ \endverbatim
+ *
+ *
+ * \section sec_manual_connect Connecting PEN to CCN 
+ *
+ * A \em PEN is allowed to connect to multiple CCN's, this is done via
+ * \c connect.sh script that takes the same argument as \c listen.sh:
+ \verbatim
+ clare:# ./scripts/connect.sh tcp:192.168.0.5:54321
+ clare:# find /clondike/pen/nodes/
+ /clondike/pen/nodes/
+ /clondike/pen/nodes/0
+ /clondike/pen/nodes/0/state
+ /clondike/pen/nodes/0/connections
+ /clondike/pen/nodes/0/connections/ctrlconn
+ /clondike/pen/nodes/0/connections/ctrlconn/archname
+ /clondike/pen/nodes/0/connections/ctrlconn/peername
+ /clondike/pen/nodes/0/connections/ctrlconn/sockname
+ \endverbatim
+ *
+ * In this example PEN 'clare' has connected to a node 192.168.0.5 on
+ * port 54321 - the CCN where we have previously setup the listening.
+ *
+ *	
+ * \section sec_manual_emig Migrating a Sample Process from CCN to PEN
+ *
+ * Migrating a process from CCN to PEN and back requires having a user
+ * account \em clondike with uid=999 setup (part of the installation
+ * process). The home directory of the user has to be shared among
+ * both nodes via network filesystem. Further, the home mount has to
+ * yield the same pathname on both nodes.
+ *
+ * Now, run the process under the \em clondike identity:
+ \verbatim
+ capekj@clare:$ su - clondike
+ clondike@clare:~$ ./test_process out.txt &
+ [1] 12708
+ clondike@clare:~$ ps
+ PID TTY          TIME CMD
+ 12704 pts/4   00:00:00 bash
+ 20705 pts/4   00:00:00 test_process
+ 21200 pts/4   00:00:00 ps
+ \endverbatim
+ *
+ * \b NOTE: currently, there is a limited support for restoring
+ * special files. A temporary workaround is to guarantee that the
+ * pseudo terminal device(a regular character) device associated with
+ * the process on CCN will be available and writable for user \em
+ * clondike on PEN too.
+ *
+ * Now the process is ready for migration, we have PEN (node 0)
+ * connected to CCN:
+ \verbatim
+ clare:# cat /clondike/ccn/nodes/0/connections/ctrlconn/peername
+ 192.168.0.1:42861
+ \endverbatim
+ *
+ * The script \c emig.sh does the migration work:
+ \verbatim
+ hpecko:# ./scripts/emig.sh 12708 0 ppm-p
+ Migrating process: 12708 to PEN: 0 method: ppm-p
+ hpecko:# find /clondike/ccn/mig/migproc/
+ /clondike/ccn/mig/migproc/
+ /clondike/ccn/mig/migproc/20705
+ /clondike/ccn/mig/migproc/20705/remote-pid
+ /clondike/ccn/mig/migproc/20705/migman
+ \endverbatim
+ * On PEN, we will observe the immigrated process:
+ \verbatim
+ clare:# find /clondike/pen/mig/migproc/
+ /clondike/pen/mig/migproc/
+ /clondike/pen/mig/migproc/12779
+ /clondike/pen/mig/migproc/12779/remote-pid
+ /clondike/pen/mig/migproc/12779/migman
+ clare:# cat /clondike/pen/mig/migproc/12779/remote-pid
+ 20705
+ \endverbatim 
+ *
+ *
+ * \section sec_manual_mighome Migrating a Sample Process home from PEN to CCN
+ *
+ * Currently, the migration has to be initiated by the PEN. This is
+ * not a limitation of TCMI capabilities. The protocol currently
+ * implements only a testing subset of all migration and process
+ * control messages. From TCMI prospective there is no difference in
+ * the initiator.
+ *
+ \verbatim
+ clare:# ./scripts/mig-home.sh 12779
+ Migrating process:12779 home from pen
+ clare:# find /clondike/pen/mig/migproc/
+ /clondike/pen/mig/migproc/
+
+ hpecko:# find /clondike/ccn/mig/migproc/
+ /clondike/ccn/mig/migproc/
+ hpecko:# pmap 20705
+ 20705:   ./test_process out.txt
+ 08048000    396K r-x--  /test_process.20.12779.55654364
+ 080ab000     12K rw---  /test_process.20.12779.55654364
+ 080ae000    136K rw---  /test_process.20.12779.55654364
+ bffeb000      4K rw---    [ anon ]
+ bffec000     80K rw---  /test_process.20.12779.55654364
+ ffffe000      4K -----    [ anon ]
+ total      632K
+ \endverbatim
+ *
+ * As we can see the migrated process has disappeared from both - CCN
+ * and PEN ctlfs entries on both nodes. On CCN, the process address
+ * space is now fully mapped from the checkpoint image and the process
+ * is running.
+ *
+ */

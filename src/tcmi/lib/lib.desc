@@ -1,0 +1,7 @@
+/** @defgroup tcmi_lib_group lib
+ *
+ * @ingroup tcmi_module_class
+ *
+ * Classes in this group provide basic objects used commonly throughout
+ * the whole framework.
+ */

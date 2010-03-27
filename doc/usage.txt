@@ -1,0 +1,19 @@
+Note: All scripts are located in "scripts" dir (if not mentioned otherwise)
+
+CORE:
+
+1) To load modules, use load.sh
+2) To unload modules, use unload.sh (this will work only if there are no remote processes running on this node).
+3) To start listening, use listen.sh (this will start Core node functionality)
+4) To connect you can use connect.sh, but it may be done automatically via a user space director see user space tools.
+
+FS:
+
+Clondike relies on shared file system. Currently, it is using 9P file system for resource sharing, so it must be compiled into the kernel).
+So, on all machins that will act as a core node you must start 9p server, we're currently using npfs server.
+
+USERSPACE:
+
+This part is not 100% and finished, but there is a prototype of user-space managing tool. This tool automatically connects to other nodes it sees and it can automatically handle migrations (non-preemptive at the moment).
+
+To start it, goto "userspace/simple-ruby-director" and type "ruby Director.rb" (you must have ruby language interpreter installed for that)

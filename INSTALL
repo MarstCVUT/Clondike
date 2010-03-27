@@ -1,0 +1,85 @@
+Intallation
+============
+Requirements:
+ - clondike sources
+ - linux kernel >= 2.6.10
+ - gcc >= 2.96
+ - patch 
+ - make 
+
+Assumptions:
+ - linux sources are in /usr/src/linux
+ - clondike.tar.gz has been copied to your home (e.g. /home/capekj)
+
+
+Installation steps:
+-----------------
+ - Untar the sources
+ tar xvzf clondike.tar.gz
+
+ - Patch the kernel 
+ cd /usr/src/linux
+ pfile=/home/capekj/clondike/patch/linux-2.6.11.8-clondike-patch
+ patch -p1 --dry-run $pfile && patch -p1 $pfile
+ 
+ As we can see it is a two stage process where the patch is first tested
+ against the kernel.
+
+ - Configure the kernel
+ make menuconfig
+
+ In the main configuration screen there is a new item - clondike. Expand
+ the menu and select:
+ 'enable TCMI' -> general support of TCMI in kernel
+ 
+ When enabled there are two options how the cluster node will be setup:
+ - CCN (cluster core node)
+ - PEN (process execution node)
+ 
+ Both options can be selected at the same time. The node will be able
+ to act as CCN as well as PEN.
+
+ - compile the kernel
+ make
+ su
+ make install
+ make modules_install
+
+ - reboot with the new kernel
+
+ - compile clondike 
+ cd /home/capekj/clondike
+ make
+ su
+ make install
+
+ You will get warnings about unresolved symbols during
+ compilation. These come from Kbuild(not gcc) as it can't
+ find them in the system.map. Clondike is compiled as a set of
+ external modules and some clondike modules (e.g. tcmi_module.ko) use
+ other clondike modules. Those symbols can't be obviously present in
+ system.map.
+
+ Installation process creates a new user(clondike, uid=999) and
+ mountpoint for tcmi_ctlfs at /clondike
+
+
+Loading clondike:
+-----------------
+ - load the framework:
+ cd /home/capekj/clondike/scripts
+ ./load.sh
+
+ There should be a directory structure similar to this visible in /clondike:
+ /clondike/ccn/listen
+ /clondike/ccn/stop-listen-one
+ /clondike/ccn/stop-listen-all
+ /clondike/ccn/stop
+ /clondike/ccn/listening-on 
+ /clondike/ccn/mig/migrate-home
+ /clondike/ccn/mig/emigrate-ppm-p
+ /clondike/ccn/mig/migproc
+ /clondike/ccn/nodes
+
+ This is for a node configured as CCN. PEN would have a similar layout but in 
+ /clondike/pen directory.

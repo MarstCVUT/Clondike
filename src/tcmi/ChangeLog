@@ -1,0 +1,14 @@
+2005-05-12  Jan Capek  <capekj@clare.doma>
+
+	* tcmi_module.c: removed task reap file. It is not needed anymore,
+	the shadow task after merging with a process migrating home
+	destroys itself automaticall.
+ 
+2005-05-08  Jan Capek  <capekj@hpecko>
+
+	* tcmi_module.c (tcmi_module_init): Added checks for successful
+	CCN/PEN initialization.  Removed #ifdef CONFIG_TCMI_*, the
+	framework configuration is now internally handled by CCN/PEN
+	managers. Module initialization thus always requests init of CCN
+	and PEN. The subsystem that is not compiled has no effect.
+

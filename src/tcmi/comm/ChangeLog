@@ -1,0 +1,5 @@
+2005-05-12  Jan Capek  <capekj@clare.doma>
+
+	* tcmi_err_procmsg.h (tcmi_err_procmsg_code): 
+	* tcmi_err_msg.h (tcmi_err_msg_code): 
+	Added error code accessor method.

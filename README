@@ -1,0 +1,53 @@
+Source tree organization
+-------------------------
+doc/ - Doxygen source code documentation
+    clondike.cfg - configuration to generate docs
+
+    html/index.html - main HTML documentation entry point
+
+scripts/load.sh - loads entire framework and mounts ctlfs filesystem
+        unload.sh - unloads the framework if there are no migrated processes
+	connect.sh - connects a CCN to specified PEN
+	listen.sh - CCN starts listening for incoming connections from PEN's
+	emig.sh - emigrates a process from CCN to PEN
+	mig-home.sh - migrates a process to the home node
+
+	gpl.pl - generic script, inserts a GPL into a file
+	stripgpl.pl - strips GPL from a file
+	clondike_gpl.sh - inserts clondike GPL(uses gpl.pl) into a file
+	kkc_gpl.sh - inserts KKC GPL(uses gpl.pl) into a file
+	tcmi_gpl.sh - inserts TCMI GPL(uses gpl.pl) into a file
+
+	clondike-diff.sh - makes diff between 2 kernels, producing clondike
+                           patch
+	
+
+src/kkc/ - Kernel-to-Kernel Communication Library
+	   separate module(kkc_lib.ko)
+
+    tcmi/ - Task Checkpointing and Migration Infrastructure
+	 ckpt/ - Process checkpointing component - 
+	        separate module(tcmickptcom.ko)
+
+         comm/ - Entire communication component, messages, 
+	        transactions etc.
+
+	 ctlfs/ - control filesystem - separate module(tcmictlfs.ko)
+
+	 lib/ - library - queue, slotvector, tcmi socket
+
+	 manager/ - CCN manager, PEN manager, CCN migration manager,
+                   PEN migration manager
+
+         migration/ - migration component(not implemented yet)
+
+	 task/ - TCMI task - shadow/guest process abstraction
+
+         tcmi_module.c - main TCMI module, supports CCN and/or PEN
+	              based on kernel configuration.
+
+src-stats/sloc-src-*.txt - code statistics of the src/ directory
+
+          sloc-test-*.txt - code statistics of the test/ directory
+
+test/ - test cases for most components

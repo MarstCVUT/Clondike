@@ -1,0 +1,22 @@
+CORE:
+
+1) Patch the kernel and compile it with Clondike support (currently version 2.6.23)
+ Do not forget to compile in 9P file system!
+2) Create clondike user (999)
+3) Create as root /home/clondike, /clondike, /mnt/proxy & /mnt/clondike
+4) Create subdirs of /mnt/clondike (UGLY, this shall be solved some better way)
+ Now, it is necessary to create subdirs in format:
+/mnt/clondike/IP-UID-GID
+ Where IP is ip of remote node that can be used as a detached node by this machnie. UID and GID are user id and group id combinations that can be used.
+ So, an example would be:
+/mnt/clondike/192.168.1.155-0-0 ... it measn we can use 192.168.1.155 as a detached node and only "root" can do it at the moment
+... this must change hopefully soon, but it has not yet!!
+5) Compile clondike (against the patched kernel)
+6) Edit listen file to bind to local ip (TODO: Improve this, detect local ip if there is only one)
+7) Install NPFS, user-space server for plan 9 file system!
+
+USER SPACE:
+
+1) Go to userspace/director-api and "make" it
+2) Go to userspace/ruby-director-api and "make" it
+3) Copy resulting lib into "userspace/simple-ruby-director"

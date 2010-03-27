@@ -1,0 +1,245 @@
+/** @defgroup tcmi_syscall_group syscall forwarding 
+ *
+ * @ingroup tcmi_module_class
+ *
+ * @brief Classes in this group are used for system calls modification and forwarding to provide migration transparency.
+ *
+ * Each class is divided into parts with related system calls:
+ *  
+ * - \b PID \b \& \b GID \b manipulation - These methods are used for PID and GID 
+ *                      manipulation or works with sessions
+ *
+ * - \b User \b identification - Methods from this part works with user identification of current process
+ *
+ * - \b Group \b identification - Methods from this part works with group identification of current process
+ * 
+ * - \b Signal \b sending - These methods are used for sending signals
+ *
+ * - \b Generic - Methods from this part are able to handle more calls from diferent groups. Only tcmi_guest_rpc has
+ *                      this part.
+ * 
+ * \par Supported system calls
+ * The following table contains all system calls supported by this component. System call without RPC number 
+ * is executed completely on localhost.
+ *
+ * <table cellspacing="0" style="border: 1px solid black; font-size: xx-small;"> 
+ *   <caption>Supported system calls</caption>
+ *   <!-- thead -->
+ *     <tr>
+ *       <th>System call name</th>
+ *       <th>Section</th>
+ *       <th>RPC number</th>
+ *       <th>Hook</th>
+ *       <th>Guest RPC</th>
+ *       <th>Shadow RPC</th>
+ *     </tr>
+ *     <tr>
+ *       <td>kill</td>
+ *       <td>Signal sending</td>
+ *       <td>TCMI_RPC_SYS_KILL</td>
+ *       <td>tcmi_syscall_hooks_sys_kill() </td>
+ *       <td>tcmi_guest_rpc_sys_2()        </td> 
+ *       <td>tcmi_shadow_rpc_sys_kill()    </td>
+ *     </tr>
+ *     <tr>
+ *       <td>tkill</td>
+ *       <td>Signal sending</td>
+ *       <td>TCMI_RPC_SYS_TKILL</td>
+ *       <td>tcmi_syscall_hooks_do_tkill() </td>
+ *       <td>tcmi_guest_rpc_sys_3()        </td> 
+ *       <td>tcmi_shadow_rpc_do_tkill()    </td>
+ *     </tr>
+ *     <tr>
+ *       <td>tgkill</td>
+ *       <td>Signal sending</td>
+ *       <td>TCMI_RPC_SYS_TKILL</td>
+ *       <td>tcmi_syscall_hooks_do_tkill() </td>
+ *       <td>tcmi_guest_rpc_sys_3()        </td> 
+ *       <td>tcmi_shadow_rpc_do_tkill()    </td>
+ *     </tr>
+ *     <tr>
+ *       <td>rt_sigqueueinfo</td>
+ *       <td>Signal sending</td>
+ *       <td>TCMI_RPC_SYS_SIGQUEUE</td>
+ *       <td>tcmi_syscall_hooks_sys_rt_sigqueueinfo() </td>
+ *       <td>tcmi_guest_rpc_sys_rt_sigqueueinfo()     </td> 
+ *       <td>tcmi_shadow_rpc_rt_sigqueueinfo()        </td>
+ *     </tr><!-- PID & GID manipulation **************************************** -->
+ *     <tr>
+ *       <td>getpid</td>
+ *       <td>PID \& GID manip</td>
+ *       <td>---</td>
+ *       <td>tcmi_syscall_hooks_sys_getpid() </td>
+ *       <td>---                             </td> 
+ *       <td>---                             </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getppid</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_GETPPID</td>
+ *       <td>tcmi_syscall_hooks_sys_getppid() </td>
+ *       <td>tcmi_guest_rpc_sys_0()           </td> 
+ *       <td>tcmi_shadow_rpc_getppid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getpgid</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_GETPGID</td>
+ *       <td>tcmi_syscall_hooks_sys_getpgid() </td>
+ *       <td>tcmi_guest_rpc_sys_1()           </td> 
+ *       <td>tcmi_shadow_rpc_getpgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setpgid</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_SETPGID</td>
+ *       <td>tcmi_syscall_hooks_sys_setpgid() </td>
+ *       <td>tcmi_guest_rpc_sys_1()           </td> 
+ *       <td>tcmi_shadow_rpc_setpgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getpgrp</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_GETPGRP</td>
+ *       <td>tcmi_syscall_hooks_sys_getpgrp() </td>
+ *       <td>tcmi_guest_rpc_sys_0()           </td> 
+ *       <td>tcmi_shadow_rpc_getpgrp()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getsid</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_GETSID</td>
+ *       <td>tcmi_syscall_hooks_sys_getsid()  </td>
+ *       <td>tcmi_guest_rpc_sys_1()           </td> 
+ *       <td>tcmi_shadow_rpc_getsid()         </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setsid</td>
+ *       <td>PID \& GID manip.</td>
+ *       <td>TCMI_RPC_SYS_SETSID</td>
+ *       <td>tcmi_syscall_hooks_sys_setsid()  </td>
+ *       <td>tcmi_guest_rpc_sys_0()           </td> 
+ *       <td>tcmi_shadow_rpc_setsid()         </td>
+ *     </tr><!-- User identification **************************************** -->
+ *     <tr>
+ *       <td>getuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_GETUID</td>
+ *       <td>tcmi_syscall_hooks_sys_getuid() </td>
+ *       <td>tcmi_guest_rpc_sys_0()          </td> 
+ *       <td>tcmi_shadow_rpc_getuid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>geteuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_GETEUID</td>
+ *       <td>tcmi_syscall_hooks_sys_geteuid() </td>
+ *       <td>tcmi_guest_rpc_sys_0()           </td> 
+ *       <td>tcmi_shadow_rpc_geteuid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getresuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_GETRESUID</td>
+ *       <td>tcmi_syscall_hooks_sys_getresuid() </td>
+ *       <td>tcmi_guest_rpc_sys_getresuid()     </td> 
+ *       <td>tcmi_shadow_rpc_getresuid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_SETUID</td>
+ *       <td>tcmi_syscall_hooks_sys_setuid() </td>
+ *       <td>tcmi_guest_rpc_sys_1()          </td> 
+ *       <td>tcmi_shadow_rpc_setuid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setreuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_SETREUID</td>
+ *       <td>tcmi_syscall_hooks_sys_setreuid() </td>
+ *       <td>tcmi_guest_rpc_sys_2()            </td> 
+ *       <td>tcmi_shadow_rpc_setreuid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setresuid</td>
+ *       <td>User identification</td>
+ *       <td>TCMI_RPC_SYS_SETRESUID</td>
+ *       <td>tcmi_syscall_hooks_sys_setresuid() </td>
+ *       <td>tcmi_guest_rpc_sys_3()             </td> 
+ *       <td>tcmi_shadow_rpc_setresuid()        </td>
+ *     </tr><!-- Group identification **************************************** -->
+ *     <tr>
+ *       <td>getgid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_GETGID</td>
+ *       <td>tcmi_syscall_hooks_sys_getgid() </td>
+ *       <td>tcmi_guest_rpc_sys_0()          </td> 
+ *       <td>tcmi_shadow_rpc_getgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getegid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_GETEGID</td>
+ *       <td>tcmi_syscall_hooks_sys_getegid() </td>
+ *       <td>tcmi_guest_rpc_sys_0()           </td> 
+ *       <td>tcmi_shadow_rpc_getegid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getresgid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_GETRESGID</td>
+ *       <td>tcmi_syscall_hooks_sys_getresgid() </td>
+ *       <td>tcmi_guest_rpc_sys_getresgid()     </td> 
+ *       <td>tcmi_shadow_rpc_getresgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>getgroups</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_GETGROUPS</td>
+ *       <td>tcmi_syscall_hooks_sys_getgroups() </td>
+ *       <td>tcmi_guest_rpc_sys_getgroups()     </td> 
+ *       <td>tcmi_shadow_rpc_getgroups()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setgid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_SETGID</td>
+ *       <td>tcmi_syscall_hooks_sys_setgid() </td>
+ *       <td>tcmi_guest_rpc_sys_1()          </td> 
+ *       <td>tcmi_shadow_rpc_setgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setregid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_SETREGID</td>
+ *       <td>tcmi_syscall_hooks_sys_setregid() </td>
+ *       <td>tcmi_guest_rpc_sys_2()            </td> 
+ *       <td>tcmi_shadow_rpc_setregid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setresgid</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_SETRESGID</td>
+ *       <td>tcmi_syscall_hooks_sys_setresgid() </td>
+ *       <td>tcmi_guest_rpc_sys_3()             </td> 
+ *       <td>tcmi_shadow_rpc_setresgid()        </td>
+ *     </tr>
+ *     <tr>
+ *       <td>setgroups</td>
+ *       <td>Group identification</td>
+ *       <td>TCMI_RPC_SYS_SETGROUPS</td>
+ *       <td>tcmi_syscall_hooks_sys_setgroups() </td>
+ *       <td>tcmi_guest_rpc_sys_setgroups()     </td> 
+ *       <td>tcmi_shadow_rpc_setgroups()        </td>
+ *     </tr>
+ * </table>
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */

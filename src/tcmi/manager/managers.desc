@@ -1,0 +1,13 @@
+/** @defgroup tcmi_managers_group managers 
+ *
+ * @ingroup tcmi_module_class
+ *
+ * Classes in this group are responsible for various controlling tasks
+ * in the infrastructure. Generally we can divide them based on
+ * functionality into 3 groups:
+ * - CCN/PEN controllers
+ * - CCN/PEN migration controllers
+ * - CCN/PEN configuration controllers(not implemented)
+ *
+ * @todo Implement configuration manager that will allow allow changing TCMI parameters from user space
+ */

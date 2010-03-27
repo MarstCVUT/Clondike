@@ -1,0 +1,5 @@
+/** @defgroup proxyfs_module_class ProxyFS 
+ *
+ * Classes in this group represent proxy filesystem
+ * and related objects.
+ */

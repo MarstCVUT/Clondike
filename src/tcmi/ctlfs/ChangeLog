@@ -1,0 +1,6 @@
+2005-05-12  Jan Capek  <capekj@clare.doma>
+
+	* tcmi_ctlfs_file.c (tcmi_ctlfs_rawfile_new): Added printf style
+	format string and variable number of arguments similar to string file
+	and integer file constructors.
+

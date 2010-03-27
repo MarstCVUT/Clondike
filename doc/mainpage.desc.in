@@ -1,0 +1,300 @@
+/** \mainpage Clondike(__CLDK_VER__)
+ * \author Jan Capek
+ * \version KKC-__KKC_VER__ TCMI-__TCMI_VER__
+ * \date __DATE__
+ *
+ * \section cnt Content
+ * - \ref sec_mainpage_intro 
+ * - \ref sec_mainpage_style
+ *   - \ref subsec_mainpage_style_overall
+ *   - \ref subsec_mainpage_style_ref
+ *   - \ref subsec_mainpage_style_synch
+ *   - \ref subsec_mainpage_style_inheritance
+ *   - \ref subsec_mainpage_style_polymorph
+ *   - \ref subsec_mainpage_style_coding
+ * - \ref sec_mainpage_patch
+ *   - \ref subsec_mainpage_patch_hooks
+ *   - \ref subsec_mainpage_patch_sig_unused
+ *   - \ref subsec_mainpage_patch_task_struct
+ *   - \ref subsec_mainpage_patch_do_exit
+ *   - \ref subsec_mainpage_patch_tmp_debug
+ *   - \ref subsec_mainpage_patch_kconfig
+ * - \ref sec_mainpage_install
+ * - \ref page_manual
+ * - \ref sec_mainpage_dir_layout
+ * - \ref sec_mainpage_tcmichangelogs
+ * - \ref sec_mainpage_kkcchangelogs
+ * - \ref sec_mainpage_srcstats
+ *
+ *
+ * \section sec_mainpage_intro Introduction
+ *
+ * Clondike is a project developed at FEE CTU, Prague. The main goal
+ * is to create a cluster of non-dedicated workstations. This web page
+ * is automatically generated from clondike sources and explains
+ * various implementation aspects. Currently, clondike has two main
+ * parts that are described in separate sections:
+ *
+ * - \link kkc_class Kernel-to-Kernel Communication library(KKC) \endlink
+ * - \link tcmi_module_class Task Checkpointing and Migration Infrastructure(TCMI) \endlink
+ *
+ * All clondike classes can be viewed in a <a href="modules.html">tree-like structure </a>
+ *
+ *
+ * \section sec_mainpage_style Software Design Style
+ *
+ * \subsection subsec_mainpage_style_overall Overall Considerations
+ *
+ * All components are designed in a strict object-oriented
+ * style. Since we are on a C-based platform, the OO style can't be
+ * enforced by the compiler - it has to be respected by the
+ * developer. There is total encapsulation of all objects, all
+ * accessor methods are implemented with \c static \c inline memory
+ * class. All optimization is done by the compiler. Each class resides
+ * in a separate module(header file + optional .c file). Declaration
+ * section that is meant to be private is wrapped by a preprocessor
+ * directive:
+ \verbatim
+ #ifdef CLASS_NAME_PRIVATE
+ .
+ . declaration of private methods
+ .
+ #endif
+ \endverbatim
+ * The class definition file then prior to including the header file
+ * defines this macro which makes the private declarations visible.
+ * 
+ * All instance variables (even for singleton classes) are wrapped in
+ * a \c struct. Each regular instance method takes a pointer to this
+ * compound structure(denoted as \c self) as its first
+ * argument. 
+ *
+ * Singleton instance methods of a class that doesn't use inheritance
+ * don't use \c self as argument. They access the instance directly.
+ *
+ * \subsection subsec_mainpage_style_ref Reference Counting 
+ *
+ * We have to realize that most of the objects are being accessed by
+ * multiple threads of execution. This fact requires a solid instance
+ * creation/destruction scheme. There is no garbage collecting present
+ * in kernel. This solution uses reference counters - each object is
+ * responsible for its reference counting. Each thread operating on an
+ * object retains its own reference to it. Threads don't destroy the
+ * objects, they merely release the reference. When the last reference
+ * to an object has been released, the object then performs a \b self
+ * \b destruction. This approach provides a robust solution and is
+ * generally recommended by kernel developers. In fact, not having a
+ * proper reference counting in a multithreaded 'kernel application' is
+ * considered a bug.
+ *
+ * \subsection subsec_mainpage_style_synch Synchronization
+ * 
+ * Speaking of multiple threads of execution, some objects require
+ * synchronization of threads accessing them. Linux kernel provides
+ * various synchronization primitives(spinlocks, semaphores,
+ * completions).  Their use is specific to each individual situation
+ * and object. As a rule of thumb, the approach - '\em protect \em
+ * data \em not \em code' has been used.
+ *
+ * \subsection subsec_mainpage_style_inheritance Inheritance
+ *
+ * Inheritance is a very important 'software tool' that prevents code
+ * duplication and yields lighter and easier to maintain code. There
+ * is more than one way how it can be implemented in C. For this
+ * project a simple object composition has been chosen as the most
+ * efficient variant. A \a class_a that inherits from \a class_b
+ * contains an instance of \a class_b in its compound
+ * structure. Example:
+ \verbatim
+ struct class_b {
+  int b;
+ };
+ struct class_b* class_b_init(....);
+ \endverbatim
+ \verbatim
+ struct class_a {
+  struct class_b super; -> actual composition = inheritance
+  int a;
+ };
+ struct class_b* class_a_new(....);
+ \endverbatim
+ 
+ * The \a class_b intentionally doesn't have a public constructor as
+ * it is considered abstract. The only public initializer, that it
+ * provides, is intended for the child classes to be called from their
+ * constructors.
+ *
+ * It is \b very important that \c super (always denoted like this
+ * throughout the source code) is placed at the very top of the \a
+ * class_a compound structure. With this layout, we can guarantee that
+ * a pointer to child instance also points to parent instance. Thus,
+ * the parent methods will treat it properly. The \a class_a_new
+ * constructor intentionally returns a pointer to the parent class
+ * object. This is to support polymorphism(see further).
+ *
+ * \subsection subsec_mainpage_style_polymorph Polymorphism & Template Design Patterns
+ * 
+ * C is a language with type control, pure polymorphism is not
+ * possible. In order to have polymorphism we have to do inheritance
+ * (unless we want to get around with '\c void *' pointers only). The
+ * implementation takes a very efficient approach that is used
+ * everywhere in the kernel (e.g. VFS). The child class constructor
+ * supplies a vector of operations to the parent class and returns a
+ * pointer to the parent class instance. The parent class provides
+ * methods that are considered as the official object
+ * protocol. Instances of all classes that inherit from the same
+ * parent are thus considered \em polymorphic.
+ *
+ * For some objects we want the parent class instance to do some work
+ * prior and after calling the child method from the operations
+ * vector. E.g. a \link tcmi_msg_class TCMI migration message \endlink
+ * sends its header and delegates sending the body to the child class
+ * that knows how to do it. The \em template pattern can thus be
+ * considered as a natural extension of \em polymorphism. For example
+ * implementation see e.g. \link tcmi_msg_class tcmi_msg \endlink and
+ * \link tcmi_skel_msg_class tcmi_skel_msg \endlink.
+ *
+ * \subsection subsec_mainpage_style_coding Coding Style 
+ *
+ * The coding style follows recommendations for linux kernel including
+ * K&R indentation. There are a few details that should be clearly
+ * stated here: Since there is no software exception/error handling
+ * mechanism(like try/catch or setjmp/longjmp statements), we have to
+ * deal with errors manually. This is a common approach used
+ * throughout the kernel. Each method (considering a non-trivial one)
+ * has two parts: - executive part (at the top, the actual
+ * functionality/work to be done) - error handling part (at the
+ * bottom)
+ *
+ * When an error is detected a \c goto is issued to a corresponding
+ * handler at the bottom. The handler then unrolls all actions that
+ * have executed so far(if possible) and returns an error code. The
+ * error code is generally a negative number. For methods that return
+ * a pointer, NULL signals an error. A typical example method that
+ * implements this error handling is any constructor - class method.
+ * See e.g. tcmi_shadowtask.c::tcmi_shadowtask_new().
+ *
+ * All class identifiers strictly have following prefix:
+ *
+ * - \c tcmi_ for \link tcmi_module_class TCMI \endlink
+ * - \c kkc_  for \link kkc_class KKC \endlink
+ *
+ * based on the subsystem they belong to. The implementation of a
+ * class is carried out in the .h and .c file of the same name as the
+ * class is.
+ *
+ * Each method name carries the identifier of the class that it
+ * belongs to. This rather tedious(but consistent) coding decision
+ * increases code
+ * readibility. E.g. tcmi_task.c::tcmi_task_set_local_pid() represents
+ * a local PID setter of \link tcmi_task_class tcmi_task\endlink.
+ *
+ * \section sec_mainpage_patch Linux Kernel Patch  
+ *
+ * Using \ref tcmi_module_class with Linux kernel required a few
+ * modifications in the kernel itself. This section describes
+ * necessary changes.
+ *
+ * \subsection subsec_mainpage_patch_hooks TCMI hooks (include/clondike/tcmi/tcmi_hooks.h)
+ *
+ * This is an extension that provides an easy way to install hooks
+ * anywhere in the Linux kernel. A hook then provides a mechanism for
+ * external external subsystems register their functionality. Having
+ * the system setup like this allows having the entire TCMI outside
+ * the kernel.
+ *
+ * Creating a new hook requires:
+ * - declaring the hook in the \a tcmi_hooks.h header
+ * - adding the hook call at the desired place in the kernel
+ *
+ * E.g. the \ref subsec_mainpage_patch_sig_unused "SIGUNUSED" is
+ * installed in \a kernel/signal.c as follows:
+ \verbatim
+   .
+   .
+   if (signr == SIGUNUSED) {
+	spin_unlock_irq(&current->sighand->siglock);
+	TCMI_HOOKS_CALL(sig_unused, regs);
+	goto relock;
+   }
+   .
+   .
+ \endverbatim
+ *
+ * \subsection subsec_mainpage_patch_sig_unused SIGUNUSED/SIGSYS (kernel/signal.c)
+ *
+ * TCMI hook - the default handler for this signal (31) - has been
+ * installed into \a get_signal_to_deliver() function. In addition,
+ * the signal has been added among \em kernel \em signals. This
+ * prevents any user processes (effectively forbids) from setting
+ * their own signal handler for this signal.
+ *
+ * \subsection subsec_mainpage_patch_task_struct task_struct (include/linux/sched.h)
+ *
+ * Shadow and guest processes require an entry in process
+ * descriptor. The entry carries:
+ * - pointer to the TCMI task (type void*, so that the actual \link
+ * tcmi_task_class tcmi_task \endlink doesn't need to be part of
+ * kernel sources).
+ * - pointer to the migration mode handler
+ * - pointer to data available for the handler (currently unused)
+ *
+ * \subsection subsec_mainpage_patch_do_exit do_exit (kernel/exit.c)
+ *
+ * TCMI hook for this system call is installed, so that the framework
+ * is able to keep track of terminating migrated(\link
+ * tcmi_guesttask_class guest \endlink) processes.
+ *
+ * \subsection subsec_mainpage_patch_tmp_debug Debugging (clondike/tcmi/tcmi_dbg.h, arch/i386/fault.c, mm/memory.c)
+ *
+ * There are debug messages directly in the kernel that will show up
+ * in the kernel debug log only for tcmi_tasks. Currently, there are
+ * debug messages in page fault handler to verify correct checkpoint
+ * restart.  This will be removed in the future.
+ *
+ * \subsection subsec_mainpage_patch_kconfig Kconfig(Makefile, arch/i386/Kconfig, clondike/tcmi/Kconfig)
+ *
+ * The kernel configuration has been extended. This allows enabling
+ * TCMI hooks in the kernel. Also, support for CCN and PEN on the same
+ * node can be configured.
+ *
+ * \section sec_mainpage_dir_layout Source Directory Layout
+ * \verbinclude README
+ *
+ *
+ *
+ * \section sec_mainpage_install Installation
+ * \verbinclude INSTALL
+ *
+ * \section sec_mainpage_tcmichangelogs Changelogs - TCMI
+ * \ref tcmi_module_class (\a src/tcmi/ChangeLog)
+ * \verbinclude src/tcmi/ChangeLog
+ *
+ * \ref tcmi_ckptcom_class (\a src/tcmi/ckpt/ChangeLog)
+ * \verbinclude src/tcmi/ckpt/ChangeLog
+ *
+ * \ref tcmi_comm_group (\a src/tcmi/comm/ChangeLog)
+ * \verbinclude src/tcmi/comm/ChangeLog
+ *
+ * \ref tcmi_ctlfs_class (\a src/tcmi/ctlfs/ChangeLog)
+ * \verbinclude src/tcmi/ctlfs/ChangeLog
+ *
+ * \ref tcmi_lib_group (\a src/tcmi/lib/ChangeLog)
+ * \verbinclude src/tcmi/lib/ChangeLog
+ *
+ * \ref tcmi_managers_group (\a src/tcmi/manager/ChangeLog)
+ * \verbinclude src/tcmi/manager/ChangeLog
+ *
+ * \ref tcmi_migration_group (\a src/tcmi/migration/ChangeLog)
+ * \verbinclude src/tcmi/migration/ChangeLog
+ *
+ * \ref tcmi_task_group (\a src/tcmi/task/ChangeLog)
+ * \verbinclude src/tcmi/task/ChangeLog
+ *
+ * \section sec_mainpage_kkcchangelogs Changelogs - KKC
+ * \ref kkc_class(\a src/kkc/ChangeLog)
+ * \verbinclude src/kkc/ChangeLog
+ *	
+ * \section sec_mainpage_srcstats Current Source Code Statistics
+ * \image html src_stats.png
+ */

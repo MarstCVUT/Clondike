@@ -1,0 +1,19 @@
+==== comm package ====
+
+ISSUE
+ sending of messages is done badly! Some parts of code (especially rpc, but no only) is sending messages by pieces. This can lead to a situation, when we succeed in sending part of the message, but not all everything (for example bad memory passed, we are interrupted,..).
+ In this case, we have no support for detection of such an error on other end and in fact the other end may be completely confused by this
+
+POSSIBLE SOLUTION(s)
+ - do not do this multi phase sending.. compose all message to a tmp buffer and then send it, when required
+ - add some "crcs" to messages to detect "broken" messages, but it would require in addition some ability to dected proper end of incomplete message so that next message is read properly!
+
+ISSUE
+ sending of message in parts has another issues... if the socket can be accessed via more threads (like process connection can be), then the parts may get mixed and we have a serios trouble.. again not splitting into the parts would be likely most helpful..
+
+
+
+==== unclassified =====
+
+ISSUE - signal handling
+ Most of our kernel code does only check error and then returns.. we should keep signals in mind and perhaps at least some actions might be finished.. right?

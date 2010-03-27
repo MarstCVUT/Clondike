@@ -1,0 +1,8 @@
+/** @defgroup tcmi_comm_group communication
+ *
+ * @ingroup tcmi_module_class
+ *
+ * Classes in this group provide TCMI communication features. This includes:
+ * - sending/receiving messages (materialization)
+ * - message delivery
+ */

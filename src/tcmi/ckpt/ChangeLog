@@ -1,0 +1,6 @@
+2005-05-12  Jan Capek  <capekj@clare.doma>
+
+	* tcmi_ckpt.c (tcmi_ckpt_write_files, tcmi_ckpt_file_count): Both
+	methods now use a new macro 'tcmi_ckpt_foreach_openfile' to
+	iterate through open files.
+
