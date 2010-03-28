@@ -241,8 +241,6 @@ static long tcmi_mighooks_execve(char *filename, char __user * __user * argv, ch
 		tcmi_task_inc_execve_count(current->tcmi.tcmi_task);
 	}
 
-	mdbg(ERR3, "TMP DEBUG: EXECVE HOOK DONE");
-
 	return 0;
 };
 

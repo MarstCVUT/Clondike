@@ -150,17 +150,13 @@ static inline void tcmi_fdcache_put(struct tcmi_fdcache *self)
 static inline int tcmi_fdcache_add(struct tcmi_fdcache *self, int fd, struct file *file)
 {
 	struct tcmi_fdcache_entry *entry;
-mdbg(INFO3, "TMP DBG XX: %p", self);
 	if (!self || (self->used == self->size)) {
 		mdbg(ERR3, "TCMI fdcache full or not properly instantiated!");
 		goto exit0;
 	}
-mdbg(INFO3, "TMP XX 2");
 	entry = &self->entries[self->used++];
-mdbg(INFO3, "TMP XX 3");
 	entry->fd = fd;
 	entry->file = file;
-mdbg(INFO3, "TMP XX 4");
 	return 0;
 
 	/* error handling */

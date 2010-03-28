@@ -10,7 +10,6 @@ class ExecutableConfig
     end
     
     def canMigrateTo(targetNodeId)
-	puts "CMC"
         return true if ( @allowedNodes.include?("Any"))
         return @allowedNodes.include?(targetNodeId)
     end
@@ -44,7 +43,7 @@ class UserConfiguration
 
     def canMigrateTo(execName, targetNodeId)	
         config = @execConfigs[execName]
-	puts "CONFIG LOADED #{config} for exec #{execName}"
+#	puts "CONFIG LOADED #{config} for exec #{execName}"
         # Do not allow to migrate not-listed executables
         return false if !config
         return config.canMigrateTo(targetNodeId)

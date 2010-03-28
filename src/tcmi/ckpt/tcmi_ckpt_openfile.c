@@ -206,8 +206,6 @@ static int tcmi_ckpt_openfile_write_newfd(struct tcmi_ckpt *ckpt, int fd, struct
 		goto exit1;
 	}
 
-	mdbg(INFO3, "TMP DEBUG: FILE NAME: %s", pathname);
-	
 	if ( !is_proxyfs_file(pathname) && ((S_ISCHR(new_hdr.type) || S_ISFIFO(new_hdr.type))) ){ // Special file, use proxyfs
 		// Overtake only for shadow tasks and exclude dev-null
 		if( current->tcmi.tcmi_task && current->tcmi.task_type == shadow && !is_dev_null(pathname) ){
@@ -225,23 +223,18 @@ static int tcmi_ckpt_openfile_write_newfd(struct tcmi_ckpt *ckpt, int fd, struct
 	}
 
 	new_hdr.pathname_size = strlen(pathname) + 1;
-	mdbg(INFO3, "TMP DBG 1");
 	/* write the header and the pathname into the checkpoint */
 	if (tcmi_ckpt_write(ckpt, &new_hdr, sizeof(new_hdr)) < 0) {
 		mdbg(ERR3, "Error writing newfd chunk");
 		goto exit1;
 	}
-mdbg(INFO3, "TMP DBG 2");
 	if (tcmi_ckpt_write(ckpt, pathname, new_hdr.pathname_size) < 0) {
 		mdbg(ERR3, "Error writing file pathname chunk");
 		goto exit1;
 	}
-mdbg(INFO3, "TMP DBG 3");
 	tcmi_ckpt_fdcache_add(ckpt, fd, file);
-mdbg(INFO3, "TMP DBG 4");
 	mdbg(INFO4, "Written new file descriptor fd=%d, type=%0o '%s'", fd, new_hdr.type, pathname);	
 	free_page(page);	
-mdbg(INFO3, "TMP DBG 5");	
 	return 0;
 
 	/* error handling */
