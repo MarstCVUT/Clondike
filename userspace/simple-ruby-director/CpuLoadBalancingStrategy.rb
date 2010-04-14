@@ -12,13 +12,13 @@ class CpuLoadBalancingStrategy
     
     # Return ID of the node where the process shall be migrated
     # Returns nil, if no migration should be performed        
-    def findMigrationTarget(pid, uid, name, args, envp)        
+    def findMigrationTarget(pid, uid, name, args, envp, emigPreferred)        
         detachedNodes = @membershipManager.coreManager.detachedNodes
         
         # High cpu usage on local node => Emigrate if there is any other node
         selfCpuUsage = @nodeRepository.selfNode.nodeInfo ? @nodeRepository.selfNode.nodeInfo.cpuUsage : 0
         enforceEmigration = selfCpuUsage > 97
-        preferLocal = selfCpuUsage < 95
+        preferLocal = selfCpuUsage < 95 && !emigPreferred
                 
         emigrateThreshold = preferLocal ? 80 : 95
         emigrateThreshold = 101 if enforceEmigration # Any node is elibile target in this case

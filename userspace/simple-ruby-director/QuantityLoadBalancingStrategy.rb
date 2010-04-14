@@ -58,11 +58,11 @@ class QuantityLoadBalancingStrategy
     
     # Return ID of the node where the process shall be migrated
     # Returns nil, if no migration should be performed        
-    def findMigrationTarget(pid, uid, name, args, envp)        
+    def findMigrationTarget(pid, uid, name, args, envp, emigPreferred)        
         return nil if !@membershipManager.coreManager # Not a core node?
         detachedNodes = @membershipManager.coreManager.detachedNodes
         
-        bestTarget = findBestTarget(pid, uid, name, args, envp, detachedNodes)
+        bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Best target #{bestTarget} for name #{name}."
         updateCounter(bestTarget, pid)
         bestTarget
@@ -91,9 +91,9 @@ private
         @counter.getCount(@nodeRepository.selfNode) < @minimumTasksLocal
     end
     
-    def findBestTarget(pid, uid, name, args, envp, detachedNodes)
+    def findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Local task count #{@counter.getCount(@nodeRepository.selfNode)}"
-        return nil if keepLocal
+        return nil if !emigPreferred && keepLocal()
         best = TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|
 	    taskCount = @counter.getCount(node)
             # Note that taskCount has to be returned negative, so that less tasks is better candidate!
@@ -101,7 +101,7 @@ private
         }                
         
         # Not found best? Delegate further
-        return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp) if !best
+        return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp, emigPreferred) if !best
         # Found best
         return best
     end    

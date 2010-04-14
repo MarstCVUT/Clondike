@@ -8,7 +8,7 @@ class RandomBalancingStrategy
     
     # Return ID of the node where the process shall be migrated
     # Returns nil, if no migration should be performed        
-    def findMigrationTarget(pid, uid, name, args, envp)
+    def findMigrationTarget(pid, uid, name, args, envp, emigPreferred)
         detachedNodes = @membershipManager.coreManager.detachedNodes
         
         # +/- Uniform chance to choose any node, including local node (=no migration)

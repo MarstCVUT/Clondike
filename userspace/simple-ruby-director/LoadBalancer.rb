@@ -10,7 +10,7 @@ class LoadBalancer
     end
     
     def registerMigrationListener(listener)
-        @migrationListeners << listener
+       @migrationListeners << listener
     end
     
     #Called when a new program is being "execv-ed"
@@ -41,8 +41,12 @@ private
     # Returns nil, if no migration should be performed    
     def getEmigrationTarget(pid, uid, name, args, envp)        
         return nil if !canMigrate(name, uid)
-        @balancingStrategy.findMigrationTarget(pid, uid, name, args, envp);
-        #rand(2) < 1 ? 0 : nil# Dummy ;) 50% chance to migrate
+	emigPreferred = isEmigrationPrefered(envp)
+        return @balancingStrategy.findMigrationTarget(pid, uid, name, args, envp, emigPreferred);
+    end
+    
+    def isEmigrationPrefered(envp)
+      return envp.include?("EMIG=1")
     end
     
     def shouldMigrateBack(pid, name, args, envp)
@@ -58,6 +62,9 @@ private
     #Called, if the execv-ed task is a normal task (which can be considered local
     #to a local core node)
     def onExecCore(pid, uid, name, args, envp)
+	return [DirectorNetlinkApi::DO_NOT_MIGRATE] if ( !canMigrate(name, uid) );
+	return [DirectorNetlinkApi::REQUIRE_ARGS_AND_ENVP] if ( !envp );
+      
         migrationTarget = getEmigrationTarget(pid, uid, name, args, envp)
         if ( migrationTarget )
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
