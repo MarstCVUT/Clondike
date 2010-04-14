@@ -120,7 +120,7 @@ static int put_char_array(struct sk_buff *skb, char** chars, int type, int neste
 		}
 
 		while ( chars[i] ) {
-			printk("Putting arg\n");
+//			printk("Putting arg\n");
 			ret = nla_put_string(skb, nested_type, chars[i]);
 			if (ret != 0)
 				goto failure;
@@ -128,7 +128,7 @@ static int put_char_array(struct sk_buff *skb, char** chars, int type, int neste
 			i++;
 		}
 
-		printk("Putting length: %d\n", i);
+//		printk("Putting length: %d\n", i);
 
 		ret = nla_put_u32(skb, DIRECTOR_A_LENGTH, i); // Count of elements
 		if (ret != 0)
