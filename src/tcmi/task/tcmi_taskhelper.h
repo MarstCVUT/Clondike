@@ -734,7 +734,13 @@ static inline void tcmi_taskhelper_flushfiles(void)
 	int fd;
 	struct file *file;
 	struct inode *inode;
-
+	unsigned int old_flags = current->flags & PF_EXITING;
+	
+	/* We do a special trick here. In order to preserve proxy files during the migration, we need to tell the other end not to close the files.
+	   It does not close the files in case the clsoe was called in context of exit, as this file is going to be closed on process exit.
+	   So we pretend we are exitting here so that the server things it should not close the file */ 
+	current->flags |= PF_EXITING;
+	
 	/* Check each open file */
 	tcmi_ckpt_foreach_openfile(file, fd) {
 		inode = file->f_dentry->d_inode;
@@ -744,7 +750,8 @@ static inline void tcmi_taskhelper_flushfiles(void)
 			sys_close(fd);
 		}
 	}
-	
+		
+	current->flags = old_flags;
 }
 
 /** \<\<public\>\> Set action for all signals accept SIGKILL and SIGSTOP 
