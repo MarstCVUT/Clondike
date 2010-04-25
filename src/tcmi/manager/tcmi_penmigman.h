@@ -72,7 +72,7 @@ struct tcmi_penmigman {
 
 
 /** \<\<public\>\> TCMI PEN migration manager constructor. */
-extern struct tcmi_migman* tcmi_penmigman_new(struct kkc_sock *sock, u_int32_t pen_id, u_int slot_index,
+extern struct tcmi_migman* tcmi_penmigman_new(struct kkc_sock *sock, u_int32_t pen_id, struct tcmi_slot* manager_slot,
 					      struct tcmi_ctlfs_entry *root,
 					      struct tcmi_ctlfs_entry *migproc,
 					      const char namefmt[], ...);

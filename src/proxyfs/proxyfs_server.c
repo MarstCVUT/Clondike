@@ -224,10 +224,13 @@ static void proxyfs_server_handle_msg(struct proxyfs_task *self, struct proxyfs_
 			if( real_file != NULL ){ 
 				mdbg(INFO1, "File found");
 				proxyfs_real_file_close( PROXYFS_REAL_FILE(real_file), peer );
-				if ( !exitting ) // If the process was not exitted, the close was ordinary close request made 
-						 // by the process, so we can mark the file closed, since nobody is going to 
-						 // open it again
+				if ( !exitting ) {
+					/* If the process was not exitted, the close was ordinary close request made 
+					   by the process, so we can mark the file closed, since nobody is going to 
+					   open it again */
+					mdbg(INFO1, "Marking physical file closed");
 					proxyfs_file_set_status( real_file, PROXYFS_FILE_CLOSED );	
+				}
 				return;
 			}
 			msg = proxyfs_msg_new(MSG_CLOSE_RESP, msg->header.file_ident, 0, NULL );

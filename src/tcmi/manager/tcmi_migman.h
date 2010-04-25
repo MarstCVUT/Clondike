@@ -104,14 +104,14 @@ struct tcmi_migman {
 	u_int32_t ccn_id;
 	/** PEN ID - vica versa to how CCN ID is setup*/
 	u_int32_t pen_id;
-	/** Index of slot in associated manager, where this migman is placed */
-	u_int slot_index;
+	/** Reference to slot in an associated manager migmans vector. Required when performing dequeueing. */
+	struct tcmi_slot* manager_slot;
 	/** Architecture of corresponding migration manager peer (communicated on registration) */	
 	enum arch_ids peer_arch_type;
 
 	/** Instance reference counter. */
 	atomic_t ref_count;
-
+	
 	/** Message queue for transaction-less messages. */
 	struct tcmi_queue msg_queue;
 	/** Message transactions. */
@@ -127,7 +127,7 @@ struct tcmi_migman {
 	struct task_struct *msg_thread;
 
 	/** Denotes the current state of the manager. */
-	tcmi_migman_state_t state;
+	atomic_t state;
 
 	/** TCMI ctlfs - directory where all migration control
 	 * files/directories reside. */
@@ -136,6 +136,8 @@ struct tcmi_migman {
 	struct tcmi_ctlfs_entry *d_conns;
 	/** TCMI ctlfs - reports current state of the manager. */
 	struct tcmi_ctlfs_entry *f_state;
+	/** TCMI ctlfs - request shutdown of this migration manager. */
+	struct tcmi_ctlfs_entry *f_stop;
 
 	/** TCMI ctlfs - reference to the migproc directory - needed
 	 * when immigrating a process. */
@@ -164,6 +166,10 @@ struct tcmi_migman_ops {
 	void (*free)(struct tcmi_migman*);
 	/** Processes a TCMI message m. */
 	void (*process_msg)(struct tcmi_migman*, struct tcmi_msg*);
+	
+	/** Request to stop this migration manager and terminate its connection with peer. */
+	void (*stop)(struct tcmi_migman*);
+
 };
 
 /** Message processing method type for the message processing thread. */
@@ -177,7 +183,7 @@ typedef void process_msg_t (struct tcmi_migman*, struct tcmi_msg*);
  * */
 extern int tcmi_migman_init(struct tcmi_migman *self, struct kkc_sock *sock, 
 			    u_int32_t ccn_id, u_int32_t pen_id, 
-			    u_int slot_index, enum arch_ids peer_arch_type,
+			    enum arch_ids peer_arch_type, struct tcmi_slot* manager_slot,
 			    struct tcmi_ctlfs_entry *root,
 			    struct tcmi_ctlfs_entry *migproc,
 			    struct tcmi_migman_ops *ops,
@@ -200,18 +206,35 @@ static inline struct tcmi_migman* tcmi_migman_get(struct tcmi_migman *self)
 
 
 /** Releases the instance. */
-extern void tcmi_migman_put(struct tcmi_migman *self);
+extern int tcmi_migman_put(struct tcmi_migman *self);
+
 
 /** 
- * \<\<public\>\> Sets a new state of the migration manager.
+ * \<\<public\>\> Set atomically a new state of the migration manager. 
  *
  * @param *self - pointer to this instance
  * @param state - new state to be set
+ * @return Last state, i.e. state before the state change was performed
  */
-static inline void tcmi_migman_set_state(struct tcmi_migman *self, 
+static inline tcmi_migman_state_t tcmi_migman_set_state(struct tcmi_migman *self, 
 					 tcmi_migman_state_t state)
 {
-	self->state = state;
+	return (tcmi_migman_state_t)atomic_xchg(&self->state, (int)state);
+}
+
+/** 
+ * \<\<public\>\> Set atomically a new state of the migration manager, assuming current state == old_state
+ *
+ * @param *self - pointer to this instance
+ * @param old_state - old state, that must hold in order to succeed in change
+ * @param state - new state to be set
+ * @return Non zero, in case change was performed
+ */
+static inline int tcmi_migman_change_state(struct tcmi_migman *self, 
+					 tcmi_migman_state_t old_state, tcmi_migman_state_t state)
+{
+	tcmi_migman_state_t current_state = (tcmi_migman_state_t)atomic_cmpxchg(&self->state, (int)old_state, (int)state);
+	return current_state == old_state;
 }
 
 /** 
@@ -222,7 +245,7 @@ static inline void tcmi_migman_set_state(struct tcmi_migman *self,
  */
 static inline tcmi_migman_state_t tcmi_migman_state(struct tcmi_migman *self)
 {
-	return self->state;
+	return (tcmi_migman_state_t)atomic_read(&self->state);
 }
 
 /** 
@@ -233,7 +256,7 @@ static inline tcmi_migman_state_t tcmi_migman_state(struct tcmi_migman *self)
  */
 static inline u_int tcmi_migman_slot_index(struct tcmi_migman *self)
 {
-	return self->slot_index;
+	return tcmi_slot_index(self->manager_slot);
 }
 
 
@@ -332,6 +355,9 @@ static inline enum arch_ids tcmi_migman_peer_arch(struct tcmi_migman* self)
 	return self->peer_arch_type;
 }
 
+/** Asynchronous request to stop migration manager, migrate all process back to hom and terminate connection with peer. */
+void tcmi_migman_stop(struct tcmi_migman *self);
+
 /** \<\<public\>\> Registers tcmi task into the migration manager tasks slotvec */
 extern int tcmi_migman_add_task(struct tcmi_migman *self, struct tcmi_task* task);
 /** \<\<public\>\> Removes tcmi task from the migration manager tasks slotvec */
@@ -340,8 +366,14 @@ extern int tcmi_migman_remove_task(struct tcmi_migman *self, struct tcmi_task* t
 /********************** PRIVATE METHODS AND DATA ******************************/
 #ifdef TCMI_MIGMAN_PRIVATE
 
+/** Removes migman from a list of migration managers of the associated manager. */
+static void tcmi_migman_unhash(struct tcmi_migman *self);
+
 /** Frees all migration manager resources. */
 static void tcmi_migman_free(struct tcmi_migman *self);
+
+/** Actual implementation of stop method */
+static int tcmi_migman_stop_perform(struct tcmi_migman *self, int remote_requested);
 
 /** Initializes TCMI ctlfs directories. */
 static int tcmi_migman_init_ctlfs_dirs(struct tcmi_migman *self,
@@ -358,6 +390,8 @@ static void tcmi_migman_stop_ctlfs_files(struct tcmi_migman *self);
 
 /** Read method for the TCMI ctlfs - reports migration manager state. */
 static int tcmi_migman_show_state(void *obj, void *data);
+/** Requests async shutdown */
+static int tcmi_migman_stop_request(void *obj, void *data);
 
 /** Starts the TCMI migration manager message processing thread. */
 static int tcmi_migman_start_thread(struct tcmi_migman *self);

@@ -39,7 +39,7 @@ ifneq ($(KERNELRELEASE),)
 			tcmi_exit_procmsg.o tcmi_p_emigrate_msg.o tcmi_guest_started_procmsg.o \
 			tcmi_ppm_p_migr_back_guestreq_procmsg.o tcmi_ppm_p_migr_back_shadowreq_procmsg.o\
 			tcmi_rpc_procmsg.o tcmi_rpcresp_procmsg.o\
-			tcmi_authenticate_msg.o tcmi_authenticate_resp_msg.o tcmi_signal_msg.o tcmi_generic_user_msg.o
+			tcmi_authenticate_msg.o tcmi_authenticate_resp_msg.o tcmi_signal_msg.o tcmi_generic_user_msg.o tcmi_disconnect_msg.o
 
 
 # This branch is taken during the first invocation of make

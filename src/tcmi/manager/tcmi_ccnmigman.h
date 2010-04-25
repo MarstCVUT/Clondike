@@ -75,7 +75,7 @@ struct tcmi_ccnmigman {
 
 
 /** \<\<public\>\> TCMI CCN migration manager constructor. */
-extern struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, u_int slot_index,
+extern struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, struct tcmi_slot* manager_slot,
 					      struct tcmi_ctlfs_entry *root,
 					      struct tcmi_ctlfs_entry *migproc,
 					      const char namefmt[], ...);

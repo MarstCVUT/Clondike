@@ -64,7 +64,7 @@ static int tcmi_penmigman_migrate_all_home(void *obj, void *data);
  * @param ... - variable arguments
  * @return new TCMI PEN manager instance or NULL
  */
-struct tcmi_migman* tcmi_penmigman_new(struct kkc_sock *sock, u_int32_t pen_id, u_int slot_index,
+struct tcmi_migman* tcmi_penmigman_new(struct kkc_sock *sock, u_int32_t pen_id, struct tcmi_slot* manager_slot,
 				       struct tcmi_ctlfs_entry *root,
 				       struct tcmi_ctlfs_entry *migproc,
 				       const char namefmt[], ...)
@@ -79,7 +79,7 @@ struct tcmi_migman* tcmi_penmigman_new(struct kkc_sock *sock, u_int32_t pen_id, 
 		goto exit0;
 	}
 	va_start(args, namefmt);
-	if (tcmi_migman_init(TCMI_MIGMAN(migman), sock, 0, pen_id, UNKNOWN, slot_index, root, migproc,
+	if (tcmi_migman_init(TCMI_MIGMAN(migman), sock, 0, pen_id, UNKNOWN, manager_slot, root, migproc,
 			     &penmigman_ops, namefmt, args) < 0) {
 		mdbg(ERR3, "TCMI PEN migman initializtion failed!");
 		va_end(args);
@@ -216,14 +216,6 @@ static int tcmi_penmigman_migrate_all_home(void *obj, void *data) {
 	return 0;
 }
 
-/** 
- * \<\<private\>\> Called upon migman destruction.
- * The only custom resource to be destroyed is the shadows slot vector.
- * 
- * Emigrates all contained tasks back to home node
- *
- * @param *self - pointer to this migration manager instance
- */
 static void tcmi_penmigman_free(struct tcmi_migman *self) {
 	/* struct tcmi_penmigman *self_ppn  = TCMI_PENMIGMAN(self); */
 	
@@ -234,6 +226,17 @@ static void tcmi_penmigman_free(struct tcmi_migman *self) {
 	 */
 	//tcmi_penmigman_migrate_all_home(self, NULL);
 	/* TODO: Wait till all migrations are finished? */
+}
+
+/** 
+ * \<\<private\>\> Called on stop request
+ * 
+ * Emigrates all contained tasks back to home node (asynchronously - only emigration requests are issued in context of this method)
+ *
+ * @param *self - pointer to this migration manager instance
+ */
+static void tcmi_penmigman_stop(struct tcmi_migman *self) {
+    tcmi_penmigman_migrate_all_home(self, NULL);
 }
 
 /** \<\<public\>\> Send dignal to process
@@ -325,7 +328,8 @@ static void tcmi_penmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 static struct tcmi_migman_ops penmigman_ops = {
 	.init_ctlfs_files = tcmi_penmigman_init_ctlfs_files, 
 	.stop_ctlfs_files = tcmi_penmigman_stop_ctlfs_files,
-	.free = tcmi_penmigman_free,
+//	.free = tcmi_penmigman_free,
+	.stop = tcmi_penmigman_stop,
 	.process_msg = tcmi_penmigman_process_msg,
 };
 

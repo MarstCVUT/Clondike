@@ -634,7 +634,7 @@ static void tcmi_ccnman_process_sock(struct kkc_sock *sock)
 	/* Accept the first incoming connection */
 	if (!(migman = tcmi_ccnmigman_new(new_sock, 
 					  tcmi_man_id(TCMI_MAN(&self)), 
-					  tcmi_slot_index(slot),
+					  slot,
 					  tcmi_man_nodes_dir(TCMI_MAN(&self)),
 					  tcmi_man_migproc_dir(TCMI_MAN(&self)),
 					  "%d", tcmi_slot_index(slot)))) {

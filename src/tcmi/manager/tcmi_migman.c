@@ -80,7 +80,7 @@
  */
 int tcmi_migman_init(struct tcmi_migman *self, struct kkc_sock *sock, 
 		     u_int32_t ccn_id, u_int32_t pen_id, 
-		     enum arch_ids peer_arch_type,u_int slot_index,
+		     enum arch_ids peer_arch_type, struct tcmi_slot* manager_slot,
 		     struct tcmi_ctlfs_entry *root,
 		     struct tcmi_ctlfs_entry *migproc,
 		     struct tcmi_migman_ops *ops,
@@ -89,10 +89,10 @@ int tcmi_migman_init(struct tcmi_migman *self, struct kkc_sock *sock,
 	int err = -EINVAL;
 
 	minfo(INFO2, "Creating new TCMI CCN migration manager");
-	self->state = TCMI_MIGMAN_INIT;
+	atomic_set(&self->state, TCMI_MIGMAN_INIT);
 	self->ccn_id = ccn_id;
 	self->pen_id = pen_id;
-	self->slot_index = slot_index;
+	self->manager_slot = manager_slot;
 	self->peer_arch_type = peer_arch_type;
 	atomic_set(&self->ref_count, 1);
 	tcmi_queue_init(&self->msg_queue);
@@ -184,21 +184,36 @@ int tcmi_migman_init(struct tcmi_migman *self, struct kkc_sock *sock,
  * - release the shadows slot vector
  *
  * @param *self - pointer to this migration manager instance
+ * @return Returns 1, if the instance was destroyed as a result of this call
  */
-void tcmi_migman_put(struct tcmi_migman *self)
+int tcmi_migman_put(struct tcmi_migman *self)
 {
 	if (self && atomic_dec_and_test(&self->ref_count)) {
 		mdbg(INFO3, "Shutting down the TCMI migration manager %p", self);
 		tcmi_migman_free(self);
 		kfree(self);
+		
+		return 1;
 	}
-
+	
+	return 0;
 }
 
 /** @addtogroup tcmi_migman_class
  *
  * @{
  */
+
+/** Removes migman from a list of migration managers of the associated manager. */
+static void tcmi_migman_unhash(struct tcmi_migman *self) {
+      /** Check if we were not already unhashed */
+      if ( !tcmi_slot_node_unhashed(&self->node) ) {
+	  tcmi_slot_lock(self->manager_slot);
+	  tcmi_slot_remove_first(self, self->manager_slot, node);
+	  tcmi_slot_unlock(self->manager_slot);
+      }
+}
+
 
 /** 
  * \<\<private\>\> Free method is has two purposes:
@@ -207,22 +222,80 @@ void tcmi_migman_put(struct tcmi_migman *self)
  * -# calls the child class free method if defined
  */
 static void tcmi_migman_free(struct tcmi_migman *self)
-{
+{ 
 	/* terminate the processing thread first to prevent any
 	 * message processing */
 	tcmi_migman_stop_thread(self);
 	/* also stop receiving all messages */
 	tcmi_comm_put(self->comm);
+		
 	/* now we are safe and we can start cleaning the rest */
 	if (self->ops->free)
 		self->ops->free(self);
 	tcmi_sock_put(self->sock);
+		
+	tcmi_migman_unhash(self);
+	
 	tcmi_migman_stop_ctlfs_files(self);
 	tcmi_migman_stop_ctlfs_dirs(self);
-	/* check for stale transactions.. */
+	/* TODO: check for stale transactions.. */
 	tcmi_slotvec_put(self->transactions);
-	/* Should migrate all tasks back!! */
+	/* Note: Assumes, all tasks are already migrated back. */
 	tcmi_slotvec_put(self->tasks);
+}
+
+/**
+ * Requests asynchronous shutdown of connection with peer.
+ * First, it asynchronously requests emigration of tasks to their home node, in case we are on detached node.
+ * Then it notifies peer about current node being disconnected.
+ * Finally, a self reference is dropped so that the migman is free to be destroyed when all tasks are finished
+ */
+void tcmi_migman_stop(struct tcmi_migman *self) {
+    tcmi_migman_stop_perform(self, 0);
+}
+
+static void tcmi_migman_notify_peer_disconnect(struct tcmi_migman *self) {
+    struct tcmi_msg* msg;
+    int err;
+
+    if ( !( msg = TCMI_MSG(tcmi_disconnect_msg_new_tx()) ) ) { 
+	    minfo(ERR3, "Error creating disconnect message");
+    } else {
+	if ((err = tcmi_msg_send_anonymous(msg, tcmi_migman_sock(self)))) {
+		minfo(ERR3, "Error sending disconnect message %d", err);
+	}
+	tcmi_msg_put(msg);
+    }	    
+}
+  
+/**
+ * Actual implementation of stop, see tcmi_migman_stop
+ * 
+ * @param remote_requested True, if stop request was initiated as a response to received disconnect message
+ * @Return 1, if the migman instance was destroyed in context of this method
+ */
+static int tcmi_migman_stop_perform(struct tcmi_migman *self, int remote_requested) {
+     minfo(INFO3, "Requesting stop of migration manager: %d", tcmi_migman_slot_index(self));
+     
+     if ( tcmi_migman_change_state(self, TCMI_MIGMAN_CONNECTED, TCMI_MIGMAN_SHUTTING_DOWN) ) {
+	/* We are the first to request stop operation */
+	
+	if (self->ops->stop)
+	    self->ops->stop(self);
+
+	if ( !remote_requested ) {
+	    /* Sent notification to peer about disconnection being performed.. even if this fails (peer may be dead already), we proceed further */
+	    tcmi_migman_notify_peer_disconnect(self);
+	}
+	
+	/* Finally drop the reference to "self". If this is the last reference, the instance is going to be unhased and deleted.
+	   At this phase it is possible some tasks are still running and so they have reference to this instance. Asynchronous emigration requests were already issued */
+	return tcmi_migman_put(self);
+     } else {
+	minfo(INFO3, "Migration manager stop was already requested -> Ignoring this call. Manager state is: %d", tcmi_migman_state(self));
+     }
+     
+     return 0;
 }
 
 
@@ -293,14 +366,23 @@ static int tcmi_migman_init_ctlfs_files(struct tcmi_migman *self)
 				     TCMI_MIGMAN_STATE_LENGTH, "state")))
 		goto exit0;
 
+	if (!(self->f_stop = 
+	      tcmi_ctlfs_intfile_new(self->d_migman, TCMI_PERMS_FILE_W,
+				     self, NULL, tcmi_migman_stop_request,
+				     sizeof(int), "stop")))
+		goto exit1;
+
 	if (self->ops->init_ctlfs_files && self->ops->init_ctlfs_files(self)) {
 		mdbg(ERR3, "Failed to create specific ctlfs files!");
-		goto exit1;
+		goto exit2;
 	}
 
 	return 0;
 
 	/* error handling */
+ exit2:
+ 	tcmi_ctlfs_file_unregister(self->f_stop);
+	tcmi_ctlfs_entry_put(self->f_stop); 
  exit1:
 	tcmi_ctlfs_file_unregister(self->f_state);
 	tcmi_ctlfs_entry_put(self->f_state);
@@ -340,9 +422,28 @@ static void tcmi_migman_stop_ctlfs_files(struct tcmi_migman *self)
 	if (self->ops->stop_ctlfs_files) 
 		self->ops->stop_ctlfs_files(self);
 
+	/* We have to use non-locking unregister, because the unregister could be called from this file's write method */
+	tcmi_ctlfs_file_unregister2(self->f_stop, TCMI_CTLFS_FILE_FROM_METHOD);
+	tcmi_ctlfs_entry_put(self->f_stop);
+	
 	tcmi_ctlfs_file_unregister(self->f_state);
 	tcmi_ctlfs_entry_put(self->f_state);
 }
+
+/** 
+ * \<\<private\>\> Requests asynchronous shutdown of this migration manager
+ *
+ * @param *obj - this migration manager instance
+ * @param *data - ignored
+ * @return 0 upon success
+ */
+static int tcmi_migman_stop_request(void *obj, void *data) {
+    struct tcmi_migman *self = TCMI_MIGMAN(obj);
+    tcmi_migman_stop(self);
+    
+    return 0;
+}
+
 
 /** 
  * \<\<private\>\> Read method for the TCMI ctlfs - reports migration
@@ -404,7 +505,12 @@ static void tcmi_migman_stop_thread(struct tcmi_migman *self)
 	if (self->msg_thread) {
 		mdbg(INFO3, "Stopping message processing thread");
 		force_sig(SIGTERM, self->msg_thread);
-		kthread_stop(self->msg_thread);
+		
+		if ( self->msg_thread != current ) {
+		  /* We can only call stop if we are not actually the thread being stopped! */
+		  kthread_stop(self->msg_thread);
+		}
+		
 	}
 }
 
@@ -478,6 +584,7 @@ static int tcmi_migman_deliver_msg(void *obj, struct tcmi_msg *m)
 static int tcmi_migman_msg_thread(void *data)
 {
 	int err = 0;
+	int migman_freed = 0;
 	struct tcmi_msg *m;
 	struct tcmi_migman *self = TCMI_MIGMAN(data);
 	/* saves 2 derefences when calling the process msg method */
@@ -498,15 +605,32 @@ static int tcmi_migman_msg_thread(void *data)
 		tcmi_queue_remove_entry(&self->msg_queue, m, node);
 		if (m) {
 			mdbg(INFO3, "Processing message..");
-			process_msg(self, m);
+			switch(tcmi_msg_id(m)) {
+  			    default:
+				process_msg(self, m);
+				break;
+
+			    case TCMI_DISCONNECT_MSG_ID:
+			        minfo(INFO3, "Received disconnect message");
+				/* 
+				  Initiate shutdown upon reception of disconnect message 
+				  Note: It is important not to touch self after this call and before should_stop is checked again, because self reference may be already invalid!
+				*/
+				migman_freed = tcmi_migman_stop_perform(self, 1);
+				break;
+			}
 		}
 		else {
 			mdbg(ERR3, "Processing thread woken up, queue is still empty..");
 		}
 	}
  exit0:
-	/* very important to sync with the the thread that is terminating us */
-	wait_on_should_stop();
+	/* In case the migman was freed by this thread, no should_stop sync is performed */
+	if ( !migman_freed ) {
+	    /* We have to wait for thread terminating us as it is going to call stop at some tim */
+	    wait_on_should_stop();
+	}
+	
 	mdbg(INFO3, "Message processing thread terminating");
 	return 0;
 }

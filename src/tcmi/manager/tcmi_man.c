@@ -75,6 +75,8 @@ int tcmi_man_init(struct tcmi_man *self,
 		mdbg(ERR3, "Missing migration manager operations!");
 		goto exit0;
 	}
+	atomic_set(&self->ready, 0);
+	
 	self->ops = ops;
 
 	if (!(self->mig_mans = tcmi_slotvec_new(MAX_NODES)))
@@ -85,7 +87,7 @@ int tcmi_man_init(struct tcmi_man *self,
 		goto exit2;
 	if (tcmi_man_init_ctlfs_files(self) < 0)
 		goto exit3;
-	self->ready = 1;
+	atomic_set(&self->ready, 1);
 	get_random_bytes(&self->id, sizeof(u_int32_t));
 	return 0;
 		
@@ -98,6 +100,31 @@ int tcmi_man_init(struct tcmi_man *self,
 	tcmi_slotvec_put(self->mig_mans);
  exit0:
 	return -EINVAL;
+}
+
+/**
+ * Waits for all migration managers to terminate.
+ *
+ * Note: We perform wait by active polling of count of remaining migmas (100ms) interval. 
+ * 	 In case there were no remote processes running, there would be no wait as all migmans were terminated synchronously.
+ * 	 In case there were remote processes, the waiting time for their migration back would be likely in order of seconds, so 100ms does not add much latency
+ *	 In case somebody volunteers, the code could be migrated to notify/wait patter to get rid of polling
+ */
+static void tcmi_man_wait_for_migmans_termination(struct tcmi_man *self) {
+	int is_empty;
+	
+	tcmi_slotvec_lock(self->mig_mans);
+	is_empty = tcmi_slotvec_empty(self->mig_mans);
+	tcmi_slotvec_unlock(self->mig_mans);
+		
+	while (!is_empty) {
+		set_current_state(TASK_INTERRUPTIBLE);
+		schedule_timeout(msecs_to_jiffies(100)); 		
+	  
+	  	tcmi_slotvec_lock(self->mig_mans);
+		is_empty = tcmi_slotvec_empty(self->mig_mans);
+		tcmi_slotvec_unlock(self->mig_mans);
+	}
 }
 
 /** 
@@ -114,10 +141,13 @@ int tcmi_man_init(struct tcmi_man *self,
  */
 void tcmi_man_shutdown(struct tcmi_man *self)
 {
-	if (self->ready) {
+	if ( atomic_cmpxchg(&self->ready, 1, 0) == 1 ) {
 		tcmi_man_stop_ctlfs_files(self);
-		tcmi_man_stop_migration(self);
 		tcmi_man_stop_ctlfs_dirs(self);
+		/* Request async mig mans shutdown */
+		tcmi_man_stop_migration(self);
+		/* Wait for migmans to terminate */
+		tcmi_man_wait_for_migmans_termination(self);
 		tcmi_slotvec_put(self->mig_mans);
 	}
 }
@@ -336,6 +366,34 @@ static int tcmi_man_init_migration(struct tcmi_man *self)
 	mdbg(INFO3, "Initializing migration components");
 	return 0;
 }
+
+
+/** Finds and returns arbitrary migration manager that is either in INIT or CONNECTED state. */
+static struct tcmi_migman * tcmi_man_get_non_shutdowning_migman(struct tcmi_man *self) {
+    struct tcmi_slot *slot;
+    tcmi_slot_node_t* node;
+    struct tcmi_migman *migman = NULL;
+    tcmi_migman_state_t migman_state;
+
+    tcmi_slotvec_lock(self->mig_mans);
+    
+    tcmi_slotvec_for_each_used_slot(slot, self->mig_mans) {
+	    tcmi_slot_for_each(node, slot) {		    
+		    migman = tcmi_slot_entry(node, struct tcmi_migman, node);
+		    migman_state = tcmi_migman_state(migman);
+		   
+		    if ( migman_state == TCMI_MIGMAN_INIT || migman_state == TCMI_MIGMAN_CONNECTED ) {
+			goto found;		    
+		    }		   
+		    migman = NULL;
+	    };
+    };
+    
+found:    
+    tcmi_slotvec_unlock(self->mig_mans);   
+    return migman;
+}
+
 /**
  * \<\<private\>\> Stops all migration components.  Terminates all
  * migration managers, they are responsible for migrating all
@@ -345,17 +403,12 @@ static int tcmi_man_init_migration(struct tcmi_man *self)
  */
 static void tcmi_man_stop_migration(struct tcmi_man *self)
 {
-	struct tcmi_migman *migman;
-	while (!tcmi_slotvec_empty(self->mig_mans)) {
+	struct tcmi_migman *migman = tcmi_man_get_non_shutdowning_migman(self);
+	while (migman) {	  
+		mdbg(INFO3, "Requesting migration manager shutdown.");
+		tcmi_migman_stop(migman);
 		
-		tcmi_slotvec_lock(self->mig_mans);
-		tcmi_slotvec_remove_one_entry(self->mig_mans, migman, node);
-		tcmi_slotvec_unlock(self->mig_mans);
-		
-		if (migman) {
-			mdbg(INFO3, "Destroying migration manager");
-			tcmi_migman_put(migman);
-		}
+		migman = tcmi_man_get_non_shutdowning_migman(self);
 	}
 }
 
@@ -369,14 +422,17 @@ static void tcmi_man_stop_migration(struct tcmi_man *self)
  * @param *data - if the value that it points to is >0, the action is 
  * taken
  * @return always 0 (success)
+ *
+ * NOTE: What is a purpose of this method? There is no inverse operation to stop, so is that essentially different from shutdown? ms
  */
 static int tcmi_man_stop(void *obj, void *data)
-{
+{  
 	int stop = *((int *)data);
 	struct tcmi_man *self = TCMI_MAN(obj);
 
 	mdbg(INFO3, "TCMI manager stop request, action = %d", stop);
 	if (stop) {
+		/* TODO: Stop operations are called just here, but shouldn't we call them as well on shutdown? */
 		if (self->ops->stop) 
 			self->ops->stop();
 		tcmi_man_stop_migration(self);

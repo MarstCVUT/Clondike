@@ -177,7 +177,7 @@ static int tcmi_penman_connect(void *obj, void *str)
 	/* Accept the first incoming connection */
 	if (!(migman = tcmi_penmigman_new(sock, 
 					  tcmi_man_id(TCMI_MAN(&self)),
-					  tcmi_slot_index(slot),
+					  slot,
 					  tcmi_man_nodes_dir(TCMI_MAN(&self)), 					  
 					  tcmi_man_migproc_dir(TCMI_MAN(&self)),
 					  "%d", tcmi_slot_index(slot)))) {

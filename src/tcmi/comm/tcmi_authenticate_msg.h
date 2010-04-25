@@ -14,8 +14,6 @@
  *
  * This message is send by PEN when it wants authenticate to CCN.
  * 
- * @todo Implement (configurable?) authentication.
- *
  * @{
  */
 

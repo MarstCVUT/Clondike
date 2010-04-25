@@ -63,7 +63,7 @@
  * @param ... - variable arguments
  * @return new TCMI CCN manager instance or NULL
  */
-struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, u_int slot_index,
+struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, struct tcmi_slot* manager_slot,
 					  struct tcmi_ctlfs_entry *root,
 				       struct tcmi_ctlfs_entry *migproc,
 					  const char namefmt[], ...)
@@ -79,7 +79,7 @@ struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, 
 	}
 	init_waitqueue_head(&migman->wq);
 	va_start(args, namefmt);
-	if (tcmi_migman_init(TCMI_MIGMAN(migman), sock, ccn_id, 0, UNKNOWN, slot_index, root, migproc,
+	if (tcmi_migman_init(TCMI_MIGMAN(migman), sock, ccn_id, 0, UNKNOWN, manager_slot, root, migproc,
 			     &ccnmigman_ops, namefmt, args) < 0) {
 		mdbg(ERR3, "TCMI CCN migman initialization failed!");
 		va_end(args);

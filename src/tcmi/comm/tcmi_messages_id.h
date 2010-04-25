@@ -118,6 +118,7 @@ enum {
 	TCMI_SKELRESP_MSG_ID,                                    /* TCMI test response message */
 	TCMI_AUTHENTICATE_MSG_ID,						 /* TCMI authentication request */
 	TCMI_AUTHENTICATE_RESP_MSG_ID,                                    /* TCMI authentication response */
+	TCMI_DISCONNECT_MSG_ID,						 /* TCMI disconnect request */
 	TCMI_P_EMIGRATE_MSG_ID,                              	 /* TCMI phys. emigration message */
 	TCMI_SIGNAL_MSG_ID,                                      /* TCMI signal message */
         TCMI_GENERIC_USER_MSG_ID,                            /* Generic user message */

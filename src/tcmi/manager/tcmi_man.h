@@ -91,7 +91,7 @@ struct tcmi_npm_params;
  */
 struct tcmi_man {
 	/** indicates the manager is ready - used for proper shutdown */
-	int ready;
+	atomic_t ready;
 
 	/** slot container for migration managers, 1 manager per slot */
 	struct tcmi_slotvec *mig_mans;

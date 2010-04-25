@@ -41,6 +41,7 @@
 #include "tcmi_p_emigrate_msg.h"
 #include "tcmi_authenticate_msg.h"
 #include "tcmi_authenticate_resp_msg.h"
+#include "tcmi_disconnect_msg.h"
 
 /* process messages */
 #include "tcmi_skel_procmsg.h"
@@ -86,6 +87,7 @@ static struct tcmi_msg_dsc mig_messages[] = {
 	TCMI_SKELRESP_MSG_DSC,
 	TCMI_AUTHENTICATE_MSG_DSC,
 	TCMI_AUTHENTICATE_RESP_MSG_DSC,
+	TCMI_DISCONNECT_MSG_DSC,
 	TCMI_P_EMIGRATE_MSG_DSC,
 	TCMI_SIGNAL_MSG_DSC,
 	TCMI_GENERIC_USER_MSG_DSC,
