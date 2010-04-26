@@ -19,14 +19,14 @@
 ###################################################################
 
 
-#proc=`ls -d /clondike/*/mig/migproc/* 2> /dev/null`
-#[ ! -z "$proc" ] && {
-#    echo "Can't unload, following processes still present on the node:"
-#    for i in $proc; do
-#	echo $i;
-#    done;
+proc=`ls -d /clondike/ccn/mig/migproc/* 2> /dev/null`
+[ ! -z "$proc" ] && {
+    echo "WARN: There are some cluster tasks running on core node. Unloading of some modules is not possible while those tasks are running. After they are all terminated, re-run this script.:"
+    for i in $proc; do
+	echo $i;
+    done;
 #    exit 1;
-#}
+}
 
 echo -n Unloading TCMI..
 rmmod tcmi
