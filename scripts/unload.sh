@@ -19,14 +19,15 @@
 ###################################################################
 
 
-proc=`ls -d /clondike/*/mig/migproc/* 2> /dev/null`
-[ ! -z "$proc" ] && {
-    echo "Can't unload, following processes still present on the node:"
-    for i in $proc; do
-	echo $i;
-    done;
-    exit 1;
-}
+#proc=`ls -d /clondike/*/mig/migproc/* 2> /dev/null`
+#[ ! -z "$proc" ] && {
+#    echo "Can't unload, following processes still present on the node:"
+#    for i in $proc; do
+#	echo $i;
+#    done;
+#    exit 1;
+#}
+
 echo -n Unloading TCMI..
 umount /clondike
 umount /mnt/proxy
