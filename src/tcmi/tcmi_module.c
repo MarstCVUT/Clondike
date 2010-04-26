@@ -170,14 +170,15 @@ static void __exit tcmi_module_exit(void)
 
 	minfo(INFO1, "Unloading TCMI framework");
 
+	/* Managers must be shutdown first, because they may need other parts of infrastructure to proceed with migration back */
+	tcmi_penman_shutdown();
+	tcmi_ccnman_shutdown();
+	
 	tcmi_mighooks_exit();
 	tcmi_syscall_hooks_exit();
 
 	tcmi_ctlfs_file_unregister(debug_file);
 	tcmi_ctlfs_entry_put(debug_file);
-
-	tcmi_penman_shutdown();
-	tcmi_ccnman_shutdown();
 
 	tcmi_ctlfs_put_root();
 

@@ -29,9 +29,11 @@
 #}
 
 echo -n Unloading TCMI..
+rmmod tcmi
+
 umount /clondike
 umount /mnt/proxy
-rmmod tcmi
+
 rmmod tcmickptcom
 rmmod tcmictlfs
 rmmod director-mod
