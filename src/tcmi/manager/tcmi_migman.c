@@ -220,6 +220,10 @@ static void tcmi_migman_unhash(struct tcmi_migman *self) {
  * -# when the last reference is released, it will free all
  *    instance resources, except for the instance itself.
  * -# calls the child class free method if defined
+ *
+ * Note: It is important to free communication channels first, i.e. communication socket, processing thread and files. This ensures,
+ * that no new messages that may require reference to migman for processing will arrive. File operations are synchronized with releasing
+ * so it may be possible that some file works with the migman during the free method, but only until the file is ''synchronously'' released.
  */
 static void tcmi_migman_free(struct tcmi_migman *self)
 { 
@@ -228,16 +232,17 @@ static void tcmi_migman_free(struct tcmi_migman *self)
 	tcmi_migman_stop_thread(self);
 	/* also stop receiving all messages */
 	tcmi_comm_put(self->comm);
-		
+
+	tcmi_migman_stop_ctlfs_files(self);
+	tcmi_migman_stop_ctlfs_dirs(self);
+	tcmi_sock_put(self->sock);
+	tcmi_migman_unhash(self);
+	
+
 	/* now we are safe and we can start cleaning the rest */
 	if (self->ops->free)
 		self->ops->free(self);
-	tcmi_sock_put(self->sock);
-		
-	tcmi_migman_unhash(self);
-	
-	tcmi_migman_stop_ctlfs_files(self);
-	tcmi_migman_stop_ctlfs_dirs(self);
+				
 	/* TODO: check for stale transactions.. */
 	tcmi_slotvec_put(self->transactions);
 	/* Note: Assumes, all tasks are already migrated back. */
@@ -297,6 +302,7 @@ static int tcmi_migman_stop_perform(struct tcmi_migman *self, int remote_request
      
      return 0;
 }
+
 
 
 /** 
