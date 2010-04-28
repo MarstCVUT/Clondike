@@ -143,7 +143,7 @@ static int tcmi_shadowtask_process_msg(struct tcmi_task *self, struct tcmi_msg *
 				break;
 			}
 
-			if ( (err = tcmi_task_send_anonymous_msg(self, resp) ) ){
+			if ( tcmi_task_check_peer_lost(self, (err = tcmi_task_send_anonymous_msg(self, resp)) ) ){
 				mdbg(ERR3, "Error sending RPC response message %d", err);
 			}
 
@@ -224,7 +224,7 @@ static int tcmi_shadowtask_emigrate_p(struct tcmi_task *self, struct tcmi_npm_pa
 		mdbg(ERR3, "Error creating an emigration message");
 		goto exit0;
 	}
-	if (tcmi_task_send_and_receive_msg(self, req, &resp) < 0) {
+	if ( tcmi_task_check_peer_lost(self, tcmi_task_send_and_receive_msg(self, req, &resp)) < 0) {
 		mdbg(ERR3, "Failed to send message!!");
 		goto exit1;
 	}
@@ -323,7 +323,7 @@ static int tcmi_shadowtask_migrateback_ppm_p(struct tcmi_task *self)
 		goto exit0;
 	}
 
-	if (tcmi_task_send_anonymous_msg(self, msg) < 0) {
+	if ( tcmi_task_check_peer_lost(self, tcmi_task_send_anonymous_msg(self, msg)) < 0) {
 		mdbg(ERR3, "Failed to send message!!");
 		goto exit1;
 	}
@@ -374,7 +374,7 @@ static int tcmi_shadowtask_do_signal(struct tcmi_task *self, unsigned long signr
 	
 	msg = tcmi_signal_msg_new(tcmi_task_remote_pid(self), info);
 	if( msg ){
-		tcmi_msg_send_anonymous(msg, tcmi_migman_sock(self->migman));
+		tcmi_task_check_peer_lost(self, tcmi_msg_send_anonymous(msg, tcmi_migman_sock(self->migman)));
 		mdbg(INFO2, "Signal message send");
 	}
 		

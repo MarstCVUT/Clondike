@@ -426,7 +426,7 @@ static int tcmi_msg_send(struct tcmi_msg *self, struct kkc_sock *sock, int flags
 	}
 	if ((err = kkc_sock_send(sock, &self->msg_id, 
 				 sizeof(self->msg_id), KKC_SOCK_BLOCK)) < 0) {
-		mdbg(ERR3, "Failed to send message ID");
+		mdbg(ERR3, "Failed to send message ID: %d. Err: %d", self->msg_id, err);
 		goto exit1;
 	}
 	/* Send transaction ID's */

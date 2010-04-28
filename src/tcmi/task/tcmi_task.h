@@ -638,6 +638,19 @@ static inline u_int tcmi_task_hash(pid_t local_pid, u_int hashmask)
 	return (local_pid & hashmask);
 }
 
+/**
+ * Simple error checking method to be used after communication operations to detect lost peer. In case err indicates broken connection, peer is considered dead for us.
+ *
+ * @return Returns passed err param, so that it can be easily used for call chaining
+ */
+static inline int tcmi_task_check_peer_lost(struct tcmi_task *self, int err) {
+      // For now, we react only on broken pipe, but we may react on more cases, right?
+      if ( err == -EPIPE )
+	  tcmi_task_signal_peer_lost(self);
+
+      return err;
+}
+
 /********************** PRIVATE METHODS AND DATA ******************************/
 #ifdef TCMI_TASK_PRIVATE
 

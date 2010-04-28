@@ -159,7 +159,7 @@ static int tcmi_guesttask_migrateback_p(struct tcmi_task* self, struct tcmi_npm_
 		mdbg(ERR3, "Error creating a migration back message");
 		goto exit0;
 	}
-	if (tcmi_task_send_anonymous_msg(self, req) < 0) {
+	if (tcmi_task_check_peer_lost(self, tcmi_task_send_anonymous_msg(self, req)) < 0) {
 		mdbg(ERR3, "Failed to send message!!");
 		goto exit1;
 	}
@@ -338,7 +338,7 @@ static int tcmi_guesttask_process_p_emigrate_msg(struct tcmi_task *self,
 		}
 	}
 	/* preliminary announce - the guest has been started (execve still might fail) */
-	tcmi_task_send_anonymous_msg(self, resp);
+	tcmi_task_check_peer_lost(self, tcmi_task_send_anonymous_msg(self, resp));
 	tcmi_msg_put(resp);
 	
 	
