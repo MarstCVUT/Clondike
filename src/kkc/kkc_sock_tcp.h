@@ -60,6 +60,8 @@ struct kkc_sock_tcp {
 int kkc_sock_tcp_disable_nagle(struct kkc_sock* self);
 /** Method used for enabling quick-ack on a tcp connection */
 int kkc_sock_tcp_enable_quickack(struct kkc_sock* self);
+/** Method used for enabling of keep alive on socket */
+int kkc_sock_enable_keepalive(struct kkc_sock* self);
 
 /********************** PRIVATE METHODS AND DATA ******************************/
 #ifdef KKC_SOCK_TCP_PRIVATE

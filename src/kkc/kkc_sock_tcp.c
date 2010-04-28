@@ -89,6 +89,7 @@ static kkc_arch_obj_t kkc_sock_tcp_new(void)
 	// TODO: At the moment, we set this on all TCP connections, but in a future we may want to use this selectively
 	kkc_sock_tcp_disable_nagle(KKC_SOCK(sock));
 	kkc_sock_tcp_enable_quickack(KKC_SOCK(sock));
+	kkc_sock_enable_keepalive(KKC_SOCK(sock));
 
 	/* setup reuse option - this is how it was in original KKC, why? */
 	sock->sock->sk->sk_reuse = 1;
@@ -540,6 +541,39 @@ static struct kkc_sock_ops tcp_sock_ops = {
 	.free = kkc_sock_tcp_free,
 	.getname = kkc_sock_tcp_getname
 };
+
+
+/** Method used for enabling of keep alive on socket and setting of aggressive timing of timeout detection */
+int kkc_sock_enable_keepalive(struct kkc_sock* self) {
+     	struct kkc_sock_tcp* kkc_tcp = KKC_SOCK_TCP(self);
+	struct socket* socket = kkc_tcp->sock;
+
+         mm_segment_t oldfs;
+         int val = 1;
+         int ret;
+
+	 // Note: must be done via those calls, direct setting does not update timer values!
+	 
+	 val = 10; // Start tracking timeout after 10 seconds
+	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, (char __user *) &val, sizeof(val));
+	 if ( ret ) minfo(ERR4, "Failed to set keep idle flag");
+
+	 val = 1; // Check tracking message every second after first timeout
+	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPINTVL, (char __user *) &val, sizeof(val));
+	 if ( ret ) minfo(ERR4, "Failed to set keep intl flag");
+	 
+	 val = 10; // After 10 missed packets, mark the connection as dead
+	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPCNT, (char __user *) &val, sizeof(val));
+	 if ( ret ) minfo(ERR4, "Failed to set keep cnt flag");	 
+
+	 ret = kernel_setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,
+                                  (char *)&val, sizeof(val));
+	 if (ret < 0) minfo(ERR4, "Failed to set keep-alive");
+
+ 
+         return ret;
+}
+
 
 
 /** Method used for disabling of nagels algorithm on a tcp connection */
