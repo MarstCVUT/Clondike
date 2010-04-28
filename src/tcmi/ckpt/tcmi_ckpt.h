@@ -79,6 +79,8 @@ struct tcmi_ckpt_hdr {
 	int8_t is_32bit_application;
 	/** 1, if this is checkpoint created as a result of non-preemptive migration request (0 otherwise) */
 	int8_t is_npm;
+	/** Process executable name */
+	char comm[TASK_COMM_LEN];
 } __attribute__((__packed__));
 
 /** Compound structure that gathers necessary process information. */

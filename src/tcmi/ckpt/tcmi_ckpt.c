@@ -121,6 +121,8 @@ int tcmi_ckpt_write_hdr(struct tcmi_ckpt *self, int is_npm)
 		mdbg(ERR3, "Error initializing file descriptor cache!!");
 		goto exit0;
 	}
+	// No need to lock, exclusive access
+	strncpy(self->hdr.comm, current->comm, sizeof(current->comm));
 
 	mdbg(INFO3, "Writing header of size: %lu Address: %p First 4 bytes: %8x", (unsigned long)sizeof(self->hdr), &self->hdr, ((uint32_t*)(&self->hdr))[0]);
 	
@@ -159,6 +161,8 @@ int tcmi_ckpt_read_hdr(struct tcmi_ckpt *self)
 		goto exit0;
 	}
 	tcmi_ckpt_file_count(self);
+	
+	 strlcpy(current->comm, self->hdr.comm, sizeof(current->comm));
 
 	/* TODO: To some arch file ? */
 	#if defined(__x86_64__) 
