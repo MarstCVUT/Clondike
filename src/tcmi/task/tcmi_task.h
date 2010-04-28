@@ -50,6 +50,9 @@
 
 #include <arch/current/make_syscall.h>
 
+#include <tcmi/lib/util.h>
+#include <linux/sched.h>
+
 struct tcmi_migman;
 struct tcmi_npm_params;
 
@@ -204,6 +207,9 @@ struct tcmi_task {
 	 * performing synchronized waiting on pickup with timeout.
 	 */
 	int picked_up_flag;
+	
+	/** Flag used to inform the task that its peer is lost and it should terminate */
+	volatile int peer_lost;
 
 	/** Operations specific to shadow/guest tasks resp. */
 	struct tcmi_task_ops *ops;
@@ -530,6 +536,21 @@ static inline void tcmi_task_inc_execve_count(struct tcmi_task *self)
 	self->execve_count++;
 }
 
+/** Returns a task_struct associated with the tcmi_task */
+static inline struct task_struct* tcmi_task_to_task_struct(struct tcmi_task *self) {     
+	struct task_struct *task;
+	
+	/* try finding the target kernel task for our TCMI task by PID */
+	read_lock_irq(&tasklist_lock);
+	if (!(task = task_find_by_pid(tcmi_task_local_pid(self)))) {
+		mdbg(ERR3, "Can't find corresponding task_struct for PID: %d", 
+		     tcmi_task_local_pid(self));		
+	}	
+	read_unlock_irq(&tasklist_lock);
+  
+	return task;
+}
+
 
 /** 
  * \<\<public\>\> Sends a specified message and waits for a response.
@@ -545,6 +566,15 @@ static inline int tcmi_task_send_and_receive_msg(struct tcmi_task *self, struct 
 						 struct tcmi_msg **resp)
 {
 	return tcmi_msg_send_and_receive(req, self->sock, resp);
+}
+
+/** 
+ * Notifies task that it peer is lost and sends a kill signal to that task.
+ * The method is used for termination of tasks with lost peers.
+ */
+static inline void tcmi_task_signal_peer_lost(struct tcmi_task *self) {
+      self->peer_lost = 1;
+      force_sig(SIGKILL, tcmi_task_to_task_struct(self));
 }
 
 /**
@@ -569,6 +599,12 @@ static inline int tcmi_task_do_signal(struct tcmi_task *self, unsigned long sign
 	int res = TCMI_TASK_KEEP_PUMPING;
 
 	mdbg(INFO2, "Processing signal %lu", signr);
+	
+	if ( self->peer_lost && signr == SIGKILL ) {
+		mdbg(INFO2, "Peer task is dead, killing current task");
+		return TCMI_TASK_KILL_ME;
+	}
+	
 	if (self->ops->do_signal)
 		res = self->ops->do_signal(self, signr, info);
 

@@ -303,6 +303,45 @@ static int tcmi_migman_stop_perform(struct tcmi_migman *self, int remote_request
      return 0;
 }
 
+/** Sends a kill signal to all tasks managed by this manager */
+static void kill_all_tasks(struct tcmi_migman *self) {	
+  	struct tcmi_task* task;
+	struct tcmi_slot *slot;
+	tcmi_slot_node_t* node;
+
+	tcmi_slotvec_lock(self->tasks);
+	/* Iterate over all managed tasks */
+	tcmi_slotvec_for_each_used_slot(slot, self->tasks) {
+		tcmi_slot_for_each(node, slot) {
+			task = tcmi_slot_entry(node, struct tcmi_task, node);
+			mdbg(INFO3, "Killing task: local_pid=%d", tcmi_task_local_pid(task));			
+			tcmi_task_signal_peer_lost(task);
+		};
+	};
+	tcmi_slotvec_unlock(self->tasks);  
+}
+
+/**
+ * Kills all tasks associated with this migman and drops reference to the migman (in case it was not already shutting down).
+ * The method is useful in case peer died without cleaning up its own tasks, because we need to clean them up before we can release reference to peer.
+ * 
+ * @return 1, if the migman instance was destroyed in context of this method
+ */
+int tcmi_migman_kill(struct tcmi_migman *self) {
+     minfo(INFO3, "Requesting kill of migration manager: %d", tcmi_migman_slot_index(self));
+         
+     kill_all_tasks(self);
+
+     if ( tcmi_migman_change_state(self, TCMI_MIGMAN_CONNECTED, TCMI_MIGMAN_SHUTTING_DOWN) ) {
+	/* Stop operation was not yet requested -> request it. */
+	return tcmi_migman_put(self);
+     } else {
+	minfo(INFO3, "Migration manager stop was already requested -> Do not perform release this call. Manager state is: %d", tcmi_migman_state(self));
+     }
+
+          
+     return 0;
+}
 
 
 /** 
@@ -378,14 +417,23 @@ static int tcmi_migman_init_ctlfs_files(struct tcmi_migman *self)
 				     sizeof(int), "stop")))
 		goto exit1;
 
+	if (!(self->f_kill = 
+	      tcmi_ctlfs_intfile_new(self->d_migman, TCMI_PERMS_FILE_W,
+				     self, NULL, tcmi_migman_kill_request,
+				     sizeof(int), "kill")))
+		goto exit2;
+
 	if (self->ops->init_ctlfs_files && self->ops->init_ctlfs_files(self)) {
 		mdbg(ERR3, "Failed to create specific ctlfs files!");
-		goto exit2;
+		goto exit3;
 	}
 
 	return 0;
 
 	/* error handling */
+ exit3:
+ 	tcmi_ctlfs_file_unregister(self->f_kill);
+	tcmi_ctlfs_entry_put(self->f_kill); 	
  exit2:
  	tcmi_ctlfs_file_unregister(self->f_stop);
 	tcmi_ctlfs_entry_put(self->f_stop); 
@@ -431,7 +479,10 @@ static void tcmi_migman_stop_ctlfs_files(struct tcmi_migman *self)
 	/* We have to use non-locking unregister, because the unregister could be called from this file's write method */
 	tcmi_ctlfs_file_unregister2(self->f_stop, TCMI_CTLFS_FILE_FROM_METHOD);
 	tcmi_ctlfs_entry_put(self->f_stop);
-	
+	/* We have to use non-locking unregister, because the unregister could be called from this file's write method */
+	tcmi_ctlfs_file_unregister2(self->f_kill, TCMI_CTLFS_FILE_FROM_METHOD);
+	tcmi_ctlfs_entry_put(self->f_kill);
+
 	tcmi_ctlfs_file_unregister(self->f_state);
 	tcmi_ctlfs_entry_put(self->f_state);
 }
@@ -450,6 +501,19 @@ static int tcmi_migman_stop_request(void *obj, void *data) {
     return 0;
 }
 
+/** 
+ * \<\<private\>\> Requests asynchronous kill of this migration manager
+ *
+ * @param *obj - this migration manager instance
+ * @param *data - ignored
+ * @return 0 upon success
+ */
+static int tcmi_migman_kill_request(void *obj, void *data) {
+    struct tcmi_migman *self = TCMI_MIGMAN(obj);
+    tcmi_migman_kill(self);
+    
+    return 0;
+}
 
 /** 
  * \<\<private\>\> Read method for the TCMI ctlfs - reports migration

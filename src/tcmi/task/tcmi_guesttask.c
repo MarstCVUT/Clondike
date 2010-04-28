@@ -234,8 +234,10 @@ int tcmi_guesttask_migrateback_npm(struct tcmi_task *self, struct tcmi_npm_param
 static int tcmi_guesttask_exit(struct tcmi_task *self, long code)
 {
 	struct tcmi_msg *m;
-
-	proxyfs_sync_files_on_exit();
+	
+	/** Sync proxyfs files only if peer is alive, else this call makes no sense */
+	if ( !self->peer_lost )
+	    proxyfs_sync_files_on_exit();
 
 	mdbg(INFO2, "Stub process '%s' local PID=%d terminating", 
 	      current->comm, current->pid);

@@ -138,6 +138,8 @@ struct tcmi_migman {
 	struct tcmi_ctlfs_entry *f_state;
 	/** TCMI ctlfs - request shutdown of this migration manager. */
 	struct tcmi_ctlfs_entry *f_stop;
+	/** TCMI ctlfs - request kill of this migration manager. */
+	struct tcmi_ctlfs_entry *f_kill;
 
 	/** TCMI ctlfs - reference to the migproc directory - needed
 	 * when immigrating a process. */
@@ -358,6 +360,14 @@ static inline enum arch_ids tcmi_migman_peer_arch(struct tcmi_migman* self)
 /** Asynchronous request to stop migration manager, migrate all process back to hom and terminate connection with peer. */
 void tcmi_migman_stop(struct tcmi_migman *self);
 
+/**
+ * Kills all tasks associated with this migman and drops reference to the migman (in case it was not already shutting down).
+ * The method is useful in case peer died without cleaning up its own tasks, because we need to clean them up before we can release reference to peer.
+ * 
+ * @return 1, if the migman instance was destroyed in context of this method
+ */
+int tcmi_migman_kill(struct tcmi_migman *self);
+
 /** \<\<public\>\> Registers tcmi task into the migration manager tasks slotvec */
 extern int tcmi_migman_add_task(struct tcmi_migman *self, struct tcmi_task* task);
 /** \<\<public\>\> Removes tcmi task from the migration manager tasks slotvec */
@@ -392,6 +402,8 @@ static void tcmi_migman_stop_ctlfs_files(struct tcmi_migman *self);
 static int tcmi_migman_show_state(void *obj, void *data);
 /** Requests async shutdown */
 static int tcmi_migman_stop_request(void *obj, void *data);
+/** Requests async kill */
+static int tcmi_migman_kill_request(void *obj, void *data);
 
 /** Starts the TCMI migration manager message processing thread. */
 static int tcmi_migman_start_thread(struct tcmi_migman *self);

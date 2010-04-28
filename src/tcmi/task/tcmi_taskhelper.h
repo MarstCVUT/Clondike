@@ -91,22 +91,18 @@ static inline int tcmi_taskhelper_run_mig_mode_handler(void)
  */
 static inline void tcmi_taskhelper_enter_mig_mode(struct tcmi_task *t_task)
 {
-	struct task_struct *l_task;
-	/* try finding the target kernel task for our TCMI task by
-	 * PID */
-	read_lock_irq(&tasklist_lock);
-	if (!(l_task = task_find_by_pid(tcmi_task_local_pid(t_task)))) {
-		mdbg(ERR3, "Can't switch to migration mode, no such process %d", 
-		     tcmi_task_local_pid(t_task));
-		goto exit0;
+	struct task_struct* l_task = tcmi_task_to_task_struct(t_task);
+	
+	if ( !l_task ) {
+ 		minfo(ERR3, "Can't enter to mig_mode. Cannot find corresponding task_struct for PID: %d", 
+		     tcmi_task_local_pid(t_task));		
+		return;
 	}
+	
 	/* switch the task to migration mode */
 	force_sig(SIGUNUSED, l_task);
-
- exit0:
-	read_unlock_irq(&tasklist_lock);
-	return;
 }
+ 
 
 /** 
  * \<\<public\>\> Same as standard enter_mig_mode, but in this case we have already a reference to current task, so we do not
