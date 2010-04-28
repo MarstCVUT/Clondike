@@ -122,6 +122,7 @@ int tcmi_task_init(struct tcmi_task *self, pid_t local_pid, struct tcmi_migman* 
 	self->sock = kkc_sock_get(sock);
 
 	self->execve_count = 0;
+	self->peer_lost = 0;
 
 	self->d_migman_root = d_migman;
 	self->f_remote_pid_rev = NULL;
