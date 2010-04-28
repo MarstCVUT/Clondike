@@ -56,8 +56,6 @@
 struct tcmi_shadowtask {
 	/** parent class instance. */
 	struct tcmi_task super;
-	/** Should kill kill? */
-	int force_kill;
 };
 
 

@@ -101,7 +101,6 @@ struct tcmi_task* tcmi_shadowtask_new(pid_t local_pid, struct tcmi_migman* migma
 		minfo(ERR3, "TCMI shadow task initialization failed!");
 		goto exit1;
 	}
-	task->force_kill = 0;	
 	return TCMI_TASK(task);
 
 	/* error handling */
@@ -360,9 +359,6 @@ static int tcmi_shadowtask_execve(struct tcmi_task *self)
  * \<\<private\>\> Processes a specified signal.  
  * All signals are forwared to the guest task.
  *
- * In addition a workaround for some possibly inconsistencies is implemented - for a double "kill" request
- * the CCN task is finished directly no matter what is the state of remote guest
- *
  * @param *self - pointer to this task instance 
  * @param signr - signal that is to be processed
  * @param *info - info for signal to be processed
@@ -381,17 +377,7 @@ static int tcmi_shadowtask_do_signal(struct tcmi_task *self, unsigned long signr
 		tcmi_msg_send_anonymous(msg, tcmi_migman_sock(self->migman));
 		mdbg(INFO2, "Signal message send");
 	}
-	
-	if ( signr == SIGKILL || signr == SIGQUIT || signr == SIGINT){ // TODO: Handle more signals here
-		// TODO: This is in fact just a workaround for cases, where we lost remote task, but we do not get any info from it
-		// When we get more robust in detecting lost DNs and remote tasks, we can remove this
-		mdbg(INFO2, "Quit requested, force kill flag: %d", TCMI_SHADOWTASK( self )->force_kill);
-		if( TCMI_SHADOWTASK( self )->force_kill == 1 )
-			res = TCMI_TASK_KILL_ME;
-		else
-			TCMI_SHADOWTASK( self )->force_kill = 1;
-	}
-	
+		
 	return res;
 }
 
