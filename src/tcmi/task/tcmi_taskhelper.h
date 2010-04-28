@@ -300,7 +300,7 @@ static inline int tcmi_taskhelper_do_signals(struct tcmi_task *t_task)
 			/* no more signals in queue */
 			if (!signr)
 				break;
-			mdbg(INFO2, "Dequeued %lx..", signr);
+			mdbg(INFO2, "Dequeued signal number: %lu..", signr);
 			if (signr != SIGUNUSED)
 				res = tcmi_task_do_signal(t_task, signr, &info);
 		}
