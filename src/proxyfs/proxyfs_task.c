@@ -232,6 +232,10 @@ recv_next:	recv_res = proxyfs_peer_real_recv(peer);
 			// TODO: Some nicer general solution for removing (and detecting) lost peers.. but for now we need at least this
 			proxyfs_peer_set_state(peer, PEER_DEAD);
 			mdbg(INFO1, "Peer marked dead");
+		} else if (recv_res == -EAGAIN ) {
+			// Do nothing, repeat
+		} else {
+			mdbg(INFO1, "Unknown return code: %d", recv_res);
 		}
 
 	}

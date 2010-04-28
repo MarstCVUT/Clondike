@@ -116,7 +116,7 @@ void proxyfs_peer_real_send(struct proxyfs_peer_t *self)
 
 	// Cannot send in non-connected state
 	if ( self->state == PEER_DISCONNECTED || !self->sock) {
-		mdbg(INFO3, "Skipping real send for perr %s. Not connected (was in state %d)", kkc_sock_getpeername2(self->sock), self->state );
+		mdbg(INFO3, "Skipping real send for peer %s. Not connected (was in state %d)", kkc_sock_getpeername2(self->sock), self->state );
 		return;
 	}
 

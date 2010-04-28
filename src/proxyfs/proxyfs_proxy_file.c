@@ -274,11 +274,14 @@ int proxyfs_proxy_file_close(struct proxyfs_proxy_file_t *self)
 
 	mdbg(INFO2, "Close proxy file requested. Ident: %lu Exitting: %d", proxyfs_file_get_file_ident(PROXYFS_FILE(self)), exitting );
 
+	// Do NOT wait for write buffer to be empty. The buffer is sequential, so we can schedule CLOSE operation into the buffer and wait for its result
+	// We need to do this to detect dead peers (on message write), otherwise close method may block.
+	
 	// empty write buf
-	if( proxyfs_proxy_file_wait_interruptible(self, PROXYFS_FILE_ALL_WRITTEN ) == 0 ) {
-		mdbg(INFO2, "Closing of ident: %lu failed. Not all written", proxyfs_file_get_file_ident(PROXYFS_FILE(self)));
-		return -ERESTARTSYS;
-	}
+//	if( proxyfs_proxy_file_wait_interruptible(self, PROXYFS_FILE_ALL_WRITTEN ) == 0 ) {
+//		mdbg(INFO2, "Closing of ident: %lu failed. Not all written", proxyfs_file_get_file_ident(PROXYFS_FILE(self)));
+//		return -ERESTARTSYS;
+//	}
 
 	msg = proxyfs_msg_new(MSG_CLOSE, proxyfs_file_get_file_ident(PROXYFS_FILE(self)), sizeof(exitting), &exitting); 
 	if(msg != NULL){
@@ -286,6 +289,12 @@ int proxyfs_proxy_file_close(struct proxyfs_proxy_file_t *self)
 		// What the fck?????
 		if( msg_resp == (void*)MSG_CLOSE_RESP )
 			rtn = 0;
+	}
+
+  
+	if ( rtn != 0 && proxyfs_peer_get_state(PROXYFS_FILE(self)->peer) != PEER_CONNECTED) {
+	      // Even if our remote syscall has failed, we have to pretend it succeded as the peer is no longer connected and there is no chance of further close success
+	      rtn = 0;
 	}
 
 	mdbg(INFO2, "Close proxy file request DONE, Res: %ld", rtn);
