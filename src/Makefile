@@ -1,37 +1,48 @@
-###################################################################
-#                           Makefile                              #
-#                                                                 #
-# Description: Builds a simple mmap testcase for cldk-ckptfs      #
-#                                                                 #
-# Author: Jan Capek                                               #
-# Created: 11/15/2004                                             #
-#                                                                 #
-# Last modified:                                                  #
-#                                                                 #
-###################################################################
+##############################################################################
+# @file Makefile - Main Clondike sources makefile
+#
+# Author: Petr Malat
+#
+# This file is part of Clondike.
+#
+# Clondike is free software: you can redistribute it and/or modify it under 
+# the terms of the GNU General Public License version 2 as published by 
+# the Free Software Foundation.
+#
+# Clondike is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more 
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with 
+# Clondike. If not, see http://www.gnu.org/licenses/.
+##############################################################################
 
+ifeq ($(KERNELRELEASE),)
 
-TOPDIR := ..
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
-				  -e s/arm.*/arm/ -e s/sa110/arm/ \
-				  -e s/s390x/s390/ -e s/parisc64/parisc/ \
-				  -e s/ppc.*/powerpc/ -e s/mips.*/mips/ )
+include debug.make
 
-# kbuild system takes this branch (after being recursively invoked
-# from the 'kernelmodule' target, src variable is defined by Kbuild
-ifneq ($(KERNELRELEASE),)
+.PHONY: all prepare clean
 
-# This branch is taken during the first invocation of make
-else
-SUBDIRS     := arch kkc tcmi proxyfs director ccfs
+KDIR := /usr/src/linux-2.6.33.1/ # symlink to the kernel source
+ARCH := $(shell uname -m | sed -e s/i.86/i386/     -e s/sun4u/sparc64/ \
+		               -e s/arm.*/arm/ 	   -e s/sa110/arm/ \
+		               -e s/s390x/s390/    -e s/parisc64/parisc/ \
+			       -e s/ppc.*/powerpc/ -e s/mips.*/mips/ )
 
-.PHONY: all
-all: prepare subdirs
-	for dir in $(SUBDIRS); do $(MAKE) -C $$dir; done
-# insert all the common rules
-include $(TOPDIR)/src/Rules.make
-
+all: prepare
+	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) 
+clean:
+	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) clean
 prepare:
+	(cd scripts; gcc dbgenv.c -o dbgenv)
 	ln -fsn $(ARCH) arch/current
+else
+
+export PATH := $(PATH):$(PWD)/scripts
+
+subdir-ccflags-y   := -I$(src) 
+obj-$(CONFIG_TCMI) := kkc/ director/ ccfs/ proxyfs/ tcmi/ 
+
 endif
 

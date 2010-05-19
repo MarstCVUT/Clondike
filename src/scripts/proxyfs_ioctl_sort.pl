@@ -1,5 +1,6 @@
+#!/usr/bin/perl
 ##############################################################################
-# @file Makefile - Builds Checkpointing component
+# @file proxyfs_ioctl_sort.pl - Sorts ioctl table
 #
 # Author: Petr Malat
 #
@@ -18,10 +19,15 @@
 # Clondike. If not, see http://www.gnu.org/licenses/.
 ##############################################################################
 
-ccflags-y = `dbgenv $<`
-
-obj-$(CONFIG_TCMI) := tcmickptcom.o
-tcmickptcom-objs   := tcmi_ckptcom.o tcmi_ckpt.o tcmi_ckpt_openfile.o \
-		      tcmi_ckpt_vm_area.o ../../arch/arch_ids.o \
-		      ../../arch/current/regs.o ../migration/tcmi_npm_params.o
-
+my %asm_array;
+while(<>){
+	print;
+	/^ioctl_table:/ && do {
+	       	while(<>){
+			($a) = /.long\t(-?[0-9]+)/ or last;
+			($asm_array{$a}) = <> =~ /.long\t(-?[0-9]+)/;
+		}	
+		print "\t.long\t", $_, "\n\t.long\t", $asm_array{$_}, "\n" foreach( sort keys %asm_array );
+		print;
+	 };
+}

@@ -169,7 +169,7 @@
 
 #define mdbg(type, fmt, args...)								\
 do {												\
-	if ( !(MDBG_##type & ~MDBG_MASK) && tcmi_dbg )						\
+	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) && tcmi_dbg )						\
 		printk(KERN_DEBUG __APP_NAME MDBG_DESC_##type " %s()[%d]:" fmt "\n", __FUNCTION__, current->pid, ## args);	\
 } while(0)
 
@@ -177,6 +177,7 @@ do {												\
 /* 	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);	*/
 #define minfo(type, fmt, args...)							\
 do {											\
+	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) )						\
   	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);							\
 } while(0)
 

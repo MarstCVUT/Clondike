@@ -1,39 +1,28 @@
-###################################################################
-#                           Makefile                              #
-#                                                                 #
-# Description: Builds TCMI                                        #
-#                                                                 #
-# Author: Jan Capek                                               #
-# Created: 04/06/2005                                             #
-#                                                                 #
-# Last modified:                                                  #
-#                                                                 #
-###################################################################
+##############################################################################
+# @file Makefile - Builds director
+#
+# Author: Petr Malat
+#
+# This file is part of Clondike.
+#
+# Clondike is free software: you can redistribute it and/or modify it under 
+# the terms of the GNU General Public License version 2 as published by 
+# the Free Software Foundation.
+#
+# Clondike is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more 
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with 
+# Clondike. If not, see http://www.gnu.org/licenses/.
+##############################################################################
 
-# Set variable DEBUG to 'y' to enable debug messages. Set variable DEBUGFUNC
-# to 'y' to enable debug messages at every begining and every end of funcitons
-DEBUG = y
-DEBUGFUNC = y
+ccflags-y = `dbgenv $<`
 
-TOPDIR := ../..
+obj-$(CONFIG_TCMI) := director-mod.o
+director-mod-objs  := director.o netlink/genl_ext.o netlink/npm_msg.o \
+		      netlink/node_connected_msg.o netlink/task_exitted_msg.o \
+		      netlink/immigration_request_msg.o netlink/generic_user_message_recv_msg.o \
+		      netlink/generic_user_message_send_handler.o netlink/comm.o
 
-# kbuild system takes this branch (after being recursively invoked
-# from the 'kernelmodule' target, src variable is defined by Kbuild
-ifneq ($(KERNELRELEASE),)
- EXTRA_CFLAGS += -I$(src)/.. -g \
-	-DMDBG_CRIT=4 -DMDBG_ERR=4 -DMDBG_WARN=4 -DMDBG_INFO=4 -DAPP_NAME=director
- # debugging rules
- include  $(src)/../debug.make
-
- # test case modules
- obj-m                    := director-mod.o
- director-mod-y                   := director.o netlink/director-comm.lo
-
- 
-# This branch is taken during the first invocation of make
-else
- # These directories will be built prior to the actual target module 
- SUBDIRS := netlink/
- # insert all the common rules
- include $(TOPDIR)/src/Rules.make
-endif
