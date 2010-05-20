@@ -165,7 +165,7 @@ int proxyfs_real_file_has_shadow(struct proxyfs_real_file *self, struct task_str
  * Polls real file and checks, if there are some data that can be read 
  * @return 0 if there are no data, positive number otherwise (negative on error)
  */
-static int proxyfs_real_file_poll_read(struct proxyfs_real_file* self) {
+static inline int proxyfs_real_file_poll_read(struct proxyfs_real_file* self) {
 	unsigned long mask;
 
 	if (self->file->f_op && self->file->f_op->poll ) {
@@ -184,7 +184,7 @@ static int proxyfs_real_file_poll_read(struct proxyfs_real_file* self) {
  * Polls real file and checks, if there is some to which we can writte 
  * @return 0 if there is no space, positive number otherwise (negative on error)
  */
-static int proxyfs_real_file_poll_write(struct proxyfs_real_file* self) {
+static inline int proxyfs_real_file_poll_write(struct proxyfs_real_file* self) {
 	unsigned long mask;
 
 	if (self->file->f_op && self->file->f_op->poll ) {
@@ -203,7 +203,7 @@ static int proxyfs_real_file_poll_write(struct proxyfs_real_file* self) {
  * Tries to get via IOCTL count of bytes that can be read from the real file
  * @return counf of the files that can be read
  */
-static int proxyfs_real_file_ioctl_nread(struct proxyfs_real_file* self) {
+static inline int proxyfs_real_file_ioctl_nread(struct proxyfs_real_file* self) {
 	if (self->file->f_op && self->file->f_op->ioctl ) {
 		int nread, error;
 		int cmd = FIONREAD;

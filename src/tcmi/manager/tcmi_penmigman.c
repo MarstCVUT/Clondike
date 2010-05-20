@@ -216,7 +216,7 @@ static int tcmi_penmigman_migrate_all_home(void *obj, void *data) {
 	return 0;
 }
 
-static void tcmi_penmigman_free(struct tcmi_migman *self) {
+static inline void tcmi_penmigman_free(struct tcmi_migman *self) {
 	/* struct tcmi_penmigman *self_ppn  = TCMI_PENMIGMAN(self); */
 	
 	/** 

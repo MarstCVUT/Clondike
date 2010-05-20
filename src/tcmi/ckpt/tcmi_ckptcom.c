@@ -353,8 +353,8 @@ What is the point of the following code? It does not really seem to free memory,
  *
  * @TODO: We should somehow keep track of the original binary format and locate corresponding dump function here and perform original binmt dump
  */
-static int tcmi_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit) {
-	debug_registers(regs);
+static int tcmi_core_dump(struct coredump_params *cprm) {
+	debug_registers(cprm->regs);
 	return 0;
 }
 

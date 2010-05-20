@@ -1,0 +1,12 @@
+*.[oa]
+*.cmd
+*~
+*.mod.c
+*.ko
+Module.symvers
+modules.order
+.tmp_versions/
+arch/current
+proxyfs/proxyfs_ioctl_table.s
+proxyfs/proxyfs_ioctl_table_sorted.s
+scripts/dbgenv

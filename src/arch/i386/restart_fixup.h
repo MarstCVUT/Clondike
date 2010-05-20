@@ -28,7 +28,7 @@ static long tcmi_restart_fixup(struct restart_block *restart) {
 	/* TODO: Reset restart_block? */
 
 	/* Reset EIP to original value (either again just before the syscall, or on the other completely unrelated address */
-	instruction_pointer(regs) = restart->arg1;			
+	regs->ip = restart->arg1;			
 	
 	/* Restore ebp, in case we were in syscall it won't have any effect, otherwise it will set proper EBP for the application */
 	base_pointer(regs) = restart->arg2;
@@ -69,7 +69,7 @@ static inline void fixup_64bit_stack(struct restart_block* restart, struct pt_re
  * @return 0 on success
  */
 static int tcmi_resolve_restart_block(struct task_struct* task, struct pt_regs* regs, enum arch_ids from_arch, int is_32bit_application) {
-	struct restart_block* restart = &task->thread_info->restart_block;
+	struct restart_block* restart = &(task_thread_info(task)->restart_block);
 	mdbg(INFO3, "Setting tcmi sys restart block. EAX: %08lX (OEAX: %08lX). EBX: %08lX ECX: %08lX EDX: %08lX", regs->ax, regs->orig_ax, regs->bx, regs->cx, regs->dx);	
 	/* EAX and EIP are required to be stored, the other registers won't get affected as they are already on stack (eax will be overriden by execve return value and EIP will be altered as the userspace process will execute restart syscall) */
 	restart->arg0 = original_ax(regs);
@@ -85,7 +85,7 @@ static int tcmi_resolve_restart_block(struct task_struct* task, struct pt_regs* 
 	if ( !is_in_syscall(regs) ) {
 		mdbg(INFO3, "Performing restart out of syscall.");		
 		/* Set current EIP address just before the sysenter so that the restart block is executed */
-		instruction_pointer(regs) = 0xffffe403;
+		regs->ip = 0xffffe403;
 		/* In addition if we are not in syscall we do not want to use orig_eax, but rather real eax */
 		restart->arg0 = regs_return_value(regs);
 
@@ -94,7 +94,7 @@ static int tcmi_resolve_restart_block(struct task_struct* task, struct pt_regs* 
 			fixup_64bit_stack(restart, regs);
 		}
 	} else {		
-		regs->eip -= 2;
+		regs->ip -= 2;
 		mdbg(INFO3, "Performing restart in syscall");		
 		if ( from_arch == ARCH_X86_64 && restart->arg1 == 0xffffe405) { // We were in 64 bit syscall of AMD => we need fixup
 			fixup_64bit_stack(restart, regs);

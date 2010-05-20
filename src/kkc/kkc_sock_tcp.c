@@ -545,33 +545,31 @@ static struct kkc_sock_ops tcp_sock_ops = {
 
 /** Method used for enabling of keep alive on socket and setting of aggressive timing of timeout detection */
 int kkc_sock_enable_keepalive(struct kkc_sock* self) {
-     	struct kkc_sock_tcp* kkc_tcp = KKC_SOCK_TCP(self);
+	struct kkc_sock_tcp* kkc_tcp = KKC_SOCK_TCP(self);
 	struct socket* socket = kkc_tcp->sock;
+	int val = 1;
+	int ret;
 
-         mm_segment_t oldfs;
-         int val = 1;
-         int ret;
+	// Note: must be done via those calls, direct setting does not update timer values!
 
-	 // Note: must be done via those calls, direct setting does not update timer values!
-	 
-	 val = 10; // Start tracking timeout after 10 seconds
-	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, (char __user *) &val, sizeof(val));
-	 if ( ret ) minfo(ERR4, "Failed to set keep idle flag");
+	val = 10; // Start tracking timeout after 10 seconds
+	ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPIDLE, (char __user *) &val, sizeof(val));
+	if ( ret ) minfo(ERR4, "Failed to set keep idle flag");
 
-	 val = 1; // Check tracking message every second after first timeout
-	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPINTVL, (char __user *) &val, sizeof(val));
-	 if ( ret ) minfo(ERR4, "Failed to set keep intl flag");
-	 
-	 val = 10; // After 10 missed packets, mark the connection as dead
-	 ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPCNT, (char __user *) &val, sizeof(val));
-	 if ( ret ) minfo(ERR4, "Failed to set keep cnt flag");	 
+	val = 1; // Check tracking message every second after first timeout
+	ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPINTVL, (char __user *) &val, sizeof(val));
+	if ( ret ) minfo(ERR4, "Failed to set keep intl flag");
 
-	 ret = kernel_setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,
-                                  (char *)&val, sizeof(val));
-	 if (ret < 0) minfo(ERR4, "Failed to set keep-alive");
+	val = 10; // After 10 missed packets, mark the connection as dead
+	ret = kernel_setsockopt(socket, SOL_TCP, TCP_KEEPCNT, (char __user *) &val, sizeof(val));
+	if ( ret ) minfo(ERR4, "Failed to set keep cnt flag");	 
 
- 
-         return ret;
+	ret = kernel_setsockopt(socket, SOL_SOCKET, SO_KEEPALIVE,
+			(char *)&val, sizeof(val));
+	if (ret < 0) minfo(ERR4, "Failed to set keep-alive");
+
+
+	return ret;
 }
 
 

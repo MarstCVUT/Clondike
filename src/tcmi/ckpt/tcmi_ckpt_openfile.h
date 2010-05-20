@@ -168,7 +168,7 @@ static int tcmi_ckpt_openfile_read_dupfd(struct tcmi_ckpt *ckpt);
 /** Reads a new file chunk from the checkpoint file */
 static int tcmi_ckpt_openfile_read_newfd(struct tcmi_ckpt *ckpt);
 
-static void tcmi_ckpt_proxy_path(char *page, char *name)
+static inline void tcmi_ckpt_proxy_path(char *page, char *name)
 {
 	char buf[128];
 	snprintf(buf, 127, "%s/%s", "/proxyfs", page);

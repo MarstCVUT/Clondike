@@ -65,7 +65,7 @@ TCMI_SHADOW_RPC_GENERIC_CALL_DEF(sys_wait4)
 	rusage_to_ind(result_usage, result_usage_ind);
 	*result_stats_ind = result_stats;
 
-	mdbg(INFO3, "Forwarded wait syscall wait finished. Status: %d (ind: %d) res: %d", result_stats, *result_stats_ind, rtn);
+	mdbg(INFO3, "Forwarded wait syscall wait finished. Status: %d (ind: %d) res: %ld", result_stats, *result_stats_ind, rtn);
 	
 	// Create response with the results
 	*resp = tcmi_rpcresp_procmsg_create(m, rtn, sizeof(*result_usage_ind), result_usage_ind,

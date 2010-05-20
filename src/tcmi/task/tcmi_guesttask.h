@@ -85,7 +85,7 @@ extern int tcmi_guesttask_post_fork_set_tid(void *self, struct tcmi_method_wrapp
 static int tcmi_guesttask_process_msg(struct tcmi_task *self, struct tcmi_msg *m);
 
 /** Emigrates a task to a PEN - PPM w/ physical ckpt image. */
-static int tcmi_guesttask_emigrate_ppm_p(struct tcmi_task *self);
+//static int tcmi_guesttask_emigrate_ppm_p(struct tcmi_task *self);
 
 /** Migrates a task back to CCN - PPM w/ physical ckpt image. */
 static int tcmi_guesttask_migrateback_ppm_p(struct tcmi_task *self);

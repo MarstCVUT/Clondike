@@ -11,7 +11,7 @@ static inline struct task_struct* task_find_by_pid(pid_t pid) {
 /**
  * Creates a new directory. Assumes, its parent directory already exists!!
  */
-static int mk_dir(const char* path, int mode) {
+static inline int mk_dir(const char* path, int mode) {
 	struct nameidata nd;
 	struct dentry *dentry;
 	int err;

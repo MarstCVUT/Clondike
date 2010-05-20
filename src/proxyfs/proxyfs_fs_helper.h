@@ -1,4 +1,4 @@
-static int my_atoi(const char *buf, const int len, unsigned long *num){
+static inline int my_atoi(const char *buf, const int len, unsigned long *num){
 	int i;
 	*num = 0;
 

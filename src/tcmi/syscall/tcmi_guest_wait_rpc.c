@@ -61,6 +61,6 @@ TCMI_GUEST_RPC_CALL_DEF(wait4)
 	rtn = tcmi_rpcresp_procmsg_rtn( TCMI_RPCRESP_PROCMSG(r) );
 	tcmi_msg_put(r);
 
-	mdbg(INFO3, "Wait syscall returned: %d. Status: %d (Independend: %d)", rtn, result_stats, result_stats_ind);
+	mdbg(INFO3, "Wait syscall returned: %ld. Status: %d (Independend: %d)", rtn, result_stats, result_stats_ind);
 	return rtn;
 }

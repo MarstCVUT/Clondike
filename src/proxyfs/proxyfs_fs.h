@@ -56,7 +56,7 @@ static void proxyfs_fs_kill_sb(struct super_block *);
 
 /* super_operations */
 /** \<\<private\>\> Called when reading superinode */
-static void proxyfs_fs_super_read_inode(struct inode *);
+//static void proxyfs_fs_super_read_inode(struct inode *);
 /** \<\<private\>\> Called when writing inode */
 static int proxyfs_fs_super_write_inode(struct inode *, int);
 

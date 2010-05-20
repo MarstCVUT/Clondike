@@ -297,7 +297,7 @@ void proxyfs_server_read_and_write_real_files(void){
 		if( proxyfs_file_get_status( PROXYFS_FILE(real_file), PROXYFS_FILE_CLOSED ) && 
 		    proxyfs_file_get_status( PROXYFS_FILE(real_file), PROXYFS_FILE_ALL_READ )){
 			struct file* physical_file = real_file->file;
-			mdbg(INFO3, "Closing file %lu. Ref count: %d",	proxyfs_file_get_file_ident(PROXYFS_FILE(real_file)), file_count(real_file->file) );
+			mdbg(INFO3, "Closing file %lu. Ref count: %ld",	proxyfs_file_get_file_ident(PROXYFS_FILE(real_file)), file_count(real_file->file) );
 			//l = l->next;
 			list_del( & PROXYFS_FILE(real_file)->files ); // Delete from list
 			proxyfs_real_file_destroy( real_file );

@@ -98,7 +98,7 @@ int is_in_syscall(struct pt_regs* regs) {
 void debug_registers(struct pt_regs* regs) {
 	mdbg(INFO4, "ESP  : %08lx    EBP : %08lx",regs->sp,regs->bp);
 	mdbg(INFO4, "ESI  : %08lx    EDI : %08lx",regs->si,regs->di);
-	mdbg(INFO4, "CS   : %08x     DS  : %04x", regs->cs,regs->ds);
+	mdbg(INFO4, "CS   : %08lx    DS  : %08lx", regs->cs,regs->ds);
 	mdbg(INFO4, "EIP  : %08lx    OEAX: %08lX",regs->ip,regs->orig_ax);
 	mdbg(INFO4, "EAX  : %08lx    EBX : %08lX",regs->ax,regs->bx);
 	mdbg(INFO4, "ECX  : %08lx    EDX : %08lX",regs->cx,regs->dx);

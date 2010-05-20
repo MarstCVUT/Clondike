@@ -155,6 +155,7 @@ static void init_once(void *foo) {
 /*
  * Overriden in order to perform GFP_ATOMIC allocation
  */
+#if 0
 static struct inode *tcmi_ctlfs_alloc_inode(struct super_block *sb)
 {
 	struct inode* res;
@@ -175,7 +176,7 @@ static void tcmi_ctlfs_destroy_inode(struct inode *inode) {
 	kmem_cache_free(ctlfs_inode_cachep, inode);
 	mdbg(INFO4, "TMPDBG: AFTER FREE");
 }
-
+#endif
 
 static int init_inodecache(void)
 {
