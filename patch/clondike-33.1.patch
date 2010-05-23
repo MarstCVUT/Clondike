@@ -328,7 +328,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
 +menu "Clondike"
 +
 +config TCMI
-+	bool "Enable TCMI"
++	tristate "Enable TCMI"
 +	select TCMI_HOOKS
 +	help
 +	  Clondike is a clustering project started at FEE CTU Prague.
@@ -995,7 +995,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  	nodemask_t mems_allowed;	/* Protected by alloc_lock */
  	int cpuset_mem_spread_rotor;
  #endif
-+#ifdef CONFIG_TCMI
++#if defined CONFIG_TCMI || defined CONFIG_TCMI_MODULE
 +	struct tcmi_struct tcmi;
 +#endif
  #ifdef CONFIG_CGROUPS
