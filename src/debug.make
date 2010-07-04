@@ -42,36 +42,36 @@ export MDBG_arch_WARN := 0
 export MDBG_arch_INFO := 0
 
 # Director and director netlink
-export MDBG_director_CRIT := 0
+export MDBG_director_CRIT := 4
 export MDBG_director_ERR  := 4
-export MDBG_director_WARN := 0
-export MDBG_director_INFO := 0
+export MDBG_director_WARN := 4
+export MDBG_director_INFO := 4
 
-export MDBG_netlink_CRIT := 0
+export MDBG_netlink_CRIT := 4
 export MDBG_netlink_ERR  := 4
-export MDBG_netlink_WARN := 0
-export MDBG_netlink_INFO := 0
+export MDBG_netlink_WARN := 4
+export MDBG_netlink_INFO := 4
 
 # TCMI
-export MDBG_comm_CRIT := 0
+export MDBG_comm_CRIT := 4
 export MDBG_comm_ERR  := 4
-export MDBG_comm_WARN := 0
-export MDBG_comm_INFO := 0
+export MDBG_comm_WARN := 4
+export MDBG_comm_INFO := 4
 
 export MDBG_ckpt_CRIT := 0
 export MDBG_ckpt_ERR  := 4
 export MDBG_ckpt_WARN := 0
 export MDBG_ckpt_INFO := 0
 
-export MDBG_task_CRIT := 0
+export MDBG_task_CRIT := 4
 export MDBG_task_ERR  := 4
-export MDBG_task_WARN := 0
-export MDBG_task_INFO := 0
+export MDBG_task_WARN := 4
+export MDBG_task_INFO := 4
 
-export MDBG_manager_CRIT := 0
+export MDBG_manager_CRIT := 4
 export MDBG_manager_ERR  := 4
-export MDBG_manager_WARN := 0
-export MDBG_manager_INFO := 0
+export MDBG_manager_WARN := 4
+export MDBG_manager_INFO := 4
 
 export MDBG_ctlfs_CRIT := 0
 export MDBG_ctlfs_ERR  := 4

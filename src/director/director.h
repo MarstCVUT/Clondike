@@ -51,6 +51,16 @@ int director_immigration_request(int slot_index, uid_t uid, const char* name, in
 int director_node_connected(const char* address, int slot_index, int auth_data_size, char* auth_data, int* accept);
 
 /**
+ * Called, when a peer node disconnets
+ *
+ * @param slot_index Index in manager that was assigned to this connection
+ * @param detached Was the disconnected remote peer node was playing role of detached node or of a core node (in the particular connection that was broken)
+ * @param reason Reason of disconnection - 0 - local request, 1 remote request
+ * @return 0 on success, error code otherwise. In case of error, output params are not valid!
+ */
+int director_node_disconnected(int slot_index, int detached, int reason);
+
+/**
  * Called, when a generic user message arrives
  *
  * @param node_id Id of remote node

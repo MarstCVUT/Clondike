@@ -2,6 +2,7 @@
 #include "netlink/comm.h"
 #include "netlink/npm_msg.h"
 #include "netlink/node_connected_msg.h"
+#include "netlink/node_disconnected_msg.h"
 #include "netlink/generic_user_message_recv_msg.h"
 #include "netlink/generic_user_message_send_handler.h"
 #include "netlink/task_exitted_msg.h"
@@ -58,6 +59,14 @@ int director_node_connected(const char* address, int slot_index, int auth_data_s
 }
 
 EXPORT_SYMBOL(director_node_connected);
+
+int director_node_disconnected(int slot_index, int detached, int reason) {
+	minfo(ERR1, "Node disconnected being called");
+	
+	return node_disconnected(slot_index, detached, reason);
+}
+
+EXPORT_SYMBOL(director_node_disconnected);
 
 int director_generic_user_message_recv(int node_id, int is_core_node, int slot_index, int user_data_size, char* user_data) {
 	return generic_user_message_recv(node_id, is_core_node, slot_index, user_data_size, user_data);

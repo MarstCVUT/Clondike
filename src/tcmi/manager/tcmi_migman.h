@@ -170,7 +170,7 @@ struct tcmi_migman_ops {
 	void (*process_msg)(struct tcmi_migman*, struct tcmi_msg*);
 	
 	/** Request to stop this migration manager and terminate its connection with peer. */
-	void (*stop)(struct tcmi_migman*);
+	void (*stop)(struct tcmi_migman*, int);
 
 };
 

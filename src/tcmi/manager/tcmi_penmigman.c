@@ -235,8 +235,10 @@ static inline void tcmi_penmigman_free(struct tcmi_migman *self) {
  *
  * @param *self - pointer to this migration manager instance
  */
-static void tcmi_penmigman_stop(struct tcmi_migman *self) {
+static void tcmi_penmigman_stop(struct tcmi_migman *self, int remote_requested) {
     tcmi_penmigman_migrate_all_home(self, NULL);
+    
+    director_node_disconnected(tcmi_migman_slot_index(self), 0, remote_requested);
 }
 
 /** \<\<public\>\> Send dignal to process

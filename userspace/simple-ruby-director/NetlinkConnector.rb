@@ -15,6 +15,7 @@ class NetlinkConnector
                     DirectorNetlinkApi.instance.registerNpmCallback(self, :connetorNpmCallbackFunction)
                     DirectorNetlinkApi.instance.registerNpmFullCallback(self, :connectorNpmFullCallbackFunction)
                     DirectorNetlinkApi.instance.registerNodeConnectedCallback(self, :connectorNodeConnectedCallbackFunction)
+		    DirectorNetlinkApi.instance.registerNodeDisconnectedCallback(self, :connectorNodeDisconnectedCallbackFunction)
                     DirectorNetlinkApi.instance.registerTaskExittedCallback(self, :connectorTaskExittedCallbackFunction)
                     DirectorNetlinkApi.instance.registerImmigrateRequestCallback(self, :connectorImmigrationRequestCallbackFunction)
 		    DirectorNetlinkApi.instance.registerUserMessageReceivedCallback(self, :connectorUserMessageReceivedCallbackFunction)
@@ -67,6 +68,11 @@ class NetlinkConnector
                         puts "Reject"
 			return false
                 end
+	end
+
+	def connectorNodeDisconnectedCallbackFunction (slotIndex, slotType, reason)
+		# Reason: 0 locally requested, 1 remotely requested... not imporant right now..
+                $log.info("Node disconnected: #{slotType}/#{slotIndex} Reason: #{reason}")
 	end
 
         def pushUserMessageHandler(handler)
