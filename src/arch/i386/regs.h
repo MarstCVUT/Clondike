@@ -28,7 +28,7 @@ struct tcmi_i386_regs {
 	u_int32_t  xds;
 	u_int32_t  xes;
 	u_int32_t  xfs;
-	/* int32_t  xgs; */
+	int32_t  xgs; 
 	int32_t orig_eax; /* This is the only signed register as this register is never again seen by the user space and in kernel space we want to keep signess */
 	u_int32_t eip;
 	u_int32_t  xcs;

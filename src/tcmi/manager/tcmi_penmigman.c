@@ -284,7 +284,9 @@ static void tcmi_penmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 				self->peer_arch_type = tcmi_authenticate_resp_msg_arch(auth_msg);
 				self->ccn_id = tcmi_authenticate_resp_msg_ccn_id(auth_msg);
 				self_pen->mount_params = *tcmi_authenticate_resp_msg_mount_params(auth_msg);
-				
+				minfo(INFO1, "received mount_params - type: %s device: %s options: %s", 
+						self_pen->mount_params.mount_type, self_pen->mount_params.mount_device,
+						self_pen->mount_params.mount_options);
 				tcmi_migman_set_state(self, TCMI_MIGMAN_CONNECTED);
 			} else {
 				minfo(INFO1, "Authentication at CCN failed with error=%d..", auth_msg->result_code);			

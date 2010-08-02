@@ -31,6 +31,7 @@
 #include <tcmi/task/tcmi_taskhelper.h>
 #include <tcmi/task/tcmi_shadowtask.h>
 #include <tcmi/task/tcmi_guesttask.h>
+#include <tcmi/lib/util.h>
 
 #define TCMI_MIGCOM_PRIVATE
 #include "tcmi_migcom.h"
@@ -89,9 +90,22 @@ exit0:
 	return err;
 }
 
+static const char proc_path[] = "/mnt/local/proc";
 /** Mounts local machine procfs into some directory in chrooted env, so that it can be later accessed if required */
 static int mount_local_procfs(struct kkc_sock* sock) {
-	int err = do_mount("none", "/mnt/local/proc", "proc", 0, NULL);
+	struct nameidata nd;
+	int err;
+
+	err = path_lookup(proc_path, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &nd);
+	if ( err ) {
+		minfo(ERR1, "Failed to lookup path %s: %d. Trying to create", proc_path, err);
+		err = mk_dir(proc_path, 777);
+		if (err) {
+			goto exit0;
+		}
+	}
+
+	err = do_mount("none", proc_path, "proc", 0, NULL);
 	mdbg(INFO2, "Procfs mount result: %d", err);
 	if ( err ) {
 		minfo(ERR1, "Failed to mount filesystem: %d", err);
@@ -237,7 +251,7 @@ int tcmi_migcom_emigrate_ccn_npm(pid_t pid, struct tcmi_migman *migman, struct p
 };
 
 /** Helper struct to be passed to immigration statup thread */
-struct immigrate_startup_params {
+struct  immigrate_startup_params {
 	/** used to signal the thread the guest(or fs mount respectively) is ready */	
 	struct completion guest_ready, fs_ready;
 	/** Params for mounting of distributed fs */

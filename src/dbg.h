@@ -87,22 +87,22 @@
 
 /* Default levels for each category */
 #ifndef MDBG_CRIT 
-#define MDBG_CRIT 4
+#error MDBG_CRIT not defined
 #endif
 #ifndef MDBG_ERR 
-#define MDBG_ERR 4
+#error MDBG_ERR not defined
 #endif
 #ifndef MDBG_WARN 
-#define MDBG_WARN 4
+#error MDBG_WARN not defined
 #endif
 #ifndef MDBG_INFO 
-#define MDBG_INFO 4
+#error MDBG_INFO not defined
 #endif
 
 /* Description of each message */
-#define MDBG_DESC_CRIT(level) "<critical"#level">"
-#define MDBG_DESC_ERR(level)  "<error"#level">"
-#define MDBG_DESC_WARN(level) "<warning"#level">"
+#define MDBG_DESC_CRIT(level) "<crit"#level">"
+#define MDBG_DESC_ERR(level)  "<err"#level"> "
+#define MDBG_DESC_WARN(level) "<warn"#level">"
 #define MDBG_DESC_INFO(level) "<info"#level">"
 
 /* This assigns each message a description */
@@ -155,7 +155,7 @@
 
 /* Extend the define application name with : */
 #ifndef APP_NAME
-#define APP_NAME tcmi
+#error APP_NAME not defined
 #endif
 
 #define CLONDIKE_STR(s) #s
@@ -169,16 +169,16 @@
 
 #define mdbg(type, fmt, args...)								\
 do {												\
-	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) && tcmi_dbg )						\
-		printk(KERN_DEBUG __APP_NAME MDBG_DESC_##type " %s()[%d]:" fmt "\n", __FUNCTION__, current->pid, ## args);	\
+	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) /*&&  tcmi_dbg */ )						\
+		printk(KERN_DEBUG __APP_NAME MDBG_DESC_##type " %s()[%d]:" fmt "\n", __FUNCTION__, current->pid, ## args);\
 } while(0)
 
 /* Generic information macro, in addition produces a debug log */
 /* 	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);	*/
 #define minfo(type, fmt, args...)							\
 do {											\
-	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) )						\
-  	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);							\
+	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) )				\
+	  	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);\
 } while(0)
 
 #define debug_enabled (tcmi_dbg)

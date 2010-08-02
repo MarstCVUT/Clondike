@@ -24,7 +24,7 @@ include debug.make
 
 .PHONY: all prepare clean
 
-KDIR := /usr/src/linux-2.6.33.1/ # symlink to the kernel source
+KDIR := /home/petr/projects/clondike3/linux-2.6.33.1/ # symlink to the kernel source
 ARCH := $(shell uname -m | sed -e s/i.86/i386/     -e s/sun4u/sparc64/ \
 		               -e s/arm.*/arm/ 	   -e s/sa110/arm/ \
 		               -e s/s390x/s390/    -e s/parisc64/parisc/ \

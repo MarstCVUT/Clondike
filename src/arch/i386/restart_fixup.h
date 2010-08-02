@@ -22,7 +22,7 @@
 static long tcmi_restart_fixup(struct restart_block *restart) {
 	struct pt_regs *regs = task_pt_regs(current);
 
-	mdbg(INFO3, "Calling tcmi sys restart. EAX: %08lX (OEAX: %08lX Return EAX: %08lX) SP: %16lX BP: %16lX (Restore BP: %16lX)", regs_return_value(regs), original_ax(regs), restart->arg0, stack_pointer(regs), base_pointer(regs), restart->arg2);
+	mdbg(INFO3, "Calling tcmi sys restart. EAX: %08lX (OEAX: %08lX Return EAX: %08lX) SP: %16lX BP: %16lX (Restore BP: %16lX) IP: %08lX (Restore IP: %08lX)", regs_return_value(regs), original_ax(regs), restart->arg0, stack_pointer(regs), base_pointer(regs), restart->arg2, regs->ip, restart->arg1);
 	/*mdbg(INFO3, "Calling tcmi sys restart. EAX: %08lX (OEAX: %08lX Return EAX: %08lX). EBX: %08lX ECX: %08lX EDX: %08lX", regs->eax, regs->orig_eax, restart->arg0, regs->ebx, regs->ecx, regs->edx);*/
 
 	/* TODO: Reset restart_block? */
@@ -40,6 +40,7 @@ static long tcmi_restart_fixup(struct restart_block *restart) {
 	   When the syscall gets executed again (as we again set EIP) it will finally use correct EAX. The other registers are unclobbered and so we do not need to restore them
 	   If we were not originally in syscall, we will simply continue with correct EAX where we finished.
          */
+	dump_stack();
 	return restart->arg0;
 }
 
@@ -48,6 +49,7 @@ static long tcmi_restart_fixup(struct restart_block *restart) {
  */
 static inline void fixup_64bit_stack(struct restart_block* restart, struct pt_regs* regs)  {
 	unsigned long stackEbp;
+	mdbg(INFO4, "64bit stack");
 	/* Avoid all poping after syscall as we have a different stack */
 	restart->arg1 = 0xffffe413;			
 	/* Extract ebp stored on top of the stack */
