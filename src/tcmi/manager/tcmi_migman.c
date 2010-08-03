@@ -280,18 +280,18 @@ static void tcmi_migman_notify_peer_disconnect(struct tcmi_migman *self) {
  * @Return 1, if the migman instance was destroyed in context of this method
  */
 static int tcmi_migman_stop_perform(struct tcmi_migman *self, int remote_requested) {
-     minfo(INFO3, "Requesting stop of migration manager: %d", tcmi_migman_slot_index(self));
+     minfo(INFO3, "Requesting stop of migration manager: %d Remote requested: %d", tcmi_migman_slot_index(self), remote_requested);
      
      if ( tcmi_migman_change_state(self, TCMI_MIGMAN_CONNECTED, TCMI_MIGMAN_SHUTTING_DOWN) ) {
 	/* We are the first to request stop operation */
 	
 	if (self->ops->stop)
-	    self->ops->stop(self);
+	    self->ops->stop(self, remote_requested);
 
 	if ( !remote_requested ) {
 	    /* Sent notification to peer about disconnection being performed.. even if this fails (peer may be dead already), we proceed further */
 	    tcmi_migman_notify_peer_disconnect(self);
-	}
+	}		
 	
 	/* Finally drop the reference to "self". If this is the last reference, the instance is going to be unhased and deleted.
 	   At this phase it is possible some tasks are still running and so they have reference to this instance. Asynchronous emigration requests were already issued */

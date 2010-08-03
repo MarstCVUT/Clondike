@@ -166,6 +166,15 @@ static void tcmi_ccnmigman_stop_ctlfs_files(struct tcmi_migman *self)
 	tcmi_ctlfs_entry_put(self_ccn->f_load);
 }
 
+/**
+ * \<\<private\>\> Called on stop request
+ * 
+ * @param *self - pointer to this migration manager instance
+ */
+static void tcmi_ccnmigman_stop(struct tcmi_migman *self, int remote_requested) {
+    director_node_disconnected(tcmi_migman_slot_index(self), 1, remote_requested);
+}
+
 
 /** 
  * \<\<private\>\> Read method for the TCMI ctlfs - reports current
@@ -267,6 +276,7 @@ static void tcmi_ccnmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 static struct tcmi_migman_ops ccnmigman_ops = {
 	.init_ctlfs_files = tcmi_ccnmigman_init_ctlfs_files, 
 	.stop_ctlfs_files = tcmi_ccnmigman_stop_ctlfs_files,
+	.stop = tcmi_ccnmigman_stop,
 	.free = tcmi_ccnmigman_free,
 	.process_msg = tcmi_ccnmigman_process_msg,
 };

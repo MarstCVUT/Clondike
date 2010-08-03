@@ -15,6 +15,7 @@ enum {
   DIRECTOR_CHECK_NPM, /* Checks if a non-preemptive migration should be performed */
   DIRECTOR_CHECK_FULL_NPM, /* Checks if a non-preemptive migration should be performed (pass in args&envp) */
   DIRECTOR_NODE_CONNECTED, /* Informs director, that DN has successfuly connected to CN */
+  DIRECTOR_NODE_DISCONNECTED, /* Informs director that a peer node connection was closed */
   DIRECTOR_IMMIGRATION_REQUEST, /* Informs director, some associated CN wants to immigrate task to this node */
   DIRECTOR_TASK_EXIT, /* Informs, that a task has finished */
   DIRECTOR_GENERIC_USER_MESSAGE, /* Informs about newly arrived generic user message */
@@ -46,6 +47,7 @@ enum {
   DIRECTOR_A_ARG,
   DIRECTOR_A_ENVS,
   DIRECTOR_A_ENV,
+  DIRECTOR_A_REASON, /* 32 bit length */  
   DIRECTOR_A_DECISION, /* 32 bit length */  
   DIRECTOR_A_DECISION_VALUE, /* 32 bit length */  
   DIRECTOR_A_EXIT_CODE, /* 32 bit length */  

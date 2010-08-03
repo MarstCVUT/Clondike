@@ -15,6 +15,7 @@
 #include "msg-common.h"
 #include "npm-check.h"
 #include "node-connected.h"
+#include "node-disconnected.h"
 #include "immigration-request.h"
 #include "task-exitted.h"
 #include "generic_user_message.h"
@@ -32,6 +33,7 @@ static uint8_t ans_mapping[DIRECTOR_MSG_MAX] = {
 	[DIRECTOR_CHECK_NPM] = DIRECTOR_NPM_RESPONSE,
 	[DIRECTOR_CHECK_FULL_NPM] = DIRECTOR_NPM_RESPONSE,
 	[DIRECTOR_NODE_CONNECTED] = DIRECTOR_NODE_CONNECT_RESPONSE,
+	[DIRECTOR_NODE_DISCONNECTED] = DIRECTOR_ACK,
 	[DIRECTOR_IMMIGRATION_REQUEST] = DIRECTOR_IMMIGRATION_REQUEST_RESPONSE,
 	[DIRECTOR_TASK_EXIT] = DIRECTOR_ACK,
 	[DIRECTOR_GENERIC_USER_MESSAGE] = DIRECTOR_ACK,
@@ -309,6 +311,7 @@ int initialize_director_api(void) {
   	handlers[DIRECTOR_CHECK_NPM] = handle_npm_check;
 	handlers[DIRECTOR_CHECK_FULL_NPM] = handle_npm_check_full;
 	handlers[DIRECTOR_NODE_CONNECTED] = handle_node_connected;
+	handlers[DIRECTOR_NODE_DISCONNECTED] = handle_node_disconnected;
 	handlers[DIRECTOR_IMMIGRATION_REQUEST] = handle_immigration_request;
 	handlers[DIRECTOR_TASK_EXIT] = handle_task_exitted;
 	handlers[DIRECTOR_GENERIC_USER_MESSAGE] = handle_generic_user_message;

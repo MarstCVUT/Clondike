@@ -22,6 +22,8 @@ typedef void (*immigration_request_callback_t)(uid_t uid, int slot_index, const 
 
 typedef void (*node_connected_callback_t)(char* address, int slot_index, int auth_data_size, const char* auth_data, int* accept);
 
+typedef void (*node_disconnected_callback_t)(int slot_index, int slot_type, int reason);
+
 typedef void (*task_exitted_callback_t)(pid_t pid, int exit_code);
 
 typedef void (*generic_user_message_callback_t)(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);

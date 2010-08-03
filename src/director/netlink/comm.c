@@ -96,6 +96,7 @@ static struct genl_ops send_user_message_ops = {
 
 static struct genl_ops* check_npm_ops_ref,
 		      * node_connected_ops_ref,
+		      * node_disconnected_ops_ref,
 		      * task_exitted_ops_ref,
 	    	      * immigration_request_ops_ref;
 
@@ -122,6 +123,10 @@ int init_director_comm(void) {
 	if ( !check_npm_ops_ref )
 		return -1;	
 
+	node_disconnected_ops_ref = genlmsg_register_tx_ops(&director_gnl_family, director_genl_policy, DIRECTOR_ACK);
+	if ( !node_disconnected_ops_ref )
+		return -1;	
+
 	task_exitted_ops_ref = genlmsg_register_tx_ops(&director_gnl_family, director_genl_policy, DIRECTOR_ACK);
 	if ( !task_exitted_ops_ref )
 		return -1;	
@@ -146,6 +151,7 @@ void destroy_director_comm(void) {
 	genl_unregister_ops(&director_gnl_family, &send_user_message_ops);
 	genl_unregister_ops(&director_gnl_family, check_npm_ops_ref);
 	genl_unregister_ops(&director_gnl_family, node_connected_ops_ref);
+	genl_unregister_ops(&director_gnl_family, node_disconnected_ops_ref);
 	genl_unregister_ops(&director_gnl_family, task_exitted_ops_ref);
 	genl_unregister_ops(&director_gnl_family, immigration_request_ops_ref);
 	genl_unregister_family(&director_gnl_family);
@@ -211,9 +217,11 @@ static int msg_transaction_response(struct genl_tx* tx, struct msg_transaction_o
 		goto done;
 
 
-	ret = ops->read_response(&info, params);
-	if (ret < 0)
-		goto done;
+	if ( ops->read_response ) {
+	  ret = ops->read_response(&info, params);
+	  if (ret < 0)
+		  goto done;
+	}
 
 done:
 	kfree_skb(skb);

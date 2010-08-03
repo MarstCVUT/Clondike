@@ -47,6 +47,22 @@ class MembershipManager
             $log.debug("Adding detached node: #{slotIndex} .. #{node} .. nodeId: #{nodeId}")
             @coreManager.registerDetachedNode(slotIndex, node)
         end
+	
+        #This callback is invoked, when remote node is disconnected (could be both core or detached remote node)
+        def nodeDisconnected(managerSlot)
+            $log.debug("Disconnecting node: #{managerSlot}")
+	    if ( managerSlot.slotType == DETACHED_MANAGER_SLOT )
+	      $log.warn("Slot #{managerSlot.slotIndex} is already empty!") if !@detachedManagers[managerSlot.slotIndex]
+	      @detachedManagers[managerSlot.slotIndex] = nil
+	    else
+	      if ( !@coreManager.detachedNodes[managerSlot.slotIndex] )
+		$log.warn("Core manager slot #{managerSlot.slotIndex} is already empty!")
+		return
+	      end
+		      
+	      @coreManager.unregisterDetachedNode(managerSlot.slotIndex)
+	    end            
+        end	
 private 
         def connectToNode(node)
             # The connection attempt is done in a separate thread so that we do not block receiving

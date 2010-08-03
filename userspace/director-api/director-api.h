@@ -35,6 +35,8 @@ void register_npm_check_callback(npm_check_callback_t callback);
 void register_npm_check_full_callback(npm_check_full_callback_t callback);
 /** Registers callback handler for node connected message */
 void register_node_connected_callback(node_connected_callback_t callback);
+/** Registers callback handler for node disconnected message */
+void register_node_disconnected_callback(node_disconnected_callback_t callback);
 /** Registers callback handler for immigration request message */
 void register_immigration_request_callback(immigration_request_callback_t callback);
 /** Registers callback handler for task exit message */

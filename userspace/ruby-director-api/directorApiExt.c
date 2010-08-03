@@ -6,6 +6,7 @@ static VALUE module, processingLoopMethod;
 static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value);
 static void ruby_npm_check_full_callback(pid_t pid, uid_t uid, int is_guest, const char* name, char** args, char** envp, int* decision, int* decision_value);
 static void ruby_node_connected_callback(char* address, int slot_index, int auth_data_size, const char* auth_data, int* accept );
+static void ruby_node_disconnected_callback(int slot_index, int slot_type, int reason);
 static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const char* name, int* accept);
 static void ruby_task_exitted_callback(pid_t pid, int exit_code);
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
@@ -20,6 +21,7 @@ static VALUE method_init(VALUE self)
 	register_npm_check_callback(ruby_npm_check_callback);
 	register_npm_check_full_callback(ruby_npm_check_full_callback);
 	register_node_connected_callback(ruby_node_connected_callback);
+	register_node_disconnected_callback(ruby_node_disconnected_callback);
 	register_immigration_request_callback(ruby_immigrate_request_callback);
 	register_task_exitted_callback(ruby_task_exitted_callback);
 	register_generic_user_message_callback(ruby_user_message_received_callback);
@@ -30,6 +32,8 @@ static VALUE method_init(VALUE self)
 	rb_iv_set(self, "@npmFullCallbackFunction", Qnil);
 	rb_iv_set(self, "@nodeConnectedCallbackTarget", Qnil);
 	rb_iv_set(self, "@nodeConnectedCallbackFunction", Qnil);
+	rb_iv_set(self, "@nodeDisconnectedCallbackTarget", Qnil);
+	rb_iv_set(self, "@nodeDisconnectedCallbackFunction", Qnil);	
 	rb_iv_set(self, "@immigrateRequestCallbackTarget", Qnil);
 	rb_iv_set(self, "@immigrateRequestCallbackFunction", Qnil);
 	rb_iv_set(self, "@taskExittedCallbackTarget", Qnil);
@@ -124,6 +128,21 @@ static void ruby_node_connected_callback(char* address, int slot_index, int auth
 	}
 }
 
+static void ruby_node_disconnected_callback(int slot_index, int slot_type, int reason ) {
+	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
+	VALUE callResult = Qnil;
+	
+	selfClass = rb_const_get(rb_cObject, rb_intern("DirectorNetlinkApi"));
+	instanceMethod = rb_intern("instance");
+	self = rb_funcall(selfClass, instanceMethod, 0);
+	callbackMethod = rb_iv_get(self,"@nodeDisconnectedCallbackFunction");
+	callbackTarget = rb_iv_get(self,"@nodeDisconnectedCallbackTarget");
+	if ( callbackMethod != Qnil ) {
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 3, INT2FIX(slot_index), INT2FIX(slot_type), INT2FIX(reason));
+	}
+}
+
+
 static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const char* name, int* accept ) {
 	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
 	VALUE callResult = Qnil;
@@ -200,6 +219,11 @@ static VALUE method_registerNodeConnectedCallback(VALUE self, VALUE callbackTarg
 	rb_iv_set(self, "@nodeConnectedCallbackFunction", callbackFunc);
 }
 
+static VALUE method_registerNodeDisconnectedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
+	rb_iv_set(self, "@nodeDisconnectedCallbackTarget", callbackTarget);
+	rb_iv_set(self, "@nodeDisconnectedCallbackFunction", callbackFunc);
+}
+
 static VALUE method_registerImmigrateRequestCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
 	rb_iv_set(self, "@immigrateRequestCallbackTarget", callbackTarget);
 	rb_iv_set(self, "@immigrateRequestCallbackFunction", callbackFunc);
@@ -257,6 +281,7 @@ Init_directorApi()
 	rb_define_method(netlinkApi, "registerNpmCallback", method_registerNpmCallback, 2);
 	rb_define_method(netlinkApi, "registerNpmFullCallback", method_registerNpmFullCallback, 2);
 	rb_define_method(netlinkApi, "registerNodeConnectedCallback", method_registerNodeConnectedCallback, 2);
+	rb_define_method(netlinkApi, "registerNodeDisconnectedCallback", method_registerNodeDisconnectedCallback, 2);
 	rb_define_method(netlinkApi, "registerImmigrateRequestCallback", method_registerImmigrateRequestCallback, 2);
 	rb_define_method(netlinkApi, "registerTaskExittedCallback", method_registerTaskExittedCallback, 2);
 	rb_define_method(netlinkApi, "registerUserMessageReceivedCallback", method_registerUserMessageReceivedCallback, 2);

@@ -22,7 +22,7 @@ ccflags-y = `dbgenv $<`
 
 obj-$(CONFIG_TCMI) := director-mod.o
 director-mod-objs  := director.o netlink/genl_ext.o netlink/npm_msg.o \
-		      netlink/node_connected_msg.o netlink/task_exitted_msg.o \
+		      netlink/node_connected_msg.o netlink/node_disconnected_msg.o netlink/task_exitted_msg.o \
 		      netlink/immigration_request_msg.o netlink/generic_user_message_recv_msg.o \
 		      netlink/generic_user_message_send_handler.o netlink/comm.o
 
