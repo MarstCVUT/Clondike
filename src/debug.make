@@ -88,3 +88,22 @@ export MDBG_lib_ERR  := 4
 export MDBG_lib_WARN := 0
 export MDBG_lib_INFO := 0
 
+export MDBG_tcmi_CRIT := 0
+export MDBG_tcmi_ERR  := 4
+export MDBG_tcmi_WARN := 0
+export MDBG_tcmi_INFO := 0
+
+export MDBG_migration_CRIT := 4
+export MDBG_migration_ERR  := 4
+export MDBG_migration_WARN := 4
+export MDBG_migration_INFO := 4
+
+export MDBG_fs_CRIT := 4
+export MDBG_fs_ERR  := 4
+export MDBG_fs_WARN := 4
+export MDBG_fs_INFO := 4
+
+export MDBG_current_CRIT := 4
+export MDBG_current_ERR  := 4
+export MDBG_current_WARN := 4
+export MDBG_current_INFO := 4
