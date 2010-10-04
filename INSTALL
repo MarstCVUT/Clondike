@@ -7,6 +7,9 @@ Requirements:
  - patch 
  - make 
 
+Required libs:
+ - For secure connections between remote peers Clondike can automatically use OpenVPN. It must be compiled with support enabling password storing.
+
 Assumptions:
  - linux sources are in /usr/src/linux
  - clondike.tar.gz has been copied to your home (e.g. /home/capekj)
