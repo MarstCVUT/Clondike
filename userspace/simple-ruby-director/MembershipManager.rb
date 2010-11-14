@@ -7,6 +7,9 @@ require 'Manager'
 #Initially, it parses membership information from file
 #Later, it responds to various external events, to keep membership information
 #up to date
+#
+# This class is repsonsible for connecting new nodes (or disconnecting existing if they are no longer required).
+# When some other class wants to connect/disconnect remote nodes (for example LoadBalancer), it should tell this class
 class MembershipManager
 	# Manager of the core node
 	attr_reader :coreManager
@@ -15,11 +18,15 @@ class MembershipManager
         # slot index in kernel module
         # Slots with no manager are nil
 	attr_reader :detachedManagers
+	
+	# How many peers should manager try to keep connected even if there are no explicit peers requirements from higher layers.
+	attr_accessor :minimumConnectedPeers
     
         def initialize(filesystemConnector, nodeRepository, trustManagement)
             @filesystemConnector = filesystemConnector
             @nodeRepository = nodeRepository
 	    @trustManagement = trustManagement
+	    @minimumConnectedPeers = 3
 
             # Init core manager reference, if there is a core node registered on this machine
             @coreManager = FilesystemNodeBuilder.new().parseCoreManager(@filesystemConnector, @nodeRepository);
@@ -63,7 +70,7 @@ class MembershipManager
 	      @coreManager.unregisterDetachedNode(managerSlot.slotIndex)
 	    end            
         end	
-private 
+
         def connectToNode(node)
             # The connection attempt is done in a separate thread so that we do not block receiving
             # Better would be to make connection non-blocking (especially the auth-negotiation which actually uses message interconnect)
