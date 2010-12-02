@@ -5,6 +5,7 @@
 
 #include "tcmi_npm_params.h"
 #include <asm/uaccess.h>
+#include <linux/module.h>
 
 #include <dbg.h>
 
@@ -104,6 +105,7 @@ int fixup_npm_params_pointers(struct tcmi_npm_params* params) {
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(fixup_npm_params_pointers);
 
 int extract_tcmi_npm_params(struct tcmi_npm_params* params, const char * filename, 
 			char __user *__user *argv, char __user *__user *envp) {

@@ -23,5 +23,5 @@ ccflags-y = `dbgenv $<`
 obj-$(CONFIG_TCMI) := tcmickptcom.o
 tcmickptcom-objs   := tcmi_ckptcom.o tcmi_ckpt.o tcmi_ckpt_openfile.o \
 		      tcmi_ckpt_vm_area.o ../../arch/arch_ids.o \
-		      ../../arch/current/regs.o ../migration/tcmi_npm_params.o
+		      ../../arch/current/regs.o 
 

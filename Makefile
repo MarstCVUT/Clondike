@@ -40,6 +40,9 @@ clean:
 
 .PHONY: stat
 
+cscope.out:
+	cscope -Fcscope.out -R -k -b -s$(PWD)/src
+
 # calculates code statistics and creates a .dat file for each
 # directory. Used for plotting the data.
 stat: clean
