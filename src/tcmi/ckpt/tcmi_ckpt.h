@@ -170,7 +170,7 @@ static inline void tcmi_ckpt_put(struct tcmi_ckpt *self)
 	if (self && atomic_dec_and_test(&self->ref_count)) {
 		mdbg(INFO4, "Destroying TCMI ckpt, %p", self);
 		fput(self->file);
-		kfree(self->fdcache);
+		tcmi_fdcache_put(self->fdcache);
 		kfree(self);
 	}
 }
