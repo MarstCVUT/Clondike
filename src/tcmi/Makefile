@@ -24,9 +24,9 @@ obj-$(CONFIG_TCMI) := ctlfs/ ckpt/ tcmi.o
 
 tcmi-objs := tcmi_module.o 
 ########## Manager component
-tcmi-objs += manager/tcmi_man.o manager/tcmi_migman.o
-tcmi-$(CONFIG_TCMI_CCN)  += manager/tcmi_ccnman.o manager/tcmi_ccnmigman.o
-tcmi-$(CONFIG_TCMI_PEN)  += manager/tcmi_penman.o manager/tcmi_penmigman.o 
+tcmi-objs               += manager/tcmi_man.o manager/tcmi_migman.o
+tcmi-$(CONFIG_TCMI_CCN) += manager/tcmi_ccnman.o manager/tcmi_ccnmigman.o
+tcmi-$(CONFIG_TCMI_PEN) += manager/tcmi_penman.o manager/tcmi_penmigman.o 
 ########## Task component
 tcmi-objs += task/tcmi_guesttask.o task/tcmi_shadowtask.o task/tcmi_task.o 
 ########## Migration component
