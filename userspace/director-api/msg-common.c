@@ -150,7 +150,7 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
     struct nlmsgerr* nl_err = (struct nlmsgerr*)nlmsg_data(nlmsg_hdr(ans_msg));
     ret_val = nl_err->error;
     if ( ret_val != 0 ) {
-    	printf("Error message response code: %d!!\n", nl_err->error);    
+    	printf("Error message response code in read: %d!!\n", nl_err->error);    
         goto read_error;
     }
     // Ret_val == ZERO means that we got just ack message
