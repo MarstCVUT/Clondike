@@ -121,14 +121,15 @@ static int generic_message_handler(struct sk_buff *skb, struct genl_info *info) 
 
 	/*tx.cmd = info->genlhdr->cmd;*/
 	tx.seq = info->snd_seq;
-	printk("Generic message handler got: %d\n", tx.seq);
+	mdbg(INFO4,"Generic message handler got: %d", tx.seq);
+
 	genl_ext_lock();	
 	itx = __find_itx(&tx);	
 	genl_ext_unlock();
 
 	if ( !itx ) {		
 		/* No tx registered for the message */
-		printk("Sequence not registered: %d\n", tx.seq);
+		minfo(ERR1, "Sequence not registered: %d", tx.seq);
 		return -EINVAL;
 	}
 
