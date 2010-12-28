@@ -35,12 +35,6 @@ static int count(char __user * __user * argv, int max)
 	return i;
 }
 
-/** How many bytes to be reserved for array */
-static inline int reserve_array_length(int count) {
-	// We have to use size of 64 bit pointer so that it is platform compatible
-	return (1+count)*sizeof(int64_t);
-}
-
 static int copy_strings(int argc, char __user * __user * argv,
 			struct tcmi_npm_params* params, int* remaining_max_length)
 {
@@ -74,38 +68,6 @@ static int copy_strings(int argc, char __user * __user * argv,
 out:
 	return ret;
 }
-
-/** Fixup args&envp pointers */
-int fixup_npm_params_pointers(struct tcmi_npm_params* params) {
-	int i, pos =0;
-
-	// Decode args array pointer
-	params->args = (char**)params->data;
-	pos += reserve_array_length(params->argsc);
-	// Fill in pointers in arg arrays pointer
-	for ( i=0; i < params->argsc; i++ ) {
-		int len = strlen(params->data+pos);
-		
-		params->args[i] = params->data + pos;
-		pos += (len+1);
-	}
-	params->args[i] = NULL;
-
-	// Decode envp array pointer
-	params->envp = (char**)(params->data + pos);
-	pos += reserve_array_length(params->envpc);
-	// Fill in pointers in envp arrays pointer
-	for ( i=0; i < params->envpc; i++ ) {
-		int len = strlen(params->data+pos);
-		
-		params->envp[i] = params->data + pos;
-		pos += (len+1);
-	}
-	params->envp[i] = NULL;
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(fixup_npm_params_pointers);
 
 int extract_tcmi_npm_params(struct tcmi_npm_params* params, const char * filename, 
 			char __user *__user *argv, char __user *__user *envp) {

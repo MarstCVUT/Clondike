@@ -30,15 +30,21 @@ class NodeRepository
         }
     end
     
+    # Iterates all 'remote' nodes
     def eachNode
+        nodesClone = nil
         @lock.synchronize {
           nodesClone = @nodes.dup
         }
         
         nodesClone.values.each() { |node|  
             yield(node)
-        }
-        
+        }        
+    end
+    
+    # Count of known 'remote' nodes. Does not include self
+    def knownNodesCount
+	return nodes.size
     end
     
     #Gets node by id. If there is no such a node, creates it and registers it

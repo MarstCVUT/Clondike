@@ -114,6 +114,7 @@ static inline int tcmi_ckpt_npm_params_read(struct tcmi_ckpt *ckpt, struct tcmi_
 	return -EINVAL;
 }
 
+
 /********************** PRIVATE METHODS AND DATA ******************************/
 #ifdef TCMI_CKPT_NPM_PARAMS_PRIVATE
 
