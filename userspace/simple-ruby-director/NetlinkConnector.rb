@@ -53,7 +53,7 @@ class NetlinkConnector
         
         def connectorImmigrationRequestCallbackFunction(uid, slotIndex, name)
                 result = nil
-                puts "Immigration request for process #{name} "
+                puts "Immigration request for process #{name}"
                 true
         end
 
