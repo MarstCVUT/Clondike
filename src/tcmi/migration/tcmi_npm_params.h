@@ -52,10 +52,46 @@ struct tcmi_npm_params {
  */
 int extract_tcmi_npm_params(struct tcmi_npm_params* params, const char * filename, char __user *__user *argv, char __user *__user *envp);
 
+
+/** UGLY UGLY! Following 2 funcs would ideally not be in a header.. this is just a quick hack to made code working when deployed as modules.. better solution required */
+
+/** How many bytes to be reserved for array */
+static inline int reserve_array_length(int count) {
+	// We have to use size of 64 bit pointer so that it is platform compatible
+	return (1+count)*sizeof(int64_t);
+}
+
 /**
  * Given a npm params structure, this method will fixup args and envp pointers to point to correct places 
  * in the data member.
  */
-int fixup_npm_params_pointers(struct tcmi_npm_params* params);
+static int fixup_npm_params_pointers(struct tcmi_npm_params* params) {
+	int i, pos =0;
 
+	// Decode args array pointer
+	params->args = (char**)params->data;
+	pos += reserve_array_length(params->argsc);
+	// Fill in pointers in arg arrays pointer
+	for ( i=0; i < params->argsc; i++ ) {
+		int len = strlen(params->data+pos);
+		
+		params->args[i] = params->data + pos;
+		pos += (len+1);
+	}
+	params->args[i] = NULL;
+
+	// Decode envp array pointer
+	params->envp = (char**)(params->data + pos);
+	pos += reserve_array_length(params->envpc);
+	// Fill in pointers in envp arrays pointer
+	for ( i=0; i < params->envpc; i++ ) {
+		int len = strlen(params->data+pos);
+		
+		params->envp[i] = params->data + pos;
+		pos += (len+1);
+	}
+	params->envp[i] = NULL;
+
+	return 0;
+}
 #endif

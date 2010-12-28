@@ -17,3 +17,16 @@ ISSUE
 
 ISSUE - signal handling
  Most of our kernel code does only check error and then returns.. we should keep signals in mind and perhaps at least some actions might be finished.. right?
+
+
+
+==== Network reworking in userspace ====
+1) Retrieve public IP address associated with current node from internet
+2) Retrieve local IP addresses
+3) Create NodeNetworkInfo class
+4) Create NetworkLayers
+5) Create util to detect whether an ip is from a particular subnet
+6) LocalNetworkLayer -> Handle all communication by broadcasts/direct connections
+7) Connection creator for OpenVPNC connection
+8) Connector with direct connection
+8) RemoteNetworkLayer -> .. using OpenVPNC?

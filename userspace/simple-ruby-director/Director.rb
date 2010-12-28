@@ -25,6 +25,11 @@ require 'trust/TrustCliHandlers.rb'
 require 'trust/TrustCliParsers.rb'
 require 'trust/CertificatesDistributionStrategy.rb'
 
+require 'measure/MeasurementDirector.rb'
+require 'measure/MeasurementPlanParser.rb'
+require 'measure/MeasureCliParsers.rb'
+require 'measure/MeasureCliHandlers.rb'
+
 require 'Interconnection.rb'
 
 require 'TestMakeAcceptLimiter'
@@ -72,8 +77,8 @@ class Director
                 @taskRepository.registerListener(balancingStrategy)
                 @taskRepository.registerListener(acceptLimiter)
                 @loadBalancer.registerMigrationListener(@taskRepository)
-                                
-                            
+                                                
+		initializeMeasurements()
                 initializeCliServer()
 	end
 
@@ -82,7 +87,7 @@ class Director
                 $log.debug @nodeInfoProvider.getCurrentInfoWithId.to_s
                 $log.debug @nodeInfoProvider.getCurrentStaticInfo.to_s            
 
-		#Start kernel listening thread		
+		#Start kernel listening thread
                 begin                  
                     @netlinkConnector = NetlinkConnector.new(@membershipManager)
                 rescue
@@ -121,12 +126,18 @@ private
               end
               @trustManagement = TrustManagement.new(@identity, @interconnection)
         end
+	
+	def initializeMeasurements()
+	      @measurementDirector = MeasurementDirector.new(@nodeInfoProvider.getCurrentId, @interconnection) 
+	end
         
         def initializeCliServer
             parser = CliParser.new            
             registerAllTrustParsers(parser)
+	    registerAllMeasurementParsers(parser)
             interpreter = CliInterpreter.new(parser)
             registerAllTrustHandler(@trustManagement, interpreter)
+	    registerAllMeasureHandlers(MeasurementPlanParser.new(@nodeRepository), @measurementDirector, interpreter)
             server = CliServer.new(interpreter, 4223)
             server.start            
         end

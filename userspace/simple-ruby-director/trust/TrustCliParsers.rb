@@ -196,7 +196,7 @@ def prepareCheckPermissionCommandParser()
 end
 
 
-# Helper method to register all know trust related cli internpreter handlers
+# Helper method to register all know trust related cli interpreter handlers
 def registerAllTrustParsers(parser)    
     parser.addCommandParser(prepareAliasCommandParser())
     parser.addCommandParser(prepareDealiasCommandParser())

@@ -46,7 +46,7 @@
 #include <dbg.h>
 
 /** maximum number of connected nodes */
-#define MAX_NODES 10
+#define MAX_NODES 40
 
 /** 
  * \<\<public\>\> Initializes the TCMI manager.

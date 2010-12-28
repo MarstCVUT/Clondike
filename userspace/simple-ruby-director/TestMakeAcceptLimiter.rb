@@ -31,7 +31,7 @@ class TestMakeAcceptLimiter
             #puts "Make running"
             @currentMakePid = task.pid 
             
-        #TODO: This does not work ;( ld is not executed directly and the parameter vmlinu is not passed in args.. too bad   
+        #TODO: This does not work ;( ld is not executed directly and the parameter vmlinux is not passed in args.. too bad   
         elsif ( @currentMakePid && task.name =~ /ld$/ && !@singleThreadedPhase )
             task.args.each() { |arg|
                 if ( arg =~ /vmlinux1/ )                    
