@@ -34,7 +34,8 @@ localstatedir = $(DESTDIR)/var/lib
 sitelibdir = $(sitedir)/$(ruby_version)
 libexecdir = $(exec_prefix)/libexec
 
-CC = x86_64-pc-linux-gnu-gcc
+#CC = x86_64-pc-linux-gnu-gcc
+cc=gcc
 LIBRUBY = $(LIBRUBY_SO)
 LIBRUBY_A = lib$(RUBY_SO_NAME)-static.a
 LIBRUBYARG_SHARED = -Wl,-R -Wl,$(libdir) -L$(libdir) -L. -l$(RUBY_SO_NAME)
@@ -51,7 +52,7 @@ AR = x86_64-pc-linux-gnu-ar
 EXEEXT = 
 
 RUBY_INSTALL_NAME = ruby18
-RUBY_SO_NAME = ruby18
+RUBY_SO_NAME = ruby1.8
 arch = x86_64-linux
 sitearch = x86_64-linux
 ruby_version = 1.8
