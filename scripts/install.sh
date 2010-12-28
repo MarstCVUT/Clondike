@@ -25,8 +25,9 @@ CLONDIKEDIR=/clondike
 CLONDIKEMNT=/mnt/clondike
 CLONDIKEHOME=/home/clondike
 PROXYDIR=/mnt/proxy
+LOCALPROCDIR=/mnt/local/proc
 
-adduser --uid $CLONDIKEUID $CLONDIKEUSER  && {
+useradd --uid $CLONDIKEUID $CLONDIKEUSER  && {
     echo "Created new user '$CLONDIKEUSER', uid=$CLONDIKEUID."
 }
 
@@ -47,6 +48,11 @@ adduser --uid $CLONDIKEUID $CLONDIKEUSER  && {
 
 [ ! -d $PROXYDIR ] && {
     mkdir $PROXYDIR
-    echo "Created ctlfs directory '$PROXYDIR'."
+    echo "Created proxy directory '$PROXYDIR'."
+}
+
+[ ! -d $LOCALPROCDIR ] && {
+    mkdir -p $LOCALPROCDIR
+    echo "Created local proc directory '$LOCALPROCDIR'."
 }
 
