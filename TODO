@@ -9,7 +9,7 @@ POSSIBLE SOLUTION(s)
  - add some "crcs" to messages to detect "broken" messages, but it would require in addition some ability to dected proper end of incomplete message so that next message is read properly!
 
 ISSUE
- sending of message in parts has another issues... if the socket can be accessed via more threads (like process connection can be), then the parts may get mixed and we have a serios trouble.. again not splitting into the parts would be likely most helpful..
+ sending of message in parts has another issues... if the socket can be accessed via more threads (like process connection can be), then the parts may get mixed and we have a serious trouble.. again not splitting into the parts would be likely most helpful..
 
 
 
@@ -30,3 +30,7 @@ ISSUE - signal handling
 7) Connection creator for OpenVPNC connection
 8) Connector with direct connection
 8) RemoteNetworkLayer -> .. using OpenVPNC?
+
+
+==== IMMEDIATELLY ====
+- Certificate per IP
