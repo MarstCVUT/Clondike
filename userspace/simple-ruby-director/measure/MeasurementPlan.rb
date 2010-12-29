@@ -181,7 +181,11 @@ class MeasurementPlan
   # Execution is asynchronous, passing back results to listener
   def execute(localNodeId, resultListener)
     plan = @nodePlanMapping[localNodeId]
-    plan.execute(@startTime, resultListener)
+    if ( plan )
+      plan.execute(@startTime, resultListener)
+    else
+      $log.debug("No task for current node")
+    end
   end  
                 
   def saveToFile(file, nodeId, nodeName)
