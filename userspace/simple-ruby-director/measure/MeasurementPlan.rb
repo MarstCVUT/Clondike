@@ -180,6 +180,9 @@ class MeasurementPlan
   # This method will process all tasks associated with the node specified by localNodeId
   # Execution is asynchronous, passing back results to listener
   def execute(localNodeId, resultListener)
+    # TODO: Temporary dump for debugging
+    dump_plan()
+    
     plan = @nodePlanMapping[localNodeId]
     if ( plan )
       plan.execute(@startTime, resultListener)
@@ -191,7 +194,7 @@ class MeasurementPlan
   def saveToFile(file, nodeId, nodeName)
     plan = @nodePlanMapping[nodeId]
     plan.saveToFile(file, @startTime, nodeName)
-  end
+  end  
 private
   def getOrCreateNodeMeasurementPlan(nodeId)
      plan = @nodePlanMapping[nodeId]
@@ -200,7 +203,15 @@ private
 	@nodePlanMapping[nodeId] = plan
      end
      return plan
-  end           
+  end
+  
+  def dump_plan
+    puts "Measurement plan:"
+    @nodePlanMapping.each { |nodeId, plan| 
+	puts "Node #{nodeId} has some plan"
+    }
+  end
+  
 end
 
 class Measurement
