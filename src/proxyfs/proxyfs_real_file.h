@@ -224,7 +224,7 @@ static inline int proxyfs_real_file_ioctl_nread(struct proxyfs_real_file* self) 
 		return nread;
 	}
 
-	mdbg(ERR1, "Cannot ioctl real file!");
+	mdbg(INFO3, "Read file does not support IO ctl operations! Id: %lu", proxyfs_file_get_file_ident(PROXYFS_FILE(self)));
 	return -1;
 }
 
