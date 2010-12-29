@@ -42,6 +42,8 @@ class MeasurementTask
   attr_reader :result
 
   def initialize(command, startTimeOffset)
+    raise "Command must not be null" if !command
+    
     @command = command
     # Offset in secods when to start (with respect to measrument plan start time)
     @startTimeOffset = startTimeOffset
