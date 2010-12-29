@@ -189,7 +189,7 @@ class RSAPublicKey < SimpleDelegator
         return undecorated_to_s.hash
     end
 
-    # Short-cut method with hardcoded digest algorith,
+    # Short-cut method with hardcoded digest algorithm
     def verifySignature(signature, data)
 	verify( OpenSSL::Digest::SHA1.new, signature, data)
     end
@@ -210,6 +210,14 @@ class RSAPublicKey < SimpleDelegator
         #sputs "EQ? #{undecorated_to_s == other.undecorated_to_s}"
         
         return undecorated_to_s == other.undecorated_to_s        
+    end
+    
+    def toShortHashString()
+      return OpenSSL::Digest::SHA1.new(undecorated_to_s)
+    end
+    
+    def to_s
+      return toShortHashString().to_s
     end
     
     def eql?(other)
