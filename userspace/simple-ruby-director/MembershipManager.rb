@@ -26,13 +26,15 @@ class MembershipManager
             @filesystemConnector = filesystemConnector
             @nodeRepository = nodeRepository
 	    @trustManagement = trustManagement
-	    @minimumConnectedPeers = 3
+	    @minimumConnectedPeers = 50
 
             # Init core manager reference, if there is a core node registered on this machine
             @coreManager = FilesystemNodeBuilder.new().parseCoreManager(@filesystemConnector, @nodeRepository);
 
             # Check via fs api if there is dn registered
-            @detachedManagers = FilesystemNodeBuilder.new().parseDetachedManagers(@filesystemConnector, @nodeRepository);            
+            @detachedManagers = FilesystemNodeBuilder.new().parseDetachedManagers(@filesystemConnector, @nodeRepository);            	    	    
+	    
+	    startAutoconnectingThread()
         end
         
         #This callback is invoked, when we learn about existence of a new node
@@ -49,10 +51,11 @@ class MembershipManager
         
         #This callback is invoked, when a new remote node has connected to our core node
         def nodeConnected(address, slotIndex)
-            nodeId = @filesystemConnector.findNodeIdByAddress(address)
-            node, isNew = @nodeRepository.getOrCreateNode(nodeId, address)                
-            $log.debug("Adding detached node: #{slotIndex} .. #{node} .. nodeId: #{nodeId}")
-            @coreManager.registerDetachedNode(slotIndex, node)
+            #nodeId = @filesystemConnector.findNodeIdByAddress(address)
+            #node, isNew = @nodeRepository.getOrCreateNode(nodeId, address)                
+	    placeHolderNode = Node.new(nil, address) # Just a placeholder node with no id, not even registered to repository
+            $log.debug("Adding detached placeholder node: #{slotIndex} .. #{placeHolderNode}")
+            @coreManager.registerDetachedNode(slotIndex, placeHolderNode)
         end
 	
         #This callback is invoked, when remote node is disconnected (could be both core or detached remote node)
@@ -91,4 +94,21 @@ class MembershipManager
             }
         end
 
+private
+  def startAutoconnectingThread()
+    ExceptionAwareThread.new() {
+      while true do
+	sleep 10
+	connectAllUnconnectedNodes()	
+      end
+    }
+  end
+
+  def connectAllUnconnectedNodes()
+    puts "CHECKING FOR AUTOCONNECT"
+     @nodeRepository.eachNode { |node|
+                                puts "LETS CHECK NODE #{node.id}"
+         connectToNode if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
+     }
+  end
 end

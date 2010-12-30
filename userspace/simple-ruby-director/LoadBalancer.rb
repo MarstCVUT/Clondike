@@ -67,6 +67,7 @@ private
       
         migrationTarget = getEmigrationTarget(pid, uid, name, args, envp)
         if ( migrationTarget )
+	  $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget}")
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
           [DirectorNetlinkApi::DO_NOT_MIGRATE]

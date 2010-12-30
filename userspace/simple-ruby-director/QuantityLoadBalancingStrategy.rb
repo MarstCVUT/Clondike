@@ -47,7 +47,7 @@ class QuantityLoadBalancingStrategy
         @membershipManager = membershipManager
         # Minimum tasks running locally we want
         @minimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
-        @minimumTasksLocal = 0 # TODO: Uncomment this, testing only
+#        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop
         # Minimum tasks runnign on a remote node we want
         @minimumTasksRemote = 5
         # Fallback load balancing strategy, in case minimum task guarantees are satisfied
@@ -64,7 +64,7 @@ class QuantityLoadBalancingStrategy
         
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Best target #{bestTarget} for name #{name}."
-        updateCounter(bestTarget, pid)
+        updateCounter(bestTarget, name, pid)
         bestTarget
     end    
 
@@ -74,15 +74,18 @@ class QuantityLoadBalancingStrategy
     end
     
     # Callback from task repository
-    def taskExit(task, exitCode)    
+    def taskExit(task, exitCode)            
         @counter.removePid(task.executionNode, task.pid)
+	$log.debug("Removing pid task #{task.pid}. Post-rem count: #{@counter.getCount(task.executionNode)}. Node: #{task.executionNode}")
     end
     
 private
-    def updateCounter(slotIndex, pid)
+    def updateCounter(slotIndex, name, pid)
         if ( !slotIndex )
+	   $log.debug("Adding pid task #{pid} (#{name}) to self. Pre-add count: #{@counter.getCount(@nodeRepository.selfNode)}")
            @counter.addPid(@nodeRepository.selfNode, pid) 
         else
+	   $log.debug("Adding pid task #{pid} (#{name}) to slot #{slotIndex}. Pre-add count: #{@counter.getCount(@membershipManager.coreManager.detachedNodes[slotIndex])}" )
            @counter.addPid(@membershipManager.coreManager.detachedNodes[slotIndex], pid)
         end
     end

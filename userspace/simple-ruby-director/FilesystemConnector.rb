@@ -62,7 +62,8 @@ class FilesystemConnector
         def findNodeIdByAddress(ipAddress)
             #For now, we can simply return address, since it is used as
             #a node id, later we have to read that from fs
-            ipAddress
+            #ipAddress
+	  raise "Unsupported operation"
         end
         
         #Tries to connect to a remote core node. Returns boolean informing about

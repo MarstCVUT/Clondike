@@ -32,22 +32,39 @@ class CoreNodeManager
 	# All associated detached nodes. They should be placed to their associated slots in the array
         # Holds Node objects
 	attr_reader :detachedNodes
+	
+	attr_reader :connectedNodesCount
 
 	def initialize
 		@detachedNodes = []
+		@connectedNodesCount = 0
 	end
                 
 	def registerDetachedNode (slotIndex, node)
 		raise(ArgumentError,"Node already registered at index #{slotIndex}") if @detachedNodes[slotIndex] != nil
 		@detachedNodes[slotIndex] = node
+		@connectedNodesCount = @connectedNodesCount + 1
 	end
 
 	def unregisterDetachedNode (slotIndex)
 		raise(ArgumentError, "No node registered at index #{slotIndex}") if @detachedNodes[slotIndex] == nil
 		@detachedNodes[slotIndex] = nil
+		@connectedNodesCount = @connectedNodesCount - 1
 	end
         
         def nodeConnected(address, slotIndex)
             
         end
+	
+	def containsNode(otherNode)	  
+	  result = false
+	  @detachedNodes.each { |node|
+	     if ( node.id == otherNode.id )
+	        result = true
+	        break
+	     end
+	  }	  
+	  puts "CORE NODE CONTAINS #{@connectedNodesCount} nodes... The node #{otherNode.id} is one of them #{result}"
+	  return result
+	end
 end
