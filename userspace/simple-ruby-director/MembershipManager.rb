@@ -106,7 +106,7 @@ private
 
   def connectAllUnconnectedNodes()
      @nodeRepository.eachNode { |node|
-         connectToNode if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
+         connectToNode(node) if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
      }
   end
 end
