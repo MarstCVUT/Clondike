@@ -14,6 +14,8 @@ struct genl_tx_internal {
 	/* Response data */
 	struct sk_buff* skb;
 	struct genl_info info;
+	
+	u64 start_time;
 
 	int done;
 };
@@ -42,6 +44,8 @@ int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
 		struct genl_tx_internal* itx =  kmalloc(sizeof(struct genl_tx_internal), GFP_KERNEL);
 		if ( !itx )
 			return -ENOMEM;
+		
+		itx->start_time = cpu_clock(smp_processor_id());
 
 		nlh = (struct nlmsghdr *) skb->data;
 		hdr = nlmsg_data(nlh);
@@ -80,6 +84,7 @@ static struct genl_tx_internal* __find_itx(struct genl_tx* tx) {
 int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_info *info, int timeout) {
 	struct genl_tx_internal* itx;
 	int err;
+	u64 read_time;
 
 	genl_ext_lock();	
 	itx = __find_itx(tx);
@@ -89,8 +94,9 @@ int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_
 		return -EINVAL;
 
 	err = wait_event_interruptible_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
-
-	mdbg(INFO3,"Reading response done: %d err: %d", tx->seq, err);
+	read_time = cpu_clock(smp_processor_id());
+	
+	mdbg(INFO3,"Reading response done: %d err: %d. Read took: %llu ms", tx->seq, err, (read_time - itx->start_time)/1000000);
 
 	genl_ext_lock();	
 	if ( itx )
