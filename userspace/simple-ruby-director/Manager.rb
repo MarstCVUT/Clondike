@@ -64,7 +64,7 @@ class CoreNodeManager
 	        break
 	     end
 	  }	  
-	  puts "CORE NODE CONTAINS #{@connectedNodesCount} nodes... The node #{otherNode.id} is one of them #{result}"
+
 	  return result
 	end
 end

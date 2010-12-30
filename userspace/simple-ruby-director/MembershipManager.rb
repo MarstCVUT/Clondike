@@ -105,9 +105,7 @@ private
   end
 
   def connectAllUnconnectedNodes()
-    puts "CHECKING FOR AUTOCONNECT"
      @nodeRepository.eachNode { |node|
-                                puts "LETS CHECK NODE #{node.id}"
          connectToNode if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
      }
   end
