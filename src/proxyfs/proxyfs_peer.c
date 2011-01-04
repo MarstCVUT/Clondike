@@ -94,13 +94,17 @@ void proxyfs_peer_put(struct proxyfs_peer_t *self)
 	else
 		mdbg(INFO4, "Dropping peer reference - ref count: %d", atomic_read(&self->ref_count));
 
-	if (atomic_dec_and_test(&self->ref_count)) {	
+	if (atomic_dec_and_test(&self->ref_count)) {		  
 		mdbg(INFO3, "Freeing peer");
 		if( MSG_MAX_SIZE >= USE_VMALLOC )
 			vfree(self->recv_buf);
 		else
 			kfree(self->recv_buf);
 		kkc_sock_put(self->sock);
+		
+		self->state = PEER_DISCONNECTED;
+		self->sock = null;
+		
 		kfree(self);
 		mdbg(INFO3, "Peer released");
 	}
