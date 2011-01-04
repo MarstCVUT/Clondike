@@ -138,13 +138,13 @@ static int tcmi_shadowtask_process_msg(struct tcmi_task *self, struct tcmi_msg *
 			tcmi_rpc_call2(tcmi_shadow_rpc, tcmi_rpc_procmsg_num(TCMI_RPC_PROCMSG(m)), (long)m, (long)(&resp));
 
 			if ( resp == NULL ) {
-				mdbg(ERR3, "RPC#%d didn't returned rpc response message", 
+				minfo(ERR3, "RPC#%d didn't returned rpc response message", 
 						tcmi_rpc_procmsg_num(TCMI_RPC_PROCMSG(m)));
 				break;
 			}
 
 			if ( tcmi_task_check_peer_lost(self, (err = tcmi_task_send_anonymous_msg(self, resp)) ) ){
-				mdbg(ERR3, "Error sending RPC response message %d", err);
+				minfo(ERR3, "Error sending RPC response message %d", err);
 			}
 
 			tcmi_msg_put( resp );

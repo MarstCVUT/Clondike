@@ -31,7 +31,7 @@ export MDBG_kkc_ERR  := 4
 export MDBG_kkc_WARN := 0
 export MDBG_kkc_INFO := 0
 
-export MDBG_proxyfs_CRIT := 0
+export MDBG_proxyfs_CRIT := 4
 export MDBG_proxyfs_ERR  := 4
 export MDBG_proxyfs_WARN := 0
 export MDBG_proxyfs_INFO := 0
@@ -58,10 +58,10 @@ export MDBG_comm_ERR  := 4
 export MDBG_comm_WARN := 4
 export MDBG_comm_INFO := 4
 
-export MDBG_ckpt_CRIT := 0
+export MDBG_ckpt_CRIT := 4
 export MDBG_ckpt_ERR  := 4
-export MDBG_ckpt_WARN := 0
-export MDBG_ckpt_INFO := 0
+export MDBG_ckpt_WARN := 4
+export MDBG_ckpt_INFO := 4
 
 export MDBG_task_CRIT := 4
 export MDBG_task_ERR  := 4
@@ -78,20 +78,20 @@ export MDBG_ctlfs_ERR  := 4
 export MDBG_ctlfs_WARN := 0
 export MDBG_ctlfs_INFO := 0
 
-export MDBG_syscall_CRIT := 0
+export MDBG_syscall_CRIT := 4
 export MDBG_syscall_ERR  := 4
-export MDBG_syscall_WARN := 0
-export MDBG_syscall_INFO := 0
+export MDBG_syscall_WARN := 4
+export MDBG_syscall_INFO := 4
 
-export MDBG_lib_CRIT := 0
+export MDBG_lib_CRIT := 4
 export MDBG_lib_ERR  := 4
-export MDBG_lib_WARN := 0
-export MDBG_lib_INFO := 0
+export MDBG_lib_WARN := 4
+export MDBG_lib_INFO := 4
 
-export MDBG_tcmi_CRIT := 0
+export MDBG_tcmi_CRIT := 4
 export MDBG_tcmi_ERR  := 4
-export MDBG_tcmi_WARN := 0
-export MDBG_tcmi_INFO := 0
+export MDBG_tcmi_WARN := 4
+export MDBG_tcmi_INFO := 4
 
 export MDBG_migration_CRIT := 4
 export MDBG_migration_ERR  := 4

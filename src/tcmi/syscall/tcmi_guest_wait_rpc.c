@@ -38,7 +38,7 @@ TCMI_GUEST_RPC_CALL_DEF(wait4)
 			(size_t)0); 
 
 	if(r == NULL){
-		mdbg(ERR3, "Response message hasn't arrived");
+		minfo(ERR3, "Response message hasn't arrived");
 		return -EAGAIN;
 	}
 	
