@@ -103,7 +103,7 @@ void proxyfs_peer_put(struct proxyfs_peer_t *self)
 		kkc_sock_put(self->sock);
 		
 		self->state = PEER_DISCONNECTED;
-		self->sock = null;
+		self->sock = NULL;
 		
 		kfree(self);
 		mdbg(INFO3, "Peer released");
