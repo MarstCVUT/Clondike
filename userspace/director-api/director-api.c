@@ -93,19 +93,62 @@ static int read_would_block(struct nl_handle* handle) {
 	return ret_val == 0; // 0 == timeouted
 }
 
+#define NO_RESPONSE_CODE -324888
+
+static int get_message_response_code(struct nl_msg *msg) {
+  struct nlmsghdr *nl_hdr;
+
+  nl_hdr = nlmsg_hdr(msg);
+  return nl_hdr->nlmsg_type == NLMSG_ERROR ? ((struct nlmsgerr*)nlmsg_data(nlmsg_hdr(msg)))->error : NO_RESPONSE_CODE;
+}  
+
+static int is_ack_message(struct nl_msg *msg) {
+  return get_message_response_code(msg) == 0;
+}
+
+static int handle_incoming_message(struct nl_msg *msg) {
+	struct nlmsghdr *nl_hdr;
+	int is_genl_msg;
+	int res = 0;
+  
+	is_genl_msg = 1;		
+
+	nl_hdr = nlmsg_hdr(msg);
+	if ( nl_hdr->nlmsg_type == NLMSG_ERROR ) {
+		struct nlmsgerr* nl_err = (struct nlmsgerr*)nlmsg_data(nlmsg_hdr(msg));
+		res = nl_err->error;
+		if ( res != 0 ) /* Else we got just ACK message, no special handling of those */
+			printf("Error message response code: %d!!\n", nl_err->error);
+		
+		is_genl_msg = 0;
+	} else if ( nl_hdr->nlmsg_type != state.gnl_fid ) {
+		printf("Ignore unknown message type: %d!!\n", nl_hdr->nlmsg_type);
+		is_genl_msg = 0;
+	}
+
+	if ( is_genl_msg ) {
+		printf("Handling generic netlink msg\n");
+		if ( res = genl_cmd_dispatch(msg) ) {
+			printf("Handling generic netlink msg error %d\n", res);
+			process_handle_error(res, msg);
+		}
+	}
+
+	nlmsg_free(msg);    
+	
+	return res;
+}
+
 /** Runs loop that waits for a new messages and dispatches them */
 int run_processing_callback(int allow_block) {
-	struct nl_msg *msg = NULL;
-	struct nlmsghdr *nl_hdr;
+	struct nl_msg *msg = NULL;	
 	int res;
-	int is_genl_msg;
 	
 	//printf("Starting processing loop\n");
 	while (1) {
 		//struct timeval start, end;
 		//gettimeofday(&start);
 		printf("New netlink message arrived\n");
-		is_genl_msg = 1;		
 		if ( !allow_block && read_would_block(state.handle) ) 
 			return;
 
@@ -116,28 +159,7 @@ int run_processing_callback(int allow_block) {
 			continue;
 		}
 
-		nl_hdr = nlmsg_hdr(msg);
-		if ( nl_hdr->nlmsg_type == NLMSG_ERROR ) {
-	    		struct nlmsgerr* nl_err = (struct nlmsgerr*)nlmsg_data(nlmsg_hdr(msg));
-    			res = nl_err->error;
-	    		if ( res != 0 ) /* Else we got just ACK message, no special handling of those */
-    				printf("Error message response code: %d!!\n", nl_err->error);
-			
-			is_genl_msg = 0;
-	        } else if ( nl_hdr->nlmsg_type != state.gnl_fid ) {
-			printf("Ignore unknown message type: %d!!\n", nl_hdr->nlmsg_type);
-			is_genl_msg = 0;
-		}
-
-		if ( is_genl_msg ) {
-			printf("Handling generic netlink msg\n");
-			if ( res = genl_cmd_dispatch(msg) ) {
-				printf("Handling generic netlink msg error %d\n", res);
-				process_handle_error(res, msg);
-			}
-		}
-
-		nlmsg_free(msg);
+		handle_incoming_message(msg);
 	}
 }
 
@@ -288,8 +310,19 @@ int send_user_message(int target_slot_type, int target_slot_index, int data_leng
   	if ( (ret_val = send_request_message(state.handle, msg, 1) ) != 0 )
     		goto done;
 
-	  if ( (ret_val = read_message(state.handle, &ans_msg) ) != 0 )
-    		goto done;
+	if ( (ret_val = read_message(state.handle, &ans_msg) ) != 0 ) {
+	      goto done;
+	}
+
+	// TODO: We are not checking, the ack is for this request. Check it!
+	while ( !is_ack_message(ans_msg) ) {
+	    // We can get different than ack messega here.. in this case we have to process it
+	    handle_incoming_message(ans_msg);
+	    
+	    if ( (ret_val = read_message(state.handle, &ans_msg) ) != 0 ) {
+		  goto done;
+	    }	  
+	}
 
 done:
 	nlmsg_free(ans_msg);
