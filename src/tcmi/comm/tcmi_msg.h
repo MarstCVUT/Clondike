@@ -152,8 +152,8 @@ struct tcmi_msg_dsc {
 /*{.msg_id = id, .new_rx = new_rx_m, .new_rx_err = new_rx_err_m}*/
 
 
-/** Message transaction default timeout set to 5 seconds*/
-#define TCMI_DEFAULT_MSG_TIMEOUT 5*HZ
+/** Message transaction default timeout set to 60 seconds*/
+#define TCMI_DEFAULT_MSG_TIMEOUT 60*HZ
 
 /** Casts to the tcmi_msg instance. */
 #define TCMI_MSG(m) ((struct tcmi_msg*)m)
