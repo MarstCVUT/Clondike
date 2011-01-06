@@ -145,6 +145,13 @@ static int tcmi_shadowtask_process_msg(struct tcmi_task *self, struct tcmi_msg *
 
 			if ( tcmi_task_check_peer_lost(self, (err = tcmi_task_send_anonymous_msg(self, resp)) ) ){
 				minfo(ERR3, "Error sending RPC response message %d", err);
+				
+				if ( err == -ERESTARTSYS ) {
+				    minfo(INFO3, "Scheduling message for resubmission");  
+				    /* Protect response reference, retransmission method will be responsible for releasing of the msg */
+				    tcmi_msg_get(resp);
+				    tcmi_task_submit_method(self, tcmi_task_send_message, resp, sizeof(struct tcmi_msg));
+				}
 			}
 
 			tcmi_msg_put( resp );
