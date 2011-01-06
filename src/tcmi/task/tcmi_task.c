@@ -437,6 +437,40 @@ int tcmi_task_process_msg(void *self, struct tcmi_method_wrapper *wr)
 
 }
 
+/**
+ * \<\<public\>\> Called from method queue - Sends a message to peer task.
+ * The method is primarily designed for retransmission of messages in case the original transimision failed due to pending signals.
+ *
+ * @param *self - pointer to this task instance
+ * @param *wr - method wrapper used to store the method in the 
+ * method queue
+ * @return result of the task specific emigrate method or 
+ * TCMI_TASK_KEEP_PUMPING
+ */
+int tcmi_task_send_message(void *self, struct tcmi_method_wrapper *wr)
+{
+  	int res = TCMI_TASK_KEEP_PUMPING;
+	int send_res;
+	struct tcmi_task *self_tsk = TCMI_TASK(self);
+	struct tcmi_msg *resp = *((struct tcmi_msg**)tcmi_method_wrapper_data(wr));
+	
+	//ERESTARTSYS
+	send_res = tcmi_task_send_anonymous_msg(self_tsk, resp);
+	if ( send_res == -ERESTARTSYS ) {
+	  minfo(ERR3, "Signal arrived while sending message, will retransmit later.");
+	  tcmi_msg_get(resp);
+	  tcmi_task_submit_method(self, tcmi_task_send_message, resp, sizeof(struct tcmi_msg));	  
+	} else if ( send_res != 0 ) {
+	  minfo(ERR3, "Sending of message has failed with error: %d. The message will NOT be retransmitted.", send_res);
+	} else {
+	  mdbg(INFO3, "Message send");
+	}
+	
+	tcmi_msg_put( resp );
+	
+	return res;
+}
+
 /** 
  * \<\<public\>\> Called from method queue - Emigrates a task to a PEN
  * - PPM w/ physical checkpoint.  All the work is delegated to the

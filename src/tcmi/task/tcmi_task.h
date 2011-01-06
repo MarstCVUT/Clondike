@@ -297,6 +297,8 @@ extern int tcmi_task_process_methods(struct tcmi_task *self);
 /** \<\<public\>\> Processes message in the message queue. */
 extern int tcmi_task_process_msg(void *self, struct tcmi_method_wrapper *wr);
 
+/** \<\<public\>\> Sends a message to peer. */
+extern int tcmi_task_send_message(void *self, struct tcmi_method_wrapper *wr);
 
 /** \<\<public\>\> Emigrates a task to a PEN - PPM w/ physical checkpoint. */
 extern int tcmi_task_emigrate_ppm_p(void *self, struct tcmi_method_wrapper *wr);
