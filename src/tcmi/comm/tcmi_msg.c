@@ -37,17 +37,8 @@
 
 #include <dbg.h>
 
-/** 
- * \<\<public\>\> Initializes the message for receiving.
- *
- * @param *self - pointer to this message instance
- * @param msg_id - ID of a particular message type
- * @param *msg_ops - pointer to the message operations
- * @return 0 upon success
- */
-int tcmi_msg_init_rx(struct tcmi_msg *self, u_int32_t msg_id,
-		     struct tcmi_msg_ops *msg_ops)
-{
+/** Shared initialization fuction of both rx and tx messages */
+static int tcmi_msg_init_shared(struct tcmi_msg *self, u_int32_t msg_id, struct tcmi_msg_ops *msg_ops) {
 	mdbg(INFO4, "Initialized message ID=%u, %p", msg_id, self);
 	self->msg_id = msg_id;
 	/* initially no transaction associated with the message */
@@ -61,6 +52,20 @@ int tcmi_msg_init_rx(struct tcmi_msg *self, u_int32_t msg_id,
 	/* initialize list head for message queueing */
 	INIT_LIST_HEAD(&self->node);
 	return 0;
+}  
+
+/** 
+ * \<\<public\>\> Initializes the message for receiving.
+ *
+ * @param *self - pointer to this message instance
+ * @param msg_id - ID of a particular message type
+ * @param *msg_ops - pointer to the message operations
+ * @return 0 upon success
+ */
+int tcmi_msg_init_rx(struct tcmi_msg *self, u_int32_t msg_id,
+		     struct tcmi_msg_ops *msg_ops)
+{
+  return tcmi_msg_init_shared(self, msg_id, msg_ops);
 }
 
 /** 
@@ -89,7 +94,7 @@ int tcmi_msg_init_tx(struct tcmi_msg *self, u_int32_t msg_id,
 {
 	int error = 0;
 	/* basic init is the same as when receiving a message */
-	tcmi_msg_init_rx(self, msg_id, msg_ops);
+	tcmi_msg_init_shared(self, msg_id, msg_ops);
 	/* transaction ID, needed if this message is a response to a previously sent message */
 	self->trans_id.resp = resp_trans_id;
 	/* setup transaction when needed */
