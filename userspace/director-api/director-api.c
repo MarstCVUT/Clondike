@@ -127,7 +127,7 @@ static int handle_incoming_message(struct nl_msg *msg) {
 	}
 
 	if ( is_genl_msg ) {
-		printf("Handling generic netlink msg\n");
+//		printf("Handling generic netlink msg\n");
 		if ( res = genl_cmd_dispatch(msg) ) {
 			printf("Handling generic netlink msg error %d\n", res);
 			process_handle_error(res, msg);
@@ -148,7 +148,7 @@ int run_processing_callback(int allow_block) {
 	while (1) {
 		//struct timeval start, end;
 		//gettimeofday(&start);
-		printf("New netlink message arrived\n");
+//		printf("New netlink message arrived\n");
 		if ( !allow_block && read_would_block(state.handle) ) 
 			return;
 
