@@ -67,7 +67,7 @@ private
         configFileName = "#{pwdStruct.dir}/.migration.conf"
 	$log.debug "Loading user config from file #{configFileName}"
         IO.foreach(configFileName) do |line| 
-           execName, allowedNodesString = line.split("-")
+           execName, allowedNodesString = line.split(" - ")
 	   if ( !execName || !allowedNodesString ) then	
 		$log.warn "Invalid line in user config: #{line}"
 		next
