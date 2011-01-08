@@ -82,7 +82,7 @@ class NetlinkConnector
         end
 
 	def connectorUserMessageReceivedCallbackFunction(slotType, slotIndex, messageLength, message)
-		$log.info("Received user message on slot: #{slotType}/#{slotIndex} of length #{messageLength}")
+#		$log.info("Received user message on slot: #{slotType}/#{slotIndex} of length #{messageLength}")
 
                 @userMessageHandlers.each do |handler|
                     handler.userMessageReceived(ManagerSlot.new(slotType, slotIndex), messageLength, message)
@@ -90,7 +90,7 @@ class NetlinkConnector
 	end
 
 	def connectorSendUserMessage(managerSlot, messageLength, message)
-		$log.debug( "Sending user message to slot #{managerSlot}")
+#		$log.debug( "Sending user message to slot #{managerSlot}")
 		DirectorNetlinkApi.instance.sendUserMessage(managerSlot.slotType, managerSlot.slotIndex, messageLength, message)
 	end
 

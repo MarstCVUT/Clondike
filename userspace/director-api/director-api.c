@@ -279,8 +279,6 @@ int send_user_message(int target_slot_type, int target_slot_index, int data_leng
 
 	int ret_val = 0;
 
-	printf("Sending user message to slot index %d\n", target_slot_index);	
-
 	if ( (ret_val=prepare_request_message(state.handle, DIRECTOR_SEND_GENERIC_USER_MESSAGE, state.gnl_fid, &msg) ) != 0 ) {
 		goto done;
   	}
