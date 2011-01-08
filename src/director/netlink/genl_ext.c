@@ -92,8 +92,9 @@ int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_
 	
 	if ( !itx )
 		return -EINVAL;
-
-	err = wait_event_interruptible_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
+  
+	/* Use non-interru[tible timeout.. the operation is fast and we cannot generally restart read_response as it is called directly in kernel hooked in other methods */
+	err = wait_event_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
 	read_time = cpu_clock(smp_processor_id());
 	
 	mdbg(INFO3,"Reading response done: %d err: %d. Read took: %llu ms", tx->seq, err, (read_time - itx->start_time)/1000000);
