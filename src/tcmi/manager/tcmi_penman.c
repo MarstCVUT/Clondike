@@ -186,7 +186,7 @@ static int tcmi_penman_connect(void *obj, void *str)
 	}
 	
 	if ((err = tcmi_penmigman_auth_ccn(TCMI_PENMIGMAN(migman), auth_data_size, auth_data)) < 0) {
-		minfo(ERR1, "Failed to authenticate the PEN! %d", err); 
+		minfo(ERR1, "Failed to authenticate the CCN! %d", err); 
 		goto exit3;
 	}
 	tcmi_slot_insert(slot, tcmi_migman_node(migman));
