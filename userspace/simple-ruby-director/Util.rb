@@ -48,3 +48,27 @@ def isLocalIp(ipAddress)
     #puts "LOCAL IP TEST: #{local_ip()} vs #{ipAddress} => #{local_ip() == ipAddress}"
   return local_ip() == ipAddress
 end
+
+def timedExecution(name)
+  startTime = Time.now.to_f
+  result = yield
+  endTime = Time.now.to_f
+  
+  $log.debug "Execution of '#{name}' took: #{endTime - startTime} sec"
+  return result
+end
+
+class TimingProxy
+    instance_methods.each { |m| undef_method m unless m =~ /(^__|^send$|^object_id$)/ }
+    
+    def initialize(object)
+      @object = object
+    end
+
+    protected
+        def method_missing(name, *args, &block)	  
+	  timedExecution(name) {
+	    @object.send(name, *args, &block)
+	  }
+        end
+end
