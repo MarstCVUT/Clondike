@@ -37,6 +37,8 @@ static void genl_ext_unlock(void) {
 }
 
 int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
+	int res;
+	
 	/* If the transaction context if provided, we have to register it BEFORE we perform the unicast so that we do not miss the response */
 	if ( tx ) {
 		struct nlmsghdr *nlh;
@@ -62,8 +64,10 @@ int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
 
 		mdbg(INFO3,"Generic Tx registered: %d\n",tx->seq);
 	}
-
-	return genlmsg_unicast(&init_net, skb, pid);
+	
+	res = genlmsg_unicast(&init_net, skb, pid);
+	
+	return res;
 }
 
 /* Must be called with transactions lock held */
@@ -89,10 +93,10 @@ int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_
 	genl_ext_lock();	
 	itx = __find_itx(tx);
 	genl_ext_unlock();
-	
+
 	if ( !itx )
 		return -EINVAL;
-  
+
 	/* Use non-interru[tible timeout.. the operation is fast and we cannot generally restart read_response as it is called directly in kernel hooked in other methods */
 	err = wait_event_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
 	read_time = cpu_clock(smp_processor_id());
@@ -103,7 +107,7 @@ int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_
 	if ( itx )
 		list_del(&itx->link);
 	genl_ext_unlock();
-
+	
 	if ( err == 0 )
 		err = -ETIME; /* Timeout */
 	
