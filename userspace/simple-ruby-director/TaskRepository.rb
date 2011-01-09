@@ -77,6 +77,11 @@ class TaskRepository
 
 	if ( task ) 
 	  child = task.addForkedChild(pid)
+	  @lock.synchronize {	
+	      @tasks[pid] = child
+	  }
+	  
+	  notifyFork(child, task)
 	  notifyNewTask(child)
 	end
     end
@@ -126,6 +131,12 @@ class TaskRepository
 private    
     def notifyNewTask(task)
         @listeners.each { |listener| listener.newTask(task) }
+    end
+
+    def notifyFork(task, parentTask)
+        @listeners.each { |listener| 	  
+	  listener.taskFork(task, parentTask) if listener.respond_to?("taskFork")
+	}
     end
 
     def notifyTaskExit(task, exitCode)

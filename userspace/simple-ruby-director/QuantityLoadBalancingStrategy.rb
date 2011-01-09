@@ -2,17 +2,26 @@
 class PerNodeTaskCounter
     def initialize
         @counters = {}
-        @lock = Mutex.new
+        @lock = Monitor.new
+	@pidToNode = {}
     end
     
     def addPid(node, pid)
         @lock.synchronize { 
+	    if ( @pidToNode.include?(pid) )
+	      # Nothing to do if node remained same
+	      return if ( @pidToNode[pid] == node )
+	      removePid(@pidToNode[pid], pid)
+	    end
+	  
             pids = @counters[node.id]
             if !pids
                 pids = Set.new 
                 @counters[node.id] = pids
             end            
             pids.add(pid)
+	
+	    @pidToNode[pid] = node
         }
     end
     
@@ -21,7 +30,21 @@ class PerNodeTaskCounter
             pids = @counters[node.id]
             return if !pids
             pids.delete(pid)
+	    @pidToNode.delete(pid)
         }        
+    end
+    
+    def taskForked(node, childPid, parentPid)
+        parentTask = nil
+        @lock.synchronize { 
+	    parentTask = @counters[node.id]
+	                  
+	    if ( parentTask )
+		addPid(node, childPid)
+	    end	                  
+	}
+	    	
+	return parentTask
     end
     
     def getCount(node)
@@ -72,7 +95,12 @@ class QuantityLoadBalancingStrategy
     def newTask(task)
         # Nothing to be done
     end
-    
+
+    def taskFork(task, parentTask)
+       @counter.taskForked(parentTask.executionNode, task.pid, parentTask.pid); 
+       $log.debug("Forked task #{parentTask.pid} to #{task.pid}. Post-fork count: #{@counter.getCount(parentTask.executionNode)}. Node: #{parentTask.executionNode}")
+    end
+
     # Callback from task repository
     def taskExit(task, exitCode)            
         @counter.removePid(task.executionNode, task.pid)
