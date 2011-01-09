@@ -43,6 +43,7 @@
 #include <tcmi/task/tcmi_guesttask.h>
 
 #include <proxyfs/proxyfs_server.h>
+#include <director/director.h>
 
 #include <asm/uaccess.h>
 #include <linux/err.h>
@@ -154,6 +155,8 @@ static long tcmi_syscall_hooks_post_fork(struct task_struct* child, long res, pi
 		// if the fork happend on CCN before the migration
 		proxyfs_server_duplicate_all_parent(current, child);
 	}
+
+	director_task_fork(child->pid, current->pid);
 
 	return child->pid;
 };

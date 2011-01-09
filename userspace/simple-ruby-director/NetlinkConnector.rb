@@ -10,18 +10,25 @@ class NetlinkConnector
 		@membershipManager = membershipManager
                 @npmHandlers = []
                 @exitHandlers = []
+		@forkHandlers = []
 		@userMessageHandlers = []
+	end
+	
+	# Registers a netlink connector instance to native handler
+	def self.register(instance)
                 begin
-                    DirectorNetlinkApi.instance.registerNpmCallback(self, :connetorNpmCallbackFunction)
-                    DirectorNetlinkApi.instance.registerNpmFullCallback(self, :connectorNpmFullCallbackFunction)
-                    DirectorNetlinkApi.instance.registerNodeConnectedCallback(self, :connectorNodeConnectedCallbackFunction)
-		    DirectorNetlinkApi.instance.registerNodeDisconnectedCallback(self, :connectorNodeDisconnectedCallbackFunction)
-                    DirectorNetlinkApi.instance.registerTaskExittedCallback(self, :connectorTaskExittedCallbackFunction)
-                    DirectorNetlinkApi.instance.registerImmigrateRequestCallback(self, :connectorImmigrationRequestCallbackFunction)
-		    DirectorNetlinkApi.instance.registerUserMessageReceivedCallback(self, :connectorUserMessageReceivedCallbackFunction)
-                rescue
-                    raise "Failed to initialize netlink API!!!"
-                end
+                    DirectorNetlinkApi.instance.registerNpmCallback(instance, :connetorNpmCallbackFunction)
+                    DirectorNetlinkApi.instance.registerNpmFullCallback(instance, :connectorNpmFullCallbackFunction)
+                    DirectorNetlinkApi.instance.registerNodeConnectedCallback(instance, :connectorNodeConnectedCallbackFunction)
+		    DirectorNetlinkApi.instance.registerNodeDisconnectedCallback(instance, :connectorNodeDisconnectedCallbackFunction)
+                    DirectorNetlinkApi.instance.registerTaskExittedCallback(instance, :connectorTaskExittedCallbackFunction)
+		    DirectorNetlinkApi.instance.registerTaskForkedCallback(instance, :connectorTaskForkedCallbackFunction)
+                    DirectorNetlinkApi.instance.registerImmigrateRequestCallback(instance, :connectorImmigrationRequestCallbackFunction)
+		    DirectorNetlinkApi.instance.registerUserMessageReceivedCallback(instance, :connectorUserMessageReceivedCallbackFunction)
+                rescue => err
+		    puts "#{err.backtrace.join("\n")}"		    
+                    raise "Failed to initialize netlink API!!!"		    
+                end	  
 	end
 
         # Adds a new listener on npm events. Registered as a last listener on events
@@ -84,14 +91,14 @@ class NetlinkConnector
 	def connectorUserMessageReceivedCallbackFunction(slotType, slotIndex, messageLength, message)
 #		$log.info("Received user message on slot: #{slotType}/#{slotIndex} of length #{messageLength}")
 
-                @userMessageHandlers.each do |handler|
-                    handler.userMessageReceived(ManagerSlot.new(slotType, slotIndex), messageLength, message)
-                end
+	    @userMessageHandlers.each do |handler|
+		handler.userMessageReceived(ManagerSlot.new(slotType, slotIndex), messageLength, message)
+	    end
 	end
 
 	def connectorSendUserMessage(managerSlot, messageLength, message)
 #		$log.debug( "Sending user message to slot #{managerSlot}")
-		DirectorNetlinkApi.instance.sendUserMessage(managerSlot.slotType, managerSlot.slotIndex, messageLength, message)
+	    DirectorNetlinkApi.instance.sendUserMessage(managerSlot.slotType, managerSlot.slotIndex, messageLength, message)
 	end
 
         # Adds a new listener on exit events. Registered as a last listener on events
@@ -101,15 +108,24 @@ class NetlinkConnector
         
         def connectorTaskExittedCallbackFunction(pid, exitCode)
             #puts "Pid #{pid} exitted with code #{exitCode}"
-                @exitHandlers.each do |handler|
-                    handler.onExit(pid, exitCode)
-                end
-            
+	    @exitHandlers.each do |handler|
+		handler.onExit(pid, exitCode)
+	    end            
+        end
+
+        def pushForkHandler(handler)
+            @forkHandlers << handler;
+        end
+
+	def connectorTaskForkedCallbackFunction(pid, parentPid)
+	    @forkHandlers.each do |handler|
+		handler.onFork(pid, parentPid)
+	    end            	  
         end
 
 	# Starts the processing thread, that listens on incoming messages from kernel
 	def startProcessingThread
-		@thread = Thread.new {
+		@thread = ExceptionAwareThread.new {
                     DirectorNetlinkApi.instance.runProcessingLoop
                 }
 	end

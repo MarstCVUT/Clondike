@@ -57,6 +57,10 @@ static int is_director_connected(void) {
 	return user_director_pid;
 }
 
+int is_director_pid(pid_t ppid) {
+	return (u32)ppid == user_director_pid;
+}
+
 /** Returns unique sequence number for transaction */
 static int get_unique_seq(void) {
 	return atomic_inc_return(&director_seq);

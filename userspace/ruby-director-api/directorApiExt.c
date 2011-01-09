@@ -9,6 +9,7 @@ static void ruby_node_connected_callback(char* address, int slot_index, int auth
 static void ruby_node_disconnected_callback(int slot_index, int slot_type, int reason);
 static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const char* name, int* accept);
 static void ruby_task_exitted_callback(pid_t pid, int exit_code);
+static void ruby_task_forked_callback(pid_t pid, pid_t ppid);
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
 
 static VALUE method_init(VALUE self)
@@ -24,6 +25,7 @@ static VALUE method_init(VALUE self)
 	register_node_disconnected_callback(ruby_node_disconnected_callback);
 	register_immigration_request_callback(ruby_immigrate_request_callback);
 	register_task_exitted_callback(ruby_task_exitted_callback);
+	register_task_forked_callback(ruby_task_forked_callback);
 	register_generic_user_message_callback(ruby_user_message_received_callback);
 
 	rb_iv_set(self, "@npmCallbackTarget", Qnil);
@@ -38,6 +40,8 @@ static VALUE method_init(VALUE self)
 	rb_iv_set(self, "@immigrateRequestCallbackFunction", Qnil);
 	rb_iv_set(self, "@taskExittedCallbackTarget", Qnil);
 	rb_iv_set(self, "@taskExittedCallbackFunction", Qnil);
+	rb_iv_set(self, "@taskForkedCallbackTarget", Qnil);
+	rb_iv_set(self, "@taskForkedCallbackFunction", Qnil);	
 	rb_iv_set(self, "@userMessageReceivedCallbackTarget", Qnil);
 	rb_iv_set(self, "@userMessageReceivedCallbackFunction", Qnil);
 	return self;
@@ -177,6 +181,20 @@ static void ruby_task_exitted_callback(pid_t pid, int exit_code) {
 	}
 }
 
+static void ruby_task_forked_callback(pid_t pid, pid_t ppid) {
+	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
+	VALUE callResult = Qnil;
+	
+	selfClass = rb_const_get(rb_cObject, rb_intern("DirectorNetlinkApi"));
+	instanceMethod = rb_intern("instance");
+	self = rb_funcall(selfClass, instanceMethod, 0);
+	callbackMethod = rb_iv_get(self,"@taskForkedCallbackFunction");
+	callbackTarget = rb_iv_get(self,"@taskForkedCallbackTarget");
+	if ( callbackMethod != Qnil ) {
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 2, INT2FIX(pid), INT2FIX(ppid));
+	}
+}
+
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data) {
 	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
 	VALUE callResult = Qnil;
@@ -197,6 +215,9 @@ static VALUE method_runDirectorNetlinkProcessingLoop(VALUE self) {
 
 	while (1) {
 		run_processing_callback(0); // Do not allow blocking!
+		
+		//rb_thread_sleep(1);
+		//rb_thread_schedule();		
 		rb_thread_wait_fd(netlink_fd);
 	}
 	//finalize_director_api(); TODO: Where to finalize?
@@ -232,6 +253,11 @@ static VALUE method_registerImmigrateRequestCallback(VALUE self, VALUE callbackT
 static VALUE method_registerTaskExittedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
 	rb_iv_set(self, "@taskExittedCallbackTarget", callbackTarget);
 	rb_iv_set(self, "@taskExittedCallbackFunction", callbackFunc);
+}
+
+static VALUE method_registerTaskForkedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
+	rb_iv_set(self, "@taskForkedCallbackTarget", callbackTarget);
+	rb_iv_set(self, "@taskForkedCallbackFunction", callbackFunc);
 }
 
 static VALUE method_registerUserMessageReceivedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
@@ -284,6 +310,7 @@ Init_directorApi()
 	rb_define_method(netlinkApi, "registerNodeDisconnectedCallback", method_registerNodeDisconnectedCallback, 2);
 	rb_define_method(netlinkApi, "registerImmigrateRequestCallback", method_registerImmigrateRequestCallback, 2);
 	rb_define_method(netlinkApi, "registerTaskExittedCallback", method_registerTaskExittedCallback, 2);
+	rb_define_method(netlinkApi, "registerTaskForkedCallback", method_registerTaskForkedCallback, 2);
 	rb_define_method(netlinkApi, "registerUserMessageReceivedCallback", method_registerUserMessageReceivedCallback, 2);
 	rb_define_method(netlinkApi, "sendUserMessage", method_sendUserMessage, 4);	
 	rb_define_method(netlinkApi, "runProcessingLoop", method_runDirectorNetlinkProcessingLoop, 0);	

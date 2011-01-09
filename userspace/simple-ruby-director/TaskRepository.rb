@@ -4,6 +4,8 @@ class TaskInfo
     attr_reader :pid
     # Effective user id of the task
     attr_reader :uid
+    # Pointer to parent task (if known)
+    attr_reader :parent
     # Name of the executable
     attr_reader :name
     # Arguments used on startup
@@ -15,19 +17,33 @@ class TaskInfo
     attr_reader :homeNode    
     # Node, where is the task being executed at the moment (as far as we can say)    
     attr_reader :executionNode
+    # Child tasks of this task
+    attr_reader :children
     
-    def initialize(pid, uid, name, args, homeNode)
+    def initialize(pid, uid, parent, name, args, homeNode)
         @pid = pid
         @uid = uid
+	@parent = parent
         @name = name
         @args = args
         @homeNode = homeNode
         @executionNode = homeNode
         @startTime = Time.now.to_f
+	@children = Set.new
     end
     
     def updateExecutionNode(node)
         @executionNode = node
+    end
+        
+    def addForkedChild(childPid)
+	childTask = TaskInfo.new(childPid, @uid, self, @name, @args, @homeNode)
+	@children.add(childTask)
+	return childTask
+    end
+    
+    def removeChild(taskInfo)
+        @children.remove(taskInfo)
     end
     
     def ==(other)
@@ -51,6 +67,18 @@ class TaskRepository
 
     def registerListener(listener)
         @listeners << listener
+    end
+    
+    def onFork(pid, parentPid)
+        task = nil
+        @lock.synchronize {
+            task = @tasks[parentPid]
+        }
+
+	if ( task ) 
+	  child = task.addForkedChild(pid)
+	  notifyNewTask(child)
+	end
     end
     
     # Callback from on exec notification
@@ -93,8 +121,7 @@ class TaskRepository
             if task
                 task.updateExecutionNode(node)
             end
-        }
-        
+        }        
     end
 private    
     def notifyNewTask(task)
@@ -106,12 +133,15 @@ private
     end
     
     def registerTask(pid, uid, name, args, homeNode=nil)
-        task = TaskInfo.new(pid, uid, name, args, homeNode)
-        @lock.synchronize {
+        alreadyContained = false
+        task = TaskInfo.new(pid, uid, nil, name, args, homeNode)
+        @lock.synchronize {	
+	    alreadyContained = @tasks.include?(pid)
             @tasks[pid] = task
         }
-        
-        notifyNewTask(task)
+        	
+	# TODO: Notify listeners about exec, so that they know about change of code of the task?
+        notifyNewTask(task) if !alreadyContained
     end
     
     def deregisterTask(pid, exitCode)        

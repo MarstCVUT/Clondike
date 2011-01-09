@@ -82,6 +82,15 @@ int director_generic_user_message_recv(int node_id, int is_core_node, int slot_i
 int director_task_exit(pid_t pid, int exit_code);
 
 /**
+ * Called, when a task forks
+ *
+ * @param pid Pid of a new task that was forked
+ * @param ppid Pid of a parent task that was forked
+ * @return 0 on success, error code otherwise. In case of error, output params are not valid!
+ */
+int director_task_fork(pid_t pid, pid_t ppid);
+
+/**
  * Registers handler for send generic user message command..
  */
 void director_register_send_generic_user_message_handler(send_generic_user_message_handler_t handler);

@@ -18,6 +18,7 @@ enum {
   DIRECTOR_NODE_DISCONNECTED, /* Informs director that a peer node connection was closed */
   DIRECTOR_IMMIGRATION_REQUEST, /* Informs director, some associated CN wants to immigrate task to this node */
   DIRECTOR_TASK_EXIT, /* Informs, that a task has finished */
+  DIRECTOR_TASK_FORK, /* Informs, that a task has forked */
   DIRECTOR_GENERIC_USER_MESSAGE, /* Informs about newly arrived generic user message */
 
   /* Responses */
@@ -33,6 +34,7 @@ enum {
 /* Message attributes */
 enum {
   DIRECTOR_A_PID, /* process pid */
+  DIRECTOR_A_PPID, /* process parent pid */
   DIRECTOR_A_UID, /* user id */
   DIRECTOR_A_TASK_TYPE, /* Task type (1=guest/0=shadow)*/
   DIRECTOR_A_NAME, /* Name of anything */

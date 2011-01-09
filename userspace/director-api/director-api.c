@@ -10,6 +10,7 @@
 
 #include <errno.h>
 #include <poll.h>
+#include <time.h>
 
 #include "internal.h"
 #include "msg-common.h"
@@ -18,6 +19,7 @@
 #include "node-disconnected.h"
 #include "immigration-request.h"
 #include "task-exitted.h"
+#include "task-forked.h"
 #include "generic_user_message.h"
 
 
@@ -36,6 +38,7 @@ static uint8_t ans_mapping[DIRECTOR_MSG_MAX] = {
 	[DIRECTOR_NODE_DISCONNECTED] = DIRECTOR_ACK,
 	[DIRECTOR_IMMIGRATION_REQUEST] = DIRECTOR_IMMIGRATION_REQUEST_RESPONSE,
 	[DIRECTOR_TASK_EXIT] = DIRECTOR_ACK,
+	[DIRECTOR_TASK_FORK] = DIRECTOR_ACK,
 	[DIRECTOR_GENERIC_USER_MESSAGE] = DIRECTOR_ACK,
 };
 
@@ -127,7 +130,7 @@ static int handle_incoming_message(struct nl_msg *msg) {
 	}
 
 	if ( is_genl_msg ) {
-//		printf("Handling generic netlink msg\n");
+/*		printf("Handling generic netlink msg: Tx id: %d\n", nlmsg_hdr(msg)->nlmsg_seq); */
 		if ( res = genl_cmd_dispatch(msg) ) {
 			printf("Handling generic netlink msg error %d\n", res);
 			process_handle_error(res, msg);
@@ -158,8 +161,8 @@ int run_processing_callback(int allow_block) {
 				break;
 			continue;
 		}
-
-		handle_incoming_message(msg);
+		
+		handle_incoming_message(msg);		
 	}
 }
 
@@ -345,6 +348,7 @@ int initialize_director_api(void) {
 	handlers[DIRECTOR_NODE_DISCONNECTED] = handle_node_disconnected;
 	handlers[DIRECTOR_IMMIGRATION_REQUEST] = handle_immigration_request;
 	handlers[DIRECTOR_TASK_EXIT] = handle_task_exitted;
+	handlers[DIRECTOR_TASK_FORK] = handle_task_forked;
 	handlers[DIRECTOR_GENERIC_USER_MESSAGE] = handle_generic_user_message;
 
 	printf("Comm channel initialized\n");

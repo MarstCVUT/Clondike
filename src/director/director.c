@@ -6,6 +6,7 @@
 #include "netlink/generic_user_message_recv_msg.h"
 #include "netlink/generic_user_message_send_handler.h"
 #include "netlink/task_exitted_msg.h"
+#include "netlink/task_forked_msg.h"
 #include "netlink/immigration_request_msg.h"
 
 #include <linux/module.h>
@@ -85,6 +86,16 @@ int director_task_exit(pid_t pid, int exit_code) {
 }
 
 EXPORT_SYMBOL(director_task_exit);
+
+int director_task_fork(pid_t pid, pid_t ppid) {
+	/** Do not notify directory about its own forks, as this would lead to a lock-out of netlink communications */
+	if ( is_director_pid(ppid) )
+	    return 0;
+	
+	return task_forked(pid, ppid);	
+}
+
+EXPORT_SYMBOL(director_task_fork);
 
 static int __init init_director_module(void) {
 	init_director_comm();

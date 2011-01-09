@@ -26,6 +26,8 @@ typedef void (*node_disconnected_callback_t)(int slot_index, int slot_type, int 
 
 typedef void (*task_exitted_callback_t)(pid_t pid, int exit_code);
 
+typedef void (*task_forked_callback_t)(pid_t pid, pid_t ppid);
+
 typedef void (*generic_user_message_callback_t)(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
 
 #endif

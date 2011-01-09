@@ -1,6 +1,8 @@
 #ifndef DIRECTOR_COMM_H
 #define DIRECTOR_COMM_H
 
+#include <linux/types.h>
+
 /** Initializes director generic netlink family */
 int init_director_comm(void);
 /** Finalizes director generic netlink family */
@@ -36,5 +38,8 @@ struct msg_transaction_ops {
  * @return 0 on success, error code otherwise
  */
 int msg_transaction_do(int msg_code, struct msg_transaction_ops* ops, void* params);
+
+/** Returns 1 if, ppid is equal to userspace director pid */
+int is_director_pid(pid_t ppid);
 
 #endif

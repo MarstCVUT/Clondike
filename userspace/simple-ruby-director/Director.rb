@@ -89,15 +89,18 @@ class Director
 
 		#Start kernel listening thread
                 begin                  
-                    @netlinkConnector = NetlinkConnector.new(@membershipManager)
-                rescue
-                    $log.warn "Creating mock netlink connector as a real connector cannot be created!"
+                    #@netlinkConnector = TimingProxy.new(NetlinkConnector.new(@membershipManager))
+		    @netlinkConnector = NetlinkConnector.new(@membershipManager)
+		    NetlinkConnector.register(@netlinkConnector)
+                rescue => err
+                    $log.warn "Creating mock netlink connector as a real connector cannot be created! Problem with creation of the real connector:\n #{err.backtrace.join("\n")}"
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
                 end
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
                 @netlinkConnector.pushExitHandler(@taskRepository)
+		@netlinkConnector.pushForkHandler(@taskRepository)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.startProcessingThread                                
                 
