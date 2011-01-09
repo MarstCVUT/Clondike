@@ -1,3 +1,4 @@
+# CLASS IN PROGRESS, Not implemented YET :( Meant to be replacement of all networking, and should be able to handle both local network and as well wide area networks
 class Network
   
     def messageReceived()
