@@ -13,12 +13,15 @@ class Interconnection
         
         # Default messages are not acked
         @defaultDeliveryOptions = DeliveryOptions::NO_ACK
+	# FIFO queue of received messages to be processed
+	@messageQueue = BlockingQueue.new
     end
     
     def start(trustManagement, netlinkConnector)
 	@netlinkConnector = netlinkConnector
         @trustManagement = trustManagement
         @recvThread = Thread.new() { recvMessageThread()  }
+	@processThread = ExceptionAwareThread.new() { processMessageThread() }
     end
     
     # Schedules message to be sent
@@ -52,7 +55,7 @@ class Interconnection
     # Callback function to handle incoming user messages (registered to netlink API)
     def userMessageReceived(managerSlot, messageLength, message)
 	deserializedMessage = Marshal.load(message)
-	handleUnwrappedMessage(deserializedMessage, managerSlot)
+	@messageQueue.enqueue([deserializedMessage, managerSlot])
     end
 private
     def recvMessageThread
@@ -66,6 +69,14 @@ private
         end
     end
     
+    # Async thread processing unwrapped messages
+    def processMessageThread
+	while true
+	    message, sender = @messageQueue.dequeue
+	    handleUnwrappedMessage(message, sender)
+	end
+    end
+    
     def handle(message)
         case message
             when MessageWrapper                
@@ -76,7 +87,7 @@ private
                                 
                 doDispatch(message.target, AckMessage.new(message.messageId, localPublicKey, @trustManagement)) if message.requiresAck
 		# TODO: Extend wrapper by key of sender and pass the key here
-                handleUnwrappedMessage(message.message, nil)
+		@messageQueue.enqueue([message.message, nil])
             when AckMessage
                 @ackTracking.ackReceived(message.messageId, message.recipient) if ( message.verifySignature(@trustManagement))
         else
