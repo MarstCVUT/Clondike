@@ -172,7 +172,7 @@ static int msg_transaction_request(int msg_code, struct genl_tx* tx, struct msg_
   if ( !director_pid )
 	return -EFAULT;
 
-  skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
+  skb = nlmsg_new(63000, GFP_KERNEL);
   if (skb == NULL)
       return -1;
 

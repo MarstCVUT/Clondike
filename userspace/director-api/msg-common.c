@@ -7,11 +7,15 @@
 #include <netlink/msg.h>
 #include <netlink/attr.h>
 #include <netlink/handlers.h>
+#include <netlink/utils.h>
+
+#include <linux/genetlink.h>
 
 #include <errno.h>
 #include <poll.h>
 
-
+#define NL_MSG_PEEK		(1<<3)
+#define NL_SOCK_PASSCRED	(1<<1)
 
 /** Prepares netlink message for sending and fills the resut to the result_message parameter. Additional netlink message arguments can be added to that message */
 int prepare_request_message(struct nl_handle* hndl, uint8_t cmd, uint16_t type, struct nl_msg** result_message) {
@@ -100,6 +104,102 @@ int send_response_message(struct nl_handle* hndl, struct nl_msg* msg) {
 	return send_request_message(hndl, msg, 0);
 }
 
+
+/** Duplicated from NL internal structs.. required for fixed function */
+struct nl_handle
+{
+	struct sockaddr_nl	h_local;
+	struct sockaddr_nl	h_peer;
+	int			h_fd;
+	int			h_proto;
+	unsigned int		h_seq_next;
+	unsigned int		h_seq_expect;
+	int			h_flags;
+	void *		h_cb;
+};
+
+
+/** Fixed netlink receive function that is capable of properly receiving messages larger than pagesize */
+int nl_recv_fixed(struct nl_handle *handle, struct sockaddr_nl *nla,
+	    unsigned char **buf, struct ucred **creds)
+{
+	int n;
+	int flags = 0;
+	static int page_size = 0;
+	struct iovec iov;
+	struct msghdr msg = {
+		.msg_name = (void *) nla,
+		.msg_namelen = sizeof(struct sockaddr_nl),
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+		.msg_control = NULL,
+		.msg_controllen = 0,
+		.msg_flags = 0,
+	};
+	struct cmsghdr *cmsg;
+	
+	if (handle->h_flags & NL_MSG_PEEK)
+		flags |= MSG_PEEK;	
+
+	if (page_size == 0)
+		page_size = getpagesize() * 10;
+
+	iov.iov_len = page_size;
+	iov.iov_base = *buf = calloc(1, iov.iov_len);
+
+retry:
+
+	n = recvmsg(handle->h_fd, &msg, flags);
+	if (!n)
+		goto abort;
+	else if (n < 0) {
+		if (errno == EINTR) {
+			NL_DBG(3, "recvmsg() returned EINTR, retrying\n");
+			goto retry;
+		} else if (errno == EAGAIN) {
+			NL_DBG(3, "recvmsg() returned EAGAIN, aborting\n");
+			goto abort;
+		} else {
+			free(msg.msg_control);
+			free(*buf);
+			return nl_error(errno, "recvmsg failed");
+		}
+	}
+
+	if (iov.iov_len < n ||
+	    msg.msg_flags & MSG_TRUNC) {
+		/* Provided buffer is not long enough, enlarge it
+		 * and try again. */
+		iov.iov_len *= 2;
+		iov.iov_base = *buf = realloc(*buf, iov.iov_len);
+		goto retry;
+	} else if (msg.msg_flags & MSG_CTRUNC) {
+		msg.msg_controllen *= 2;
+		msg.msg_control = realloc(msg.msg_control, msg.msg_controllen);
+		goto retry;
+	} else if (flags != 0) {
+		/* Buffer is big enough, do the actual reading */
+		flags = 0;
+		goto retry;
+	}
+
+	if (msg.msg_namelen != sizeof(struct sockaddr_nl)) {
+		free(msg.msg_control);
+		free(*buf);
+		return nl_error(EADDRNOTAVAIL, "socket address size mismatch");
+	}
+
+
+	free(msg.msg_control);
+	return n;
+
+abort:
+	free(msg.msg_control);
+	free(*buf);
+	return 0;
+}
+
+
 /** Reads a netlink message */
 int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
   struct sockaddr_nl peer;
@@ -119,10 +219,8 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
   }
   
 
-  //printf("Receiving\n");
   /* read the response */
-  ret_val = nl_recv(hndl, &peer, &data, NULL);
-  //printf("After rcv %d\n", ret_val);
+  ret_val = nl_recv_fixed(hndl, &peer, &data, NULL);
   if (ret_val <= 0) {
     if (ret_val == 0)
       ret_val = -ENODATA;
@@ -138,10 +236,11 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
   if (!nlmsg_ok(nl_hdr, ret_val)) {
     ret_val = -EBADMSG;
     goto read_error;
-  }
+  }  
 
   if (nl_hdr->nlmsg_type == NLMSG_NOOP ||
       nl_hdr->nlmsg_type == NLMSG_OVERRUN) {
+    
     ret_val = -EBADMSG;
     goto read_error;
   }
@@ -162,6 +261,7 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
   return 0;
 
 read_error:
+  printf("Read message error: %d\n", ret_val);
   free(data);
   nlmsg_free(ans_msg);
   *result_message = NULL;
