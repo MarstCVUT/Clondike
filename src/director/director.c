@@ -20,13 +20,15 @@ int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, cha
 	// TODO: If full is not too expensive do full every time? Or perhaps some "learning" for which processes we should do full immediately and for which not?
 
 	res = npm_check(pid, uid, is_guest, name, &decision, &decision_value);
-	minfo(INFO4, "Npm check [%s]. Res %d", name, res);
+	minfo(INFO4, "Npm check [%s]. Decision: %d, Res %d", name, decision, res);
 	if ( res )
 		return res;
 
 	if ( decision == REQUIRE_ARGS || decision == REQUIRE_ENVP || decision == REQUIRE_ARGS_AND_ENVP ) {
 		res = npm_check_full(pid, uid, is_guest, name, argv, envp, &decision, &decision_value);
 
+		minfo(INFO4, "Npm check full [%s]. Decision: %d, Res %d", name, decision, res);
+		
 		if ( res )
 			return res;
 	}
