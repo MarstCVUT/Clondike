@@ -62,10 +62,14 @@ int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
 		list_add(&itx->link, &transactions);
 		genl_ext_unlock();
 
-		mdbg(INFO3,"Generic Tx registered: %d\n",tx->seq);
+		mdbg(INFO3,"Generic Tx registered: %d Data len: %d\n",tx->seq, skb->len);
 	}
 	
 	res = genlmsg_unicast(&init_net, skb, pid);
+	
+	if ( res ) {
+	    minfo(ERR3, "Unicast error: %d\n", res);
+	}
 	
 	return res;
 }
