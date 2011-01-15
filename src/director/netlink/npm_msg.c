@@ -137,7 +137,10 @@ static int put_char_array(struct sk_buff *skb, char** chars, int type, int neste
 		nla_nest_end(skb, nest_attr);
 	}
 
+	return ret;
+
 failure:
+	minfo(ERR1, "Putting of char array has failed: %d", ret);
 	return ret;
 }
 
@@ -162,9 +165,9 @@ static int npm_check_full_create_request(struct sk_buff *skb, void* params) {
   	if (ret != 0)
       		goto failure;
 
-  	ret = nla_put_u32(skb, DIRECTOR_A_LENGTH, check_params->name_length);
-	if (ret != 0)
-		goto failure;
+//  	ret = nla_put_u32(skb, DIRECTOR_A_LENGTH, check_params->name_length);
+//	if (ret != 0)
+//		goto failure;
 
 	ret = put_char_array(skb, check_params->args, DIRECTOR_A_ARGS, DIRECTOR_A_ARG);
 	if (ret != 0)
