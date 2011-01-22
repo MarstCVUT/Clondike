@@ -8,8 +8,14 @@ fi
 MOUNT_IP=$1
 COMPILATION_DIR=$2
 
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/local /mnt/clondike/${MOUNT_IP}-0-0/usr/local
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/lib  /mnt/clondike/${MOUNT_IP}-0-0/usr/lib
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/lib64 /mnt/clondike/${MOUNT_IP}-0-0/usr/lib64
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/lib32 /mnt/clondike/${MOUNT_IP}-0-0/usr/lib32
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/share /mnt/clondike/${MOUNT_IP}-0-0/usr/share
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/bin /mnt/clondike/${MOUNT_IP}-0-0/usr/bin
+mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/sbin /mnt/clondike/${MOUNT_IP}-0-0/usr/sbin
 
-mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/usr/ /mnt/clondike/${MOUNT_IP}-0-0/usr/
 mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/lib /mnt/clondike/${MOUNT_IP}-0-0/lib 
 mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/home/clondike/ /mnt/clondike/${MOUNT_IP}-0-0/home/clondike/ 
 mount -t ccfs /mnt/clondike/${MOUNT_IP}-0-0/etc/ /mnt/clondike/${MOUNT_IP}-0-0/etc/
