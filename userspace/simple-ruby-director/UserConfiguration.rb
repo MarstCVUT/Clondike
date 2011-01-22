@@ -13,6 +13,10 @@ class ExecutableConfig
         return true if ( @allowedNodes.include?("Any"))
         return @allowedNodes.include?(targetNodeId)
     end
+    
+    def canMigrateSomewhere()        
+        return !@allowedNodes.empty?
+    end    
 end
 
 # A class representing per-user migration configuration
@@ -47,6 +51,14 @@ class UserConfiguration
         # Do not allow to migrate not-listed executables
         return false if !config
         return config.canMigrateTo(targetNodeId)
+    end
+    
+    # Returns true, if there is at least some node where the executable could be migrated to
+    def canMigrateSomewhere(execName)
+        config = @execConfigs[execName]
+        # Do not allow to migrate not-listed executables
+        return false if !config
+        return config.canMigrateSomewhere()
     end
     
     # TODO: Make thread safe

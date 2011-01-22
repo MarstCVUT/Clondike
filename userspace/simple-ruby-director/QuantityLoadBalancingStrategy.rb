@@ -87,7 +87,8 @@ class QuantityLoadBalancingStrategy
         
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Best target #{bestTarget} for name #{name}."
-        updateCounter(bestTarget, name, pid)
+	# Temporary hack.. we count only tasks that are migrateable somewhere... TODO: Instead introduce either some filter for counting tasks, or count based on their CPU usage (unlikely.. to difficult for short term)
+        updateCounter(bestTarget, name, pid) if UserConfiguration.getConfig(uid).canMigrateSomewhere(name)
         bestTarget
     end    
 
@@ -108,7 +109,7 @@ class QuantityLoadBalancingStrategy
     end
     
 private
-    def updateCounter(slotIndex, name, pid)
+    def updateCounter(slotIndex, name, pid)            
         if ( !slotIndex )
 	   $log.debug("Adding pid task #{pid} (#{name}) to self. Pre-add count: #{@counter.getCount(@nodeRepository.selfNode)}")
            @counter.addPid(@nodeRepository.selfNode, pid) 
