@@ -148,9 +148,10 @@ class SmartCommandLine
   end
 
   # Blocking method, withing for input and interpereting it
-  def run
+  def run 
+    
 	begin
-		Curses.timeout=0
+		Curses.timeout=-1
 		loop do
 			c = Curses.getch
 			case c
