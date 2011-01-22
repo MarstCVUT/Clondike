@@ -273,15 +273,13 @@ int proxyfs_proxy_file_close(struct proxyfs_proxy_file_t *self)
 	u_int32_t exitting = current->flags & PF_EXITING;
 
 	mdbg(INFO2, "Close proxy file requested. Ident: %lu Exitting: %d", proxyfs_file_get_file_ident(PROXYFS_FILE(self)), exitting );
-
-	// Do NOT wait for write buffer to be empty. The buffer is sequential, so we can schedule CLOSE operation into the buffer and wait for its result
-	// We need to do this to detect dead peers (on message write), otherwise close method may block.
 	
-	// empty write buf
-//	if( proxyfs_proxy_file_wait_interruptible(self, PROXYFS_FILE_ALL_WRITTEN ) == 0 ) {
-//		mdbg(INFO2, "Closing of ident: %lu failed. Not all written", proxyfs_file_get_file_ident(PROXYFS_FILE(self)));
-//		return -ERESTARTSYS;
-//	}
+	// We have to wait for a write buffer empty event..
+	// TODO: however, if the peer connection is broken, this will never happen, and the close method will block.. what to do? Likely we should wait with some long timeout and then just break (or at least recheck connection)
+	if( proxyfs_proxy_file_wait_interruptible(self, PROXYFS_FILE_ALL_WRITTEN ) == 0 ) {
+		minfo(ERR2, "Closing of ident: %lu failed. Not all written", proxyfs_file_get_file_ident(PROXYFS_FILE(self)));
+		return -ERESTARTSYS;
+	}
 
 	msg = proxyfs_msg_new(MSG_CLOSE, proxyfs_file_get_file_ident(PROXYFS_FILE(self)), sizeof(exitting), &exitting); 
 	if(msg != NULL){
