@@ -20,6 +20,7 @@ echo "Kernel modules uploaded"
 
 scp -r $OPTS ../userspace/simple-ruby-director/*.rb $HOST:$CLONDIKE_ROOT/userspace/simple-ruby-director
 scp -r $OPTS ../userspace/simple-ruby-director/trust/*.rb $HOST:$CLONDIKE_ROOT/userspace/simple-ruby-director/trust
+scp -r $OPTS ../userspace/simple-ruby-director/cli/*.rb $HOST:$CLONDIKE_ROOT/userspace/simple-ruby-director/cli
 scp -r $OPTS ../userspace/simple-ruby-director/measure/*.rb $HOST:$CLONDIKE_ROOT/userspace/simple-ruby-director/measure
 scp -r $OPTS ../userspace/simple-ruby-director/*.so $HOST:$CLONDIKE_ROOT/userspace/simple-ruby-director
 
