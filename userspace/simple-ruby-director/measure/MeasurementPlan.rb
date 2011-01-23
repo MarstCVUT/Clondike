@@ -10,7 +10,10 @@ class ExecuteCommand < MeasurementCommand
   end
   
   def runCommand()    
-   pid = fork { exec @command }
+   pid = fork { 
+     Dir.chdir @path
+     exec @command 
+   }
    Process.waitpid(pid, 0) 
   end
   
