@@ -49,7 +49,7 @@ int node_disconnected(int slot_index, int detached, int reason) {
 	params.detached = detached;
 	params.reason = reason;
 
-	ret = msg_transaction_do(DIRECTOR_NODE_DISCONNECTED, &node_disconnected_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_NODE_DISCONNECTED, &node_disconnected_msg_ops, &params, 1);
 
 	if ( ret )
 		return ret;

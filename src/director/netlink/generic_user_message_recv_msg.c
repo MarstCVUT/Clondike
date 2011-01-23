@@ -68,7 +68,7 @@ int generic_user_message_recv(int node_id, int is_core_node, int slot_index, int
 	params.user_data_size = user_data_size;
 	params.user_data = user_data;
 
-	ret = msg_transaction_do(DIRECTOR_GENERIC_USER_MESSAGE, &generic_user_message_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_GENERIC_USER_MESSAGE, &generic_user_message_msg_ops, &params, 0);
 
 	if ( ret )
 		return ret;

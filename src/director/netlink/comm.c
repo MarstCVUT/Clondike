@@ -162,7 +162,7 @@ void destroy_director_comm(void) {
 /****************** Msg support ************************/
 
 /** Helper method to create&send request */
-static int msg_transaction_request(int msg_code, struct genl_tx* tx, struct msg_transaction_ops* ops, void* params) {
+static int msg_transaction_request(int msg_code, struct genl_tx* tx, struct msg_transaction_ops* ops, void* params, int interruptible) {
   int ret;
   void *msg_head;
   struct sk_buff *skb;
@@ -192,7 +192,7 @@ static int msg_transaction_request(int msg_code, struct genl_tx* tx, struct msg_
   if (ret < 0)
       goto failure;
 
-  ret = genlmsg_unicast_tx(skb, director_pid, tx);
+  ret = genlmsg_unicast_tx(skb, director_pid, tx, interruptible);
   if (ret != 0)
       goto failure;
 
@@ -227,10 +227,10 @@ done:
 	return ret;
 }
 
-int msg_transaction_do(int msg_code, struct msg_transaction_ops* ops, void* params) {
+int msg_transaction_do(int msg_code, struct msg_transaction_ops* ops, void* params, int interruptible) {
 	struct genl_tx tx;
 
-	int res = msg_transaction_request(msg_code, &tx, ops, params);
+	int res = msg_transaction_request(msg_code, &tx, ops, params, interruptible);
 
 	if ( res )
 		return res;

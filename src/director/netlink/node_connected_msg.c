@@ -75,7 +75,7 @@ int node_connected(const char* address, int slot_index, int auth_data_size, char
 	params.auth_data_size = auth_data_size;
 	params.auth_data = auth_data;
 
-	ret = msg_transaction_do(DIRECTOR_NODE_CONNECTED, &node_connected_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_NODE_CONNECTED, &node_connected_msg_ops, &params, 0);
 
 	if ( ret )
 		return ret;

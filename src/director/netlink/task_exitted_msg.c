@@ -55,7 +55,7 @@ int task_exitted(pid_t pid, int exit_code) {
 	params.pid = pid;
 	params.exit_code = exit_code;
 
-	ret = msg_transaction_do(DIRECTOR_TASK_EXIT, &task_exitted_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_TASK_EXIT, &task_exitted_msg_ops, &params, 1);
 
 	minfo(INFO3, "Task exitted. Pid:  %u  Exit code: %d -> Res: %d", pid, exit_code, ret);
 

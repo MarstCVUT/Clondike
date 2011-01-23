@@ -68,7 +68,7 @@ int immigration_request(int slot_index, uid_t uid, const char* name, int* accept
 	params.uid = uid;
 	params.name = name;
 
-	ret = msg_transaction_do(DIRECTOR_IMMIGRATION_REQUEST, &immigration_request_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_IMMIGRATION_REQUEST, &immigration_request_msg_ops, &params, 0);
 
 	if ( ret )
 		return ret;

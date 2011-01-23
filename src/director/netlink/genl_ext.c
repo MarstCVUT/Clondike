@@ -17,6 +17,7 @@ struct genl_tx_internal {
 	
 	u64 start_time;
 
+	int interuptible;
 	int done;
 };
 
@@ -36,7 +37,7 @@ static void genl_ext_unlock(void) {
         mutex_unlock(&genl_ext_mutex);
 }
 
-int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
+int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx, int interuptible) {
 	int res;
 	
 	/* If the transaction context if provided, we have to register it BEFORE we perform the unicast so that we do not miss the response */
@@ -48,11 +49,12 @@ int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx) {
 			return -ENOMEM;
 		
 		itx->start_time = cpu_clock(smp_processor_id());
+		itx->interuptible = interuptible;
 
 		nlh = (struct nlmsghdr *) skb->data;
 		hdr = nlmsg_data(nlh);
 
-		/*tx->cmd = hdr->cmd;*/
+		/*tx->cmd = hdr->cmd;*/		
 		tx->seq = nlh->nlmsg_seq;
 		memcpy(&itx->tx,tx, sizeof(struct genl_tx));
 		itx->skb = NULL; /* Response buffer, not the request buffer */
@@ -100,9 +102,14 @@ int genlmsg_read_response(struct genl_tx* tx, struct sk_buff **skb, struct genl_
 
 	if ( !itx )
 		return -EINVAL;
-
-	/* Use non-interru[tible timeout.. the operation is fast and we cannot generally restart read_response as it is called directly in kernel hooked in other methods */
-	err = wait_event_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
+	
+	if ( itx->interuptible ) {
+	  err = wait_event_interruptible_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));
+	}else {
+	  /* If the request is not interruptible, we have to wait for reply even when signal arrives. This is, however, generally fast enough not to cause too much trouble (sub ms). */
+	  err = wait_event_timeout(tx_queue, itx->done == 1, msecs_to_jiffies(timeout*1000));	  
+	}
+	    	
 	read_time = cpu_clock(smp_processor_id());
 	
 	mdbg(INFO3,"Reading response done: %d err: %d. Read took: %llu ms", tx->seq, err, (read_time - itx->start_time)/1000000);

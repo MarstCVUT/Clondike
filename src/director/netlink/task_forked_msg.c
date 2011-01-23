@@ -55,7 +55,7 @@ int task_forked(pid_t pid, pid_t ppid) {
 	params.pid = pid;
 	params.ppid = ppid;
 
-	ret = msg_transaction_do(DIRECTOR_TASK_FORK, &task_forked_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_TASK_FORK, &task_forked_msg_ops, &params, 1);
 
 	minfo(INFO3, "Task forked. Pid:  %u -> %u -> Res: %d", ppid, pid, ret);
 

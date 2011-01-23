@@ -96,7 +96,7 @@ int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decisio
 	params.args = NULL;
 	params.envp = NULL;
 
-	ret = msg_transaction_do(DIRECTOR_CHECK_NPM, &npm_check_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_CHECK_NPM, &npm_check_msg_ops, &params, 0);
 
 	if ( ret )
 		return ret;
@@ -199,7 +199,7 @@ int npm_check_full(pid_t pid, uid_t uid, int is_guest, const char* name, char __
 	params.args = args;
 	params.envp = envp;
 
-	ret = msg_transaction_do(DIRECTOR_CHECK_FULL_NPM, &npm_check_full_msg_ops, &params);
+	ret = msg_transaction_do(DIRECTOR_CHECK_FULL_NPM, &npm_check_full_msg_ops, &params, 0);
 
 	if ( ret )
 		return ret;

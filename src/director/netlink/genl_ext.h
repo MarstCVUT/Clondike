@@ -20,8 +20,9 @@ struct genl_tx {
   * @param skb: netlink message as socket buffer
   * @param pid: netlink pid of the destination socket
   * @param tx: the transaction context that can be later used for reading the response. If NULL then only standard unicast is performed
+  * @param interuptible: If !=0, the transaction can be terminated when signal arrives and does not need to wait for a reply
   */
-int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx);
+int genlmsg_unicast_tx(struct sk_buff *skb, u32 pid, struct genl_tx* tx, int interuptible);
 
 /**
   * Blocking read call that will read netlink response for the specified transaction
