@@ -127,7 +127,7 @@ protected
         
     def saveKey(key,file)
         output = File.new(file, "w")
-        output.puts key
+        output.puts key.full_to_s
         output.close
     end
     
@@ -210,10 +210,14 @@ class RSAPublicKey < SimpleDelegator
         #sputs "EQ? #{undecorated_to_s == other.undecorated_to_s}"
         
         return undecorated_to_s == other.undecorated_to_s        
-    end
-    
+    end   
+
     def toShortHashString()
       return OpenSSL::Digest::SHA1.new(undecorated_to_s)
+    end
+    
+    def full_to_s
+      return __getobj__.to_s
     end
     
     def to_s
