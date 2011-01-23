@@ -29,6 +29,8 @@ class MeasurementPlanParser
       IO.foreach(fileName) { |line|
 	lines << line
       }
+      
+      lines = lines.find_all { |line| !line.startsWith("#") and line.chop.length > 0 }
             
       raise "Config file should not be empty" if ( lines.empty? )
       
