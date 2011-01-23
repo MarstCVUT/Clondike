@@ -1,0 +1,24 @@
+#Example of format for writing test plans.
+
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  2
+
+# List of all tasks that will be referred later. Format is:
+# <UNIQUE_TASK_NAME>: exec "<COMMAND>" <PATH_WHERE_TO_EXECUTE>
+Tasks:
+  ls: exec "ls -lRa" /tmp
+  lslong: exec "ls -lRa" /
+
+# Finally, section what, when and where to execute. Format is:
+#  <EXECUTION_NODE_NAME>: <NAME_OF_TASK_TO_EXECUTE> <OPTIONAL_DELAY_IN_SECONDS_WHEN_TO_START_THE_MEASUREMENT>
+# EXECUTION_NODE_NAME could be:
+#  LocalNode .. execute locally
+#  RemoteNodeX .. where X is number from 1 to nodes_count - 1.. this specifies one of the remote nodes. It is not generally specified which not it is, but the identifier remains stable throughout all test
+#  ALL .. execute on all nodes
+#  Multiple names separated via comma
+Nodes: 
+  LocalNode: ls
+  ALL: ls 10
+  LocalNode: lslong 1
+  RemoteNode1: ls 6
