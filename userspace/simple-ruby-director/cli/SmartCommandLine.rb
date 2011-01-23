@@ -173,10 +173,6 @@ class SmartCommandLine
 	end
   end
   
-  def runSingleCommand(command)
-    interpretCommand(command)
-  end
-
 private
   def isPrintableChar(c)
 	return (c >= 32 && c <= 125)

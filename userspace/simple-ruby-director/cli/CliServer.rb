@@ -27,7 +27,7 @@ class CliServer < GServer
     end
     
 #    def log(msg)
-#        puts "#{msg}"
+#        puts "XXXXXXXX: #{msg}"
 #    end    
 end
 

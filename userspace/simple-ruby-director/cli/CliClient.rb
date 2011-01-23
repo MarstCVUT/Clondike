@@ -9,11 +9,12 @@ class CliClient
     end
     
     def connect
-      @sock = TCPSocket.open("localhost",@port)        
-      @commandLine = SmartCommandLine.new("Director> ", ".cmd.history", LineInterpreter.new(@sock))        
+      @sock = TCPSocket.open("localhost",@port)
+      @lineInterpreter = LineInterpreter.new(@sock)
     end
     
     def run
+        @commandLine = SmartCommandLine.new("Director> ", ".cmd.history", @lineInterpreter)
         begin
           @commandLine.run()
         ensure
@@ -23,7 +24,7 @@ class CliClient
     
     def runSingleCommand(command)
         begin
-          @commandLine.runSingleCommand(command)
+          @lineInterpreter.interpret(command)
         ensure
           @sock.close                
         end      
@@ -49,7 +50,14 @@ class CliClient
 end
 
 client = CliClient.new(4223)
-client.connect
+
+begin
+  client.connect  
+rescue => err
+  puts "Failed to connect to the server:\n#{err.backtrace.join("\n")}"
+  exit 1
+end
+
 if ( ARGV.length == 0 ) 
   client.run
 else
