@@ -11,8 +11,10 @@ class CliServer < GServer
     end
     
     def serve(io)
-        loop do
-            input = io.gets.chop!	            
+        loop do	  
+            input = io.gets
+	    break if !input
+	    input = input.chop!
             response = @interpreter.interpret(input)
             puts "Sending response #{response}"
             io.puts(response)
