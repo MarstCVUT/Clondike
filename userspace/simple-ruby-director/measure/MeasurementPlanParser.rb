@@ -17,11 +17,11 @@ require 'measure/MeasurementPlan.rb'
 
 class MeasurementPlanParser
   def initialize(nodeRepository)
-    @nodeRepository = nodeRepository
-    @commands = {}
+    @nodeRepository = nodeRepository   
   end
   
   def initializeMeasurement(fileName, startTime, outputFileName)      
+      @commands = {}
       measurement = Measurement.new(startTime, outputFileName)
       
       # Will read all lines in memory.. no issues since we do not assume large files
@@ -65,7 +65,6 @@ private
        if ( groups )	 
 	  taskName = groups[1].strip
 	  taskCommand = groups[2]
-	  puts "FOUND TASK: #{taskName} -> #{taskCommand}"
 	  raise "Duplicate task name: #{taskName}" if @commands.has_key?(taskName) 
 	  @commands[taskName] = parseCommand(taskCommand)
        end
