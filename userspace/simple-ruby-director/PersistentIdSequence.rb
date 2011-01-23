@@ -22,7 +22,7 @@ private
     def load()
         fileName = "#{@idFile}"
 
-        if !File.exists?("#{@idFile}")
+        if !File.exists?(fileName)
             @sequenceNumber = 1
 	    save()
             return
