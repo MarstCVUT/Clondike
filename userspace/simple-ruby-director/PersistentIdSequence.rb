@@ -24,6 +24,7 @@ private
 
         if !File.exists?("#{@idFile}")
             @sequenceNumber = 1
+	    save()
             return
         end
         
