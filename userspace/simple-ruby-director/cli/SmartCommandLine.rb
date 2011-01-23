@@ -148,8 +148,7 @@ class SmartCommandLine
   end
 
   # Blocking method, withing for input and interpereting it
-  def run 
-    
+  def run     
 	begin
 		Curses.timeout=-1
 		loop do
@@ -172,6 +171,10 @@ class SmartCommandLine
 	ensure
 		Curses.close_screen
 	end
+  end
+  
+  def runSingleCommand(command)
+    interpretCommand(command)
   end
 
 private
@@ -223,7 +226,7 @@ private
   def onEnter
 	@screen.scrl(1); @screen.setpos(@screen.cury, 0); 
 	if ( @lineInterpreter ) 
-		result = @lineInterpreter.interpret(@lineText.text)
+		result = interpretCommand(@lineText.text)
 	else
 		result = "No line interpreter available"
 	end
@@ -232,6 +235,10 @@ private
 	@screen.addstr(result)
 	@screen.scrl(1); @screen.setpos(@screen.cury, 0); @screen.addstr(@prompt)
 	@lineText.reset()
+  end
+  
+  def interpretCommand(command)
+    return @lineInterpreter.interpret(command)
   end
 
   def onHome()	

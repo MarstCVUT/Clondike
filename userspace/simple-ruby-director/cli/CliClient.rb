@@ -19,18 +19,14 @@ class CliClient
         ensure
           @sock.close                
         end
-#        print "Director> "
-#        while (input = gets)
-#            @sock.puts(input)			
-#            @sock.flush			
-#            reply = ""
-#            while ( !reply.endsWith("\n")) 
-#              reply = reply + @sock.readpartial(4096)
-#            end            
-#            
-#            puts reply
-#            print "Director> "
-#        end
+    end
+    
+    def runSingleCommand(command)
+        begin
+          @commandLine.runSingleCommand(command)
+        ensure
+          @sock.close                
+        end      
     end
     
     class LineInterpreter
@@ -42,7 +38,7 @@ class CliClient
             @sock.puts(line)			
             @sock.flush			
             reply = ""
-            while ( !reply.endsWith("\n"))  do
+            while ( !reply.endsWith("\n") )  do
               reply = reply + @sock.readpartial(4096)
             end            
             reply = reply.chop!
@@ -54,4 +50,8 @@ end
 
 client = CliClient.new(4223)
 client.connect
-client.run
+if ( ARGV.length == 0 ) 
+  client.run
+else
+  client.runSingleCommand(ARGV[0])
+end
