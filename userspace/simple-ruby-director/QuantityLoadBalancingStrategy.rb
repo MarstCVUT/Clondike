@@ -37,9 +37,9 @@ class PerNodeTaskCounter
     def taskForked(node, childPid, parentPid)
         parentTask = nil
         @lock.synchronize { 
-	    parentTask = @counters[node.id]
+	    pids = @counters[node.id]
 	                  
-	    if ( parentTask )
+	    if ( pids && pids.include?(parentPid) )
 		addPid(node, childPid)
 	    end	                  
 	}
@@ -68,7 +68,7 @@ class QuantityLoadBalancingStrategy
     def initialize(nodeRepository, membershipManager)
         @nodeRepository = nodeRepository
         @membershipManager = membershipManager
-        # Minimum tasks running locally we want
+        # Minimum tasks running locally we want .. currently equals to core counts, could consider core count + 1?
         @minimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
 #        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop
         # Minimum tasks runnign on a remote node we want
