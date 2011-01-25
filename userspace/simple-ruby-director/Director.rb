@@ -17,6 +17,7 @@ require 'SignificanceTracingFilter'
 require 'ExecDumper'
 require 'ExecutionTimeTracer'
 require 'TaskRepository'
+require 'CacheFSController'
 require 'logger'
 require 'trust/Identity.rb'
 require 'trust/TrustManagement.rb'
@@ -96,12 +97,14 @@ class Director
                     $log.warn "Creating mock netlink connector as a real connector cannot be created! Problem with creation of the real connector:\n #{err.backtrace.join("\n")}"
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
                 end
+		cacheFSController = CacheFSController.new
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
                 @netlinkConnector.pushExitHandler(@taskRepository)
 		@netlinkConnector.pushForkHandler(@taskRepository)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
+		@netlinkConnector.pushImmigrationHandler(cacheFSController)
 		@netlinkConnector.startProcessingThread                                
                 
                 #Start notification thread

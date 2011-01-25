@@ -12,6 +12,7 @@ class NetlinkConnector
                 @exitHandlers = []
 		@forkHandlers = []
 		@userMessageHandlers = []
+		@immigrationHandlers = []
 	end
 	
 	# Registers a netlink connector instance to native handler
@@ -58,10 +59,20 @@ class NetlinkConnector
                 result
 	end
         
-        def connectorImmigrationRequestCallbackFunction(uid, slotIndex, name)
-                result = nil
-                puts "Immigration request for process #{name}"
-                true
+        def pushImmigrationHandler(handler)
+            @immigrationHandlers << handler;
+        end	
+	
+        def connectorImmigrationRequestCallbackFunction(uid, slotIndex, name)                
+                $log.info("Immigration request for process #{name}")
+		result = true
+		@immigrationHandlers.each do |handler|
+		  node = @membershipManager.detachedManagers[slotIndex].coreNode
+		  result = result && handler.onImmigrationRequest(node, name)
+		  break if !result
+		end
+		
+                return result
         end
 
 	def connectorNodeConnectedCallbackFunction (address, slotIndex, authenticationData)
