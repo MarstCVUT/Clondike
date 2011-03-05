@@ -159,9 +159,7 @@ int ccfs_interpose(struct dentry *lower_dentry, struct dentry *dentry,
 		unlock_new_inode(inode);
 	else 
 		iput(lower_inode); // TODO: Comment why release only on new
-
-
-	printk(" DELETE THIS TMP DEBUG.. %d\n", ccfs_inode_to_private(inode)->cacheable);
+	
 out:
 	return rc;
 }
