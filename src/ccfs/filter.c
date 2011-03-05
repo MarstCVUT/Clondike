@@ -19,6 +19,8 @@ struct filter_pattern {
 	/** Pattern itself */
 	char* pattern;
 	int pattern_length;
+	/** Files creation data has to be older than this time */
+	struct timespec older_than;
 };
 
 struct filter* create_filter(void) {
@@ -64,51 +66,62 @@ int add_filter_pattern(struct filter* filter, const char* pattern, int pattern_l
 	if ( !filter_pattern )
 		return -ENOMEM;
 
-	filter_pattern->pattern = kmalloc(pattern_length, GFP_KERNEL);
-	if ( !filter_pattern->pattern ) {
-		kfree(filter_pattern);
-		return -ENOMEM;
+	if ( strcmp(pattern, "OLD") == 0 ) {
+	  filter_pattern = NULL;
+	  filter_pattern->older_than = CURRENT_TIME;
+	} else {	
+	  filter_pattern->pattern = kmalloc(pattern_length, GFP_KERNEL);
+	  if ( !filter_pattern->pattern ) {
+		  kfree(filter_pattern);
+		  return -ENOMEM;
+	  }
+	  
+	  memcpy(filter_pattern->pattern, pattern, pattern_length);
+	  filter_pattern->pattern_length = pattern_length;		  
 	}
-
-	memcpy(filter_pattern->pattern, pattern, pattern_length);
-	filter_pattern->pattern_length = pattern_length;
 
 	list_add(&filter_pattern->head, &filter->patterns);
 
 	return 0;
 }
 
-static int pattern_matches(struct filter_pattern* filter_pattern, const char* name, int name_length) {
+static int pattern_matches(struct filter_pattern* filter_pattern, const char* name, int name_length, struct timespec* ctime) {
 	int name_index = name_length - 1;
 	int pattern_index = filter_pattern->pattern_length - 1;
 	const char* pattern = filter_pattern->pattern;
 
-	while ( name_index > -1 && pattern_index > -1 ) {
-		if ( pattern[pattern_index] == '*' ) {
-			if ( pattern_index != 0 ) {
-				printk(KERN_WARNING "Illegal pattern '%s'! Pattern must have * only at the beggining!\n", filter_pattern->pattern);
-			}
-			return 1;
-		} else if ( pattern[pattern_index] != name[name_index] ) {
-			return 0;
-		}
+	if ( filter_pattern->pattern == NULL ) {
+	  /* Match time pattern */
+	  return timespec_compare(&filter_pattern->older_than, ctime) > 0;
+	} else {		  	
+	  /* Match string pattern */
+	  while ( name_index > -1 && pattern_index > -1 ) {
+		  if ( pattern[pattern_index] == '*' ) {
+			  if ( pattern_index != 0 ) {
+				  printk(KERN_WARNING "Illegal pattern '%s'! Pattern must have * only at the beggining!\n", filter_pattern->pattern);
+			  }
+			  return 1;
+		  } else if ( pattern[pattern_index] != name[name_index] ) {
+			  return 0;
+		  }
 
-		name_index--;
-		pattern_index--;
+		  name_index--;
+		  pattern_index--;
+	  }
 	}
 
 	return name_index == pattern_index;
 }
 
 /** Returns 1, if name matches any of the filter patterns. 0 otherwise */
-int filter_matches(struct filter* filter, const char* name, int name_length) {
+int filter_matches(struct filter* filter, const char* name, int name_length, struct timespec *ctime) {
 	struct filter_pattern *head;
 
 	if ( !filter )
 		return 1;
 
         list_for_each_entry(head, &filter->patterns, head) {			
-		 if ( pattern_matches(head, name, name_length) )
+		 if ( pattern_matches(head, name, name_length, ctime) )
 			return 1;
 	}
 
