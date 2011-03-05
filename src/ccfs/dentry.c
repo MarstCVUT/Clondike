@@ -15,13 +15,12 @@ static int ccfs_d_revalidate(struct dentry *dentry, struct nameidata *nd)
 	int rc = 1;	
 
 	mdbg(INFO3,"Revalidating dentry: (%s) %p", dentry->d_iname, dentry);
-
-	if (dentry->d_inode) { // First check for expired cacheablity
-		if ( !ccfs_inode_to_private(dentry->d_inode)->cacheable ) {
-			// Node became uncacheable, we need to reload it
-			return 0;
-		}
+	
+	// Do not cache negative dentries or uncachable dentries
+	if ( dentry->d_inode || !ccfs_inode_to_private(dentry->d_inode)->cacheable ) {		
+		return 0;
 	}
+	
 
 	if (!lower_dentry->d_op || !lower_dentry->d_op->d_revalidate)
 		goto out;
