@@ -45,7 +45,7 @@ private
     # so that only files older than current time are cached, the others remain uncached. Useful for kernel compilation testing
     restrictedMountPath = "#{prefix}/usr/src/linux-2.6.33.1"
     system("umount #{restrictedMountPath}")
-    system("mount -t ccfs -o OLD #{restrictedMountPath} #{restrictedMountPath}")      
+    system("mount -t ccfs -o cache_filter=OLD #{restrictedMountPath} #{restrictedMountPath}")      
   end
     
 end
