@@ -48,7 +48,7 @@ void destroy_filter(struct filter* filter) {
 }
 
 void parse_filter(struct filter* filter, char* definition) {
-	char* p;	
+	char* p;
 
 	while ((p = strsep(&definition, ":")) != NULL) {
 		if (!*p)
@@ -67,7 +67,7 @@ int add_filter_pattern(struct filter* filter, const char* pattern, int pattern_l
 		return -ENOMEM;
 
 	if ( strcmp(pattern, "OLD") == 0 ) {
-	  filter_pattern = NULL;
+	  filter_pattern->pattern = NULL;
 	  filter_pattern->older_than = CURRENT_TIME;
 	} else {	
 	  filter_pattern->pattern = kmalloc(pattern_length, GFP_KERNEL);
@@ -85,13 +85,13 @@ int add_filter_pattern(struct filter* filter, const char* pattern, int pattern_l
 	return 0;
 }
 
-static int pattern_matches(struct filter_pattern* filter_pattern, const char* name, int name_length, struct timespec* ctime) {
+static int pattern_matches(struct filter_pattern* filter_pattern, const char* name, int name_length, struct timespec* ctime, umode_t umode) {
 	int name_index = name_length - 1;
 	int pattern_index = filter_pattern->pattern_length - 1;
 	const char* pattern = filter_pattern->pattern;
 
 	if ( filter_pattern->pattern == NULL ) {
-	  /* Match time pattern */
+	  /* Match time pattern. */
 	  return timespec_compare(&filter_pattern->older_than, ctime) > 0;
 	} else {		  	
 	  /* Match string pattern */
@@ -114,14 +114,14 @@ static int pattern_matches(struct filter_pattern* filter_pattern, const char* na
 }
 
 /** Returns 1, if name matches any of the filter patterns. 0 otherwise */
-int filter_matches(struct filter* filter, const char* name, int name_length, struct timespec *ctime) {
+int filter_matches(struct filter* filter, const char* name, int name_length, struct timespec *ctime, umode_t umode) {
 	struct filter_pattern *head;
 
 	if ( !filter )
 		return 1;
 
         list_for_each_entry(head, &filter->patterns, head) {			
-		 if ( pattern_matches(head, name, name_length, ctime) )
+		 if ( pattern_matches(head, name, name_length, ctime, umode) )
 			return 1;
 	}
 

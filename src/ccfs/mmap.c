@@ -121,15 +121,15 @@ static int ccfs_write_end(struct file *file,
 	//pos = (((loff_t)page->index) << PAGE_CACHE_SHIFT) + to;
 	if (pos + copied > i_size_read(ccfsinode)) {
 		// TODO: DO we need to update lower file metadata?
-		i_size_write(ccfsinode, pos);
+		i_size_write(ccfsinode, pos + copied);
 		printk(KERN_DEBUG "Expanded file size to "
-				"[0x%.16x]\n", (u16)i_size_read(ccfsinode));
+				"[0x%.16x], required (%lld)\n", (u16)i_size_read(ccfsinode), pos + copied);
 	}
 
 	unlock_page(page);
 	page_cache_release(page);
 
-	return rc;
+	return copied;
 }
 
 static sector_t ccfs_bmap(struct address_space *mapping, sector_t block)
@@ -147,9 +147,9 @@ static sector_t ccfs_bmap(struct address_space *mapping, sector_t block)
 }
 
 
-// TODO: At least write is completely wrong..
+// TODO: Well, now write seems to work at least sometimes, though not sure it is really implemented correctly
 struct address_space_operations ccfs_aops = {
-	.writepage = ccfs_writepage,
+	//.writepage = ccfs_writepage,
 	.readpage = ccfs_readpage,
 	.write_begin = ccfs_write_begin,
 	.write_end = ccfs_write_end,

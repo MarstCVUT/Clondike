@@ -22,6 +22,6 @@ int add_filter_pattern(struct filter* filter, const char* pattern, int pattern_l
 void parse_filter(struct filter* filter, char* definition);
 
 /** Returns 1, if name matches any of the filter patterns. 0 otherwise */
-int filter_matches(struct filter* filter, const char* name, int name_length, struct timespec *ctime);
+int filter_matches(struct filter* filter, const char* name, int name_length, struct timespec *ctime, umode_t umode);
 
 #endif

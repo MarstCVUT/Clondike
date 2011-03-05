@@ -133,11 +133,10 @@ int ccfs_interpose(struct dentry *lower_dentry, struct dentry *dentry,
 
 	// TODO: Only first time!
 	filter = ccfs_superblock_to_private(inode->i_sb)->cacheable_filter;	
-	matches = filter_matches(filter, dentry->d_name.name, dentry->d_name.len, &inode->i_ctime);
+	matches = filter_matches(filter, dentry->d_name.name, dentry->d_name.len, &inode->i_ctime, inode->i_mode);
 	mdbg(INFO3, "Dentry %s matches pattern: %d", dentry->d_name.name, matches);
 	if ( !matches )
-		ccfs_inode_to_private(inode)->cacheable = 0;
-
+		ccfs_inode_to_private(inode)->cacheable = 0;	
 	
 	rc = ccfs_init_persistent_file(dentry, inode);
 
