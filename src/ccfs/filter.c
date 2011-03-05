@@ -91,8 +91,8 @@ static int pattern_matches(struct filter_pattern* filter_pattern, const char* na
 	const char* pattern = filter_pattern->pattern;
 
 	if ( filter_pattern->pattern == NULL ) {
-	  /* Match time pattern. */
-	  return timespec_compare(&filter_pattern->older_than, ctime) > 0;
+	  /* Match time pattern. Do not check age for dir, they can be always cached since readdir is uncached anyway */
+	  return S_ISDIR(umode) || timespec_compare(&filter_pattern->older_than, ctime) > 0;
 	} else {		  	
 	  /* Match string pattern */
 	  while ( name_index > -1 && pattern_index > -1 ) {
