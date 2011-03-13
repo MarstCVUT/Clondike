@@ -52,7 +52,7 @@ AR = x86_64-pc-linux-gnu-ar
 EXEEXT = 
 
 RUBY_INSTALL_NAME = ruby18
-RUBY_SO_NAME = ruby1.8
+RUBY_SO_NAME = ruby18
 arch = x86_64-linux
 sitearch = x86_64-linux
 ruby_version = 1.8

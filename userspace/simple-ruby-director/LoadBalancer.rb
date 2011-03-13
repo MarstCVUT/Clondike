@@ -16,7 +16,7 @@ class LoadBalancer
     #Called when a new program is being "execv-ed"
     #Should return array with non-preemptive migration decisions and a target migman
     #in case a migration should be performed
-    def onExec(pid, uid, name, is_guest, args=nil, envp=nil)
+    def onExec(pid, uid, name, is_guest, args=nil, envp=nil, rusage=nil)
         response = is_guest ? onExecGuest(pid, name, args, envp) : onExecCore(pid, uid, name, args, envp)
         notifyMigration(pid, response)
         response

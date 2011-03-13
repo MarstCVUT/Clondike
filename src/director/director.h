@@ -2,6 +2,7 @@
 #define DIRECTOR_H
 
 #include <linux/types.h>
+#include <linux/resource.h>
 #include "handlers.h"
 
 /**
@@ -20,12 +21,13 @@
  * @param envp Envp of execve
  * @param migman_to_use Output parameter.. slot index of migration manager to be used
  * @param migrate_home Output param .. should we migrate home?
+ * @param rusage Resource usage structure of process
  *
  * @return 0 on success, if no migration should be performed
  *         1 on success, when a migration should be performed
  *         error code otherwise. In case of error, output params are not valid!
  */
-int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, char* __user * __user argv, char* __user * __user envp, int* migman_to_use, int* migrate_home);
+int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, char* __user * __user argv, char* __user * __user envp, int* migman_to_use, int* migrate_home, struct rusage *rusage);
 
 /**
  * Request to immigrate process from core node specified by slot_index to this node.
@@ -77,9 +79,10 @@ int director_generic_user_message_recv(int node_id, int is_core_node, int slot_i
  *
  * @param pid Pid of the task that exists
  * @param exit_code Exit code of the task
+ * @param rusage Resource usage structure of process
  * @return 0 on success, error code otherwise. In case of error, output params are not valid!
  */
-int director_task_exit(pid_t pid, int exit_code);
+int director_task_exit(pid_t pid, int exit_code, struct rusage *rusage);
 
 /**
  * Called, when a task forks

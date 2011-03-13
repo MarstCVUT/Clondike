@@ -32,6 +32,7 @@
 #include <linux/types.h>
 #include <linux/module.h>
 #include <linux/vmalloc.h>
+#include <linux/resource.h>
 
 #include <tcmi/task/tcmi_taskhelper.h>
 #include <tcmi/comm/tcmi_vfork_done_procmsg.h>
@@ -134,12 +135,18 @@ static void dump_user_stack(void) {
 static long tcmi_mighooks_do_exit(long code)
 {
 	int prio = 1, is_shadow;
+	struct rusage rusage;
+	mm_segment_t old_fs;
 	long res;
 	
 	is_shadow = (current->tcmi.task_type == shadow || current->tcmi.task_type == shadow_detached);
 
-	director_task_exit(current->pid, code);
-
+	old_fs = get_fs();
+	set_fs(get_ds());
+	res = getrusage(current, RUSAGE_SELF, &rusage);
+	set_fs(old_fs);
+	director_task_exit(current->pid, code, &rusage);
+	
 	res = tcmi_taskhelper_notify_current(tcmi_task_exit, &code, 
 					      sizeof(code), prio);
 
@@ -167,33 +174,42 @@ static long tcmi_mighooks_mig_mode(struct pt_regs *regs)
 	return 0;
 }
 
-static void tcmi_try_npm_on_exec(const char *filename, char __user * __user * argv, char __user * __user * envp, struct pt_regs *regs, struct tcmi_man* man, int is_guest) {
-		int migman_to_use = -1;
-		int migrate_home = 0;
-	
-        	if ( director_npm_check(current->pid, current_euid(), is_guest, filename, argv, envp, &migman_to_use, &migrate_home) != 1 )
-			return;
+static void tcmi_try_npm_on_exec(const char *filename, char __user * __user * argv, 
+		char __user * __user * envp, struct pt_regs *regs, 
+		struct tcmi_man* man, int is_guest) 
+{
+	struct rusage rusage;
+	mm_segment_t old_fs;
+	int migman_to_use = -1;
+	int migrate_home = 0;
 
-		migrate_home = is_guest ? migrate_home : 0;
+	old_fs = get_fs();
+	set_fs(get_ds());
+	getrusage(current, RUSAGE_SELF, &rusage);
+	set_fs(old_fs);
+	if (director_npm_check(current->pid, current_euid(), is_guest, filename, argv, envp, &migman_to_use, &migrate_home, &rusage) != 1 )
+		return;
 
-		// Check if we should emigrate and if so where
-		if ( migman_to_use != -1 || migrate_home ) {
-			struct tcmi_npm_params* npm_params = vmalloc(sizeof(struct tcmi_npm_params));
-			int err = extract_tcmi_npm_params(npm_params, filename, argv, envp);	
-			mdbg(INFO4, "AFTER EXTRACT Filename: %s, Argc: %d, Evnpc: %d.", npm_params->file_name, npm_params->argsc, npm_params->envpc);
-			if ( err ) {
-				mdbg(ERR3, "Error extracting npm params: %d. Skipping npm emigration attempt.", err);
-				vfree(npm_params);
-			} else {
-				if ( migrate_home )
-					tcmi_penman_migrateback_npm(man, regs, npm_params);
-				else
-					tcmi_man_emig_npm(man, current->pid, migman_to_use, regs, npm_params);
-				// If we got here, the migration was not performed => free npm params
-				mdbg(INFO3, "Freeing npm_params after unsuccessful npm migration attempt.");
-				vfree(npm_params);
-			}
+	migrate_home = is_guest ? migrate_home : 0;
+
+	// Check if we should emigrate and if so where
+	if ( migman_to_use != -1 || migrate_home ) {
+		struct tcmi_npm_params* npm_params = vmalloc(sizeof(struct tcmi_npm_params));
+		int err = extract_tcmi_npm_params(npm_params, filename, argv, envp);	
+		mdbg(INFO4, "AFTER EXTRACT Filename: %s, Argc: %d, Evnpc: %d.", npm_params->file_name, npm_params->argsc, npm_params->envpc);
+		if ( err ) {
+			mdbg(ERR3, "Error extracting npm params: %d. Skipping npm emigration attempt.", err);
+			vfree(npm_params);
+		} else {
+			if ( migrate_home )
+				tcmi_penman_migrateback_npm(man, regs, npm_params);
+			else
+				tcmi_man_emig_npm(man, current->pid, migman_to_use, regs, npm_params);
+			// If we got here, the migration was not performed => free npm params
+			mdbg(INFO3, "Freeing npm_params after unsuccessful npm migration attempt.");
+			vfree(npm_params);
 		}
+	}
 }
 
 static long tcmi_mighooks_execve(char *filename, char __user * __user * argv, char __user * __user * envp, struct pt_regs *regs) {	

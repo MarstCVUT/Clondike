@@ -2,6 +2,7 @@
 #define NPM_MSG_H
 
 #include <linux/types.h>
+#include <linux/resource.h>
 
 enum npm_msg_response {
 	DO_NOT_MIGRATE, 
@@ -24,7 +25,7 @@ enum npm_msg_response {
  * @param decision_value Output param .. if result is to perform migration, this will contain slot of the migration manager to be used
  * @return 0 on success, error code otherwise. In case of error, output params are not valid!
  */
-int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value);
+int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value, struct rusage *rusage);
 
 /**
  * Checks, whether the process should be non-preemptively migrated to some other node.

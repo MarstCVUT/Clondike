@@ -2,6 +2,8 @@
 #define DIRECTOR_CALLBACKS_H
 
 #include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 enum npm_msg_response {
 	DO_NOT_MIGRATE, 
@@ -14,7 +16,7 @@ enum npm_msg_response {
 };
 
 
-typedef void (*npm_check_callback_t)(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value);
+typedef void (*npm_check_callback_t)(pid_t pid, uid_t uid, int is_guest, const char* name, struct rusage *rusage, int* decision, int* decision_value);
 
 typedef void (*npm_check_full_callback_t)(pid_t pid, uid_t uid, int is_guest, const char* name, char** args, char** envp, int* decision, int* decision_value);
 
@@ -24,7 +26,7 @@ typedef void (*node_connected_callback_t)(char* address, int slot_index, int aut
 
 typedef void (*node_disconnected_callback_t)(int slot_index, int slot_type, int reason);
 
-typedef void (*task_exitted_callback_t)(pid_t pid, int exit_code);
+typedef void (*task_exitted_callback_t)(pid_t pid, int exit_code, struct rusage *rusage);
 
 typedef void (*task_forked_callback_t)(pid_t pid, pid_t ppid);
 

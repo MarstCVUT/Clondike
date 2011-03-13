@@ -18,6 +18,7 @@ int handle_task_exitted(struct nl_msg *req_msg) {
 	int ret = 0;
 	int seq;
 	struct internal_state* state = get_current_state();
+	struct rusage *rusage;
 
 	// In params
 	pid_t pid;
@@ -35,9 +36,13 @@ int handle_task_exitted(struct nl_msg *req_msg) {
 		return  -EBADMSG;
 	exit_code = nla_get_u32(nla);
 
-	//printf("NPM CALLED FOR NAME: %s\n", name);
+	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_RUSAGE);
+	if (nla == NULL)
+		return  -EBADMSG;
+	rusage = nla_data(nla);
+
 	if ( task_exitted_callback )
-        	task_exitted_callback(pid, exit_code);
+        	task_exitted_callback(pid, exit_code, rusage);
 	
 	if ( (ret=prepare_response_message(state->handle, DIRECTOR_ACK, state->gnl_fid, seq, &msg) ) != 0 ) {
 		goto done;

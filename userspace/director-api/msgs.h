@@ -54,6 +54,7 @@ enum {
   DIRECTOR_A_DECISION_VALUE, /* 32 bit length */  
   DIRECTOR_A_EXIT_CODE, /* 32 bit length */  
   DIRECTOR_A_ERRNO, /* error code, in case some error occured */
+  DIRECTOR_A_RUSAGE,
 
   __DIRECTOR_ATTR_MAX
 };

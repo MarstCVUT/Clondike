@@ -13,6 +13,7 @@ struct task_exitted_params {
 	/* In params */
 	u32 pid;
 	u32 exit_code;
+	struct rusage *rusage;
 
 	/* Out params -> NONE */
 
@@ -27,6 +28,10 @@ static int task_exitted_create_request(struct sk_buff *skb, void* params) {
       		goto failure;
 
 	ret = nla_put_u32(skb, DIRECTOR_A_EXIT_CODE, task_exitted_params->exit_code);
+  	if (ret != 0)
+      		goto failure;
+
+	ret = nla_put(skb, DIRECTOR_A_RUSAGE, sizeof *task_exitted_params->rusage, task_exitted_params->rusage);
   	if (ret != 0)
       		goto failure;
 
@@ -48,12 +53,13 @@ static struct msg_transaction_ops task_exitted_msg_ops = {
 };
 
 
-int task_exitted(pid_t pid, int exit_code) {
+int task_exitted(pid_t pid, int exit_code, struct rusage *rusage) {
 	struct task_exitted_params params;
 	int ret;
 
 	params.pid = pid;
 	params.exit_code = exit_code;
+	params.rusage = rusage;
 
 	ret = msg_transaction_do(DIRECTOR_TASK_EXIT, &task_exitted_msg_ops, &params, 1);
 

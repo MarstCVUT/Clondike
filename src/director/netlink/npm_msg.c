@@ -6,6 +6,7 @@
 #include <dbg.h>
 
 #include <linux/skbuff.h>
+#include <linux/resource.h>
 
 struct npm_check_params {
 	/* In params */
@@ -14,6 +15,7 @@ struct npm_check_params {
 	int is_guest;
 	const char* name;
 	int name_length;
+	struct rusage *rusage;
 	/* Params only in full mode */
 	char __user * __user * args;
 	char __user * __user * envp;
@@ -23,7 +25,6 @@ struct npm_check_params {
 	int decision;
 	/** If the decision has some target value, this will hold it */
 	int decision_value; 
-
 };
 
 /** Creates npm check request */
@@ -50,6 +51,12 @@ static int npm_check_create_request(struct sk_buff *skb, void* params) {
   	ret = nla_put_u32(skb, DIRECTOR_A_LENGTH, check_params->name_length);
 	if (ret != 0)
 		goto failure;
+
+	if (check_params->rusage) {
+		ret = nla_put(skb, DIRECTOR_A_RUSAGE, sizeof *check_params->rusage, check_params->rusage);
+  		if (ret != 0)
+      			goto failure;
+	}
 
 failure:
 
@@ -84,7 +91,7 @@ static struct msg_transaction_ops npm_check_msg_ops = {
 	.read_response = npm_check_read_response
 };
 
-int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value) {
+int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value, struct rusage *rusage) {
 	struct npm_check_params params;
 	int ret;
 
@@ -95,6 +102,7 @@ int npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, int* decisio
 	params.name_length = strlen(name);
 	params.args = NULL;
 	params.envp = NULL;
+	params.rusage = rusage;
 
 	ret = msg_transaction_do(DIRECTOR_CHECK_NPM, &npm_check_msg_ops, &params, 0);
 
@@ -198,6 +206,7 @@ int npm_check_full(pid_t pid, uid_t uid, int is_guest, const char* name, char __
 	params.name_length = strlen(name);
 	params.args = args;
 	params.envp = envp;
+	params.rusage = NULL;
 
 	ret = msg_transaction_do(DIRECTOR_CHECK_FULL_NPM, &npm_check_full_msg_ops, &params, 0);
 

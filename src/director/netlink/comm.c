@@ -3,6 +3,7 @@
 #include "genl_ext.h"
 
 #include <linux/skbuff.h>
+#include <linux/resource.h>
 #include <dbg.h>
 
 #include "generic_user_message_send_handler.h"
@@ -31,6 +32,7 @@ static struct nla_policy director_genl_policy[DIRECTOR_ATTR_MAX + 1] = {
 	[DIRECTOR_A_LENGTH] = { .type = NLA_U32 },
 	[DIRECTOR_A_EXIT_CODE] = { .type = NLA_U32 },
 	[DIRECTOR_A_ERRNO] = { .type = NLA_U32 },
+	[DIRECTOR_A_RUSAGE] = { .type = NLA_BINARY, .len = sizeof(struct rusage) },
 };
 
 /**

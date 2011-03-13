@@ -167,6 +167,7 @@
  MDBG_MAKE_MASK(MDBG_CRIT, MDBG_ERR, MDBG_WARN, MDBG_INFO)
 #endif
 
+#ifdef CONFIG_TCMI_DEBUG
 #define mdbg(type, fmt, args...)								\
 do {												\
 	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) /*&&  tcmi_dbg */ )						\
@@ -180,7 +181,12 @@ do {											\
 	if ( ((MDBG_##type & MDBG_MASK) == MDBG_##type) )				\
 	  	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);\
 } while(0)
-
 #define debug_enabled (tcmi_dbg)
+#else // CONFIG_TCMI_DEBUG
+#define mdbg(type, fmt, args...) do {} while (0)
+#define minfo(type, fmt, args...) do {} while (0)
+#define debug_enabled 0
+#endif
+
 
 #endif /* DBG_H */

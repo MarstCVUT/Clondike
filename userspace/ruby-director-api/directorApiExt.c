@@ -3,14 +3,49 @@
 
 static VALUE module, processingLoopMethod;
 
-static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value);
+static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const char* name, struct rusage *rusage, int* decision, int* decision_value);
 static void ruby_npm_check_full_callback(pid_t pid, uid_t uid, int is_guest, const char* name, char** args, char** envp, int* decision, int* decision_value);
 static void ruby_node_connected_callback(char* address, int slot_index, int auth_data_size, const char* auth_data, int* accept );
 static void ruby_node_disconnected_callback(int slot_index, int slot_type, int reason);
 static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const char* name, int* accept);
-static void ruby_task_exitted_callback(pid_t pid, int exit_code);
+static void ruby_task_exitted_callback(pid_t pid, int exit_code, struct rusage *rusage);
 static void ruby_task_forked_callback(pid_t pid, pid_t ppid);
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
+
+static VALUE ruby_rusage(struct rusage *rusage)
+{
+	if (rusage == NULL)
+		return Qnil;
+
+	VALUE rb_rusage = rb_hash_new();
+	VALUE rb_ru_utime = rb_hash_new();
+	VALUE rb_ru_stime = rb_hash_new();
+
+	rb_hash_aset(rb_ru_utime, rb_str_new2("tv_sec"), INT2FIX(rusage->ru_utime.tv_sec));
+	rb_hash_aset(rb_ru_utime, rb_str_new2("tv_usec"), INT2FIX(rusage->ru_utime.tv_usec));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_utime"), rb_ru_utime);
+
+	rb_hash_aset(rb_ru_stime, rb_str_new2("tv_sec"), INT2FIX(rusage->ru_stime.tv_sec));
+	rb_hash_aset(rb_ru_stime, rb_str_new2("tv_usec"), INT2FIX(rusage->ru_stime.tv_usec));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_stime"), rb_ru_stime);
+
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_maxrss"), INT2FIX(rusage->ru_maxrss));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_ixrss"), INT2FIX(rusage->ru_ixrss));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_idrss"), INT2FIX(rusage->ru_idrss));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_isrss"), INT2FIX(rusage->ru_isrss));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_minflt"), INT2FIX(rusage->ru_minflt));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_majflt"), INT2FIX(rusage->ru_majflt));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_nswap"), INT2FIX(rusage->ru_nswap));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_inblock"), INT2FIX(rusage->ru_inblock));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_oublock"), INT2FIX(rusage->ru_oublock));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_msgsnd"), INT2FIX(rusage->ru_msgsnd));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_msgrcv"), INT2FIX(rusage->ru_msgrcv));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_nsignals"), INT2FIX(rusage->ru_nsignals));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_nvcsw"), INT2FIX(rusage->ru_nvcsw));
+	rb_hash_aset(rb_rusage, rb_str_new2("ru_nivcsw"), INT2FIX(rusage->ru_nivcsw));
+
+	return rb_rusage;
+}
 
 static VALUE method_init(VALUE self)
 {
@@ -64,7 +99,9 @@ static void parse_npm_call_result(VALUE result, int* decision, int* decision_val
 	}
 }
 
-static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const char* name, int* decision, int* decision_value) {
+static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const char* name, 
+		struct rusage *rusage, int* decision, int* decision_value) 
+{
 	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
 	VALUE callResult = Qnil;
 	
@@ -74,7 +111,8 @@ static void ruby_npm_check_callback(pid_t pid, uid_t uid, int is_guest, const ch
 	callbackMethod = rb_iv_get(self,"@npmCallbackFunction");
 	callbackTarget = rb_iv_get(self,"@npmCallbackTarget");
 	if ( callbackMethod != Qnil ) {
-		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 4, INT2FIX(pid), INT2FIX(uid), rb_str_new2(name), is_guest ? Qtrue : Qfalse);
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 5, INT2FIX(pid), 
+				INT2FIX(uid), rb_str_new2(name), is_guest ? Qtrue : Qfalse, ruby_rusage(rusage));
 	}
 
 //	*decision = DO_NOT_MIGRATE;
@@ -167,7 +205,7 @@ static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const cha
 	}
 }
 
-static void ruby_task_exitted_callback(pid_t pid, int exit_code) {
+static void ruby_task_exitted_callback(pid_t pid, int exit_code, struct rusage *rusage) {
 	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
 	VALUE callResult = Qnil;
 	
@@ -177,7 +215,8 @@ static void ruby_task_exitted_callback(pid_t pid, int exit_code) {
 	callbackMethod = rb_iv_get(self,"@taskExittedCallbackFunction");
 	callbackTarget = rb_iv_get(self,"@taskExittedCallbackTarget");
 	if ( callbackMethod != Qnil ) {
-		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 2, INT2FIX(pid), INT2FIX(exit_code));
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 3, 
+				INT2FIX(pid), INT2FIX(exit_code), ruby_rusage(rusage));
 	}
 }
 

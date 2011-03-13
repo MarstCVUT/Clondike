@@ -7,7 +7,7 @@ class ExecDumper
         loadPatterns("dump.patterns")
     end
     
-    def onExec(pid, uid, name, is_guest, args=nil, envp=nil)
+    def onExec(pid, uid, name, is_guest, args=nil, envp=nil, rusage=nil)
         matching = matchesPattern(name)
         return nil if !matching        
         return [DirectorNetlinkApi::REQUIRE_ARGS_AND_ENVP] if !args

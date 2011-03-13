@@ -14,12 +14,14 @@
 
 MODULE_LICENSE("GPL");
 
-int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, char* __user * __user argv, char* __user * __user envp, int* migman_to_use, int* migrate_home) {
+int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, 
+		char* __user * __user argv, char* __user * __user envp, 
+		int* migman_to_use, int* migrate_home, struct rusage *rusage) {
 	int res, decision, decision_value;
 
 	// TODO: If full is not too expensive do full every time? Or perhaps some "learning" for which processes we should do full immediately and for which not?
 
-	res = npm_check(pid, uid, is_guest, name, &decision, &decision_value);
+	res = npm_check(pid, uid, is_guest, name, &decision, &decision_value, rusage);
 	minfo(INFO4, "Npm check [%s]. Decision: %d, Res %d", name, decision, res);
 	if ( res )
 		return res;
@@ -83,8 +85,8 @@ void director_register_send_generic_user_message_handler(send_generic_user_messa
 
 EXPORT_SYMBOL(director_register_send_generic_user_message_handler);
 
-int director_task_exit(pid_t pid, int exit_code) {
-	return task_exitted(pid, exit_code);	
+int director_task_exit(pid_t pid, int exit_code, struct rusage *rusage) {
+	return task_exitted(pid, exit_code, rusage);	
 }
 
 EXPORT_SYMBOL(director_task_exit);

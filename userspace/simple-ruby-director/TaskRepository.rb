@@ -87,7 +87,7 @@ class TaskRepository
     end
     
     # Callback from on exec notification
-    def onExec(pid, uid, name, isGuest, args=nil, envp=nil)
+    def onExec(pid, uid, name, isGuest, args=nil, envp=nil, rusage=nil)
         if ( !args ) then
                 argsRequired = false
                 @fullArgRequired.each { |pattern|
@@ -105,7 +105,7 @@ class TaskRepository
     end
     
     # Callback on task exit
-    def onExit(pid, exitCode)
+    def onExit(pid, exitCode, rusage)
         deregisterTask(pid, exitCode)
     end
     

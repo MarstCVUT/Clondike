@@ -32,6 +32,7 @@ require 'measure/MeasureCliParsers.rb'
 require 'measure/MeasureCliHandlers.rb'
 
 require 'Interconnection.rb'
+require 'ProcTrace.rb'
 
 require 'TestMakeAcceptLimiter'
 #require "xray/thread_dump_signal_handler"
@@ -42,10 +43,12 @@ require 'TestMakeAcceptLimiter'
 #This class should be started AFTER core and/or detached node kernel managers are started!
 class Director	
         CONF_DIR = "conf"
+	LOG_DIR = '/var/log/director'
     
 	attr_reader :nodeRepository	
 	
 	def initialize
+		begin Dir.mkdir(Director::LOG_DIR) rescue Errno::EEXIST end
                 acceptLimiter = TestMakeAcceptLimiter.new();
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
@@ -98,11 +101,15 @@ class Director
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
                 end
 		cacheFSController = CacheFSController.new
+		procTrace = ProcTrace.new
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
+                @netlinkConnector.pushNpmHandlers(procTrace)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
                 @netlinkConnector.pushExitHandler(@taskRepository)
+                @netlinkConnector.pushExitHandler(procTrace)
 		@netlinkConnector.pushForkHandler(@taskRepository)
+		@netlinkConnector.pushForkHandler(procTrace)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
 		@netlinkConnector.startProcessingThread                                

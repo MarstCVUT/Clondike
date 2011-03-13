@@ -37,10 +37,10 @@ class NetlinkConnector
             @npmHandlers << handler;
         end
                 
-	def connetorNpmCallbackFunction (pid, uid, name, is_guest)
+	def connetorNpmCallbackFunction (pid, uid, name, is_guest, rusage)
                 result = nil
                 @npmHandlers.each do |handler|
-                    result = handler.onExec(pid, uid, name, is_guest)
+                    result = handler.onExec(pid, uid, name, is_guest, nil, nil, rusage)
                     break if result
                 end 
                 result = [DirectorNetlinkApi::DO_NOT_MIGRATE] if !result
@@ -117,10 +117,10 @@ class NetlinkConnector
             @exitHandlers << handler;
         end
         
-        def connectorTaskExittedCallbackFunction(pid, exitCode)
+        def connectorTaskExittedCallbackFunction(pid, exitCode, rusage)
             #puts "Pid #{pid} exitted with code #{exitCode}"
 	    @exitHandlers.each do |handler|
-		handler.onExit(pid, exitCode)
+		handler.onExit(pid, exitCode, rusage)
 	    end            
         end
 
