@@ -32,7 +32,7 @@ require 'measure/MeasureCliParsers.rb'
 require 'measure/MeasureCliHandlers.rb'
 
 require 'Interconnection.rb'
-#require 'ProcTrace.rb'
+require 'ProcTrace.rb'
 
 require 'TestMakeAcceptLimiter'
 #require "xray/thread_dump_signal_handler"
@@ -101,15 +101,15 @@ class Director
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
                 end
 		cacheFSController = CacheFSController.new
-		#procTrace = ProcTrace.new
+		procTrace = ProcTrace.new
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
-                #@netlinkConnector.pushNpmHandlers(procTrace)
+                @netlinkConnector.pushNpmHandlers(procTrace)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
                 @netlinkConnector.pushExitHandler(@taskRepository)
-                #@netlinkConnector.pushExitHandler(procTrace)
+                @netlinkConnector.pushExitHandler(procTrace)
 		@netlinkConnector.pushForkHandler(@taskRepository)
-		#@netlinkConnector.pushForkHandler(procTrace)
+		@netlinkConnector.pushForkHandler(procTrace)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
 		@netlinkConnector.startProcessingThread                                
