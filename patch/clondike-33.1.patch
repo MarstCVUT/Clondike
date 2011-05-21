@@ -1340,7 +1340,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  {
 diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanilla/kernel/sys.c linux-2.6.33.1/kernel/sys.c
 --- linux-2.6.33.1-vanilla/kernel/sys.c	2010-03-15 17:09:39.000000000 +0100
-+++ linux-2.6.33.1/kernel/sys.c	2010-03-26 23:20:28.000000000 +0100
++++ linux-2.6.33.1/kernel/sys.c	2011-05-21 16:32:43.820764002 +0200
 @@ -45,6 +45,8 @@
  #include <asm/io.h>
  #include <asm/unistd.h>
@@ -1420,7 +1420,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  SYSCALL_DEFINE3(getresuid, uid_t __user *, ruid, uid_t __user *, euid, uid_t __user *, suid)
  {
  	const struct cred *cred = current_cred();
-@@ -778,6 +799,9 @@ SYSCALL_DEFINE3(getresuid, uid_t __user 
+@@ -778,6 +799,9 @@ SYSCALL_DEFINE3(getresuid, uid_t __user
  	return retval;
  }
  
@@ -1440,7 +1440,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  SYSCALL_DEFINE3(getresgid, gid_t __user *, rgid, gid_t __user *, egid, gid_t __user *, sgid)
  {
  	const struct cred *cred = current_cred();
-@@ -836,6 +863,7 @@ SYSCALL_DEFINE3(getresgid, gid_t __user 
+@@ -836,6 +863,7 @@ SYSCALL_DEFINE3(getresgid, gid_t __user
  	return retval;
  }
  
@@ -1608,7 +1608,16 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  /*
   * It would make sense to put struct rusage in the task_struct,
   * except that would make the task_struct be *really big*.  After
-@@ -1426,12 +1495,16 @@ SYSCALL_DEFINE2(getrusage, int, who, str
+@@ -1418,6 +1487,8 @@ int getrusage(struct task_struct *p, int
+ 	return copy_to_user(ru, &r, sizeof(r)) ? -EFAULT : 0;
+ }
+ 
++EXPORT_SYMBOL(getrusage);
++
+ SYSCALL_DEFINE2(getrusage, int, who, struct rusage __user *, ru)
+ {
+ 	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN &&
+@@ -1426,12 +1497,16 @@ SYSCALL_DEFINE2(getrusage, int, who, str
  	return getrusage(current, who, ru);
  }
  
@@ -1625,7 +1634,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
  		unsigned long, arg4, unsigned long, arg5)
  {
-@@ -1587,6 +1660,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+@@ -1587,6 +1662,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
  	return error;
  }
  
@@ -1634,7 +1643,7 @@ diff -uprN -X linux-2.6.33.1-vanilla/Documentation/dontdiff linux-2.6.33.1-vanil
  SYSCALL_DEFINE3(getcpu, unsigned __user *, cpup, unsigned __user *, nodep,
  		struct getcpu_cache __user *, unused)
  {
-@@ -1599,6 +1674,8 @@ SYSCALL_DEFINE3(getcpu, unsigned __user 
+@@ -1599,6 +1676,8 @@ SYSCALL_DEFINE3(getcpu, unsigned __user
  	return err ? -EFAULT : 0;
  }
  
