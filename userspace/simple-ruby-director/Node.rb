@@ -21,6 +21,8 @@ class Node
         attr_reader :nodeInfo
         # Node state
         attr_reader :state
+	# Timestamp of last heartbeat
+	attr_reader :lastHeartBeatTime
 
         # Globally distributed information about node that does not change in time
         attr_accessor :staticNodeInfo
@@ -30,6 +32,7 @@ class Node
 		@ipAddress = ipAddress
                 @nodeInfo = nil # We have no info in the beginning
                 @staticNodeInfo = nil
+		@lastHeartBeatTime = Time.now()
                 @state = NodeState::ALIVE
 	end
         
@@ -37,10 +40,19 @@ class Node
             #$log.debug "[Id: #{id}]UpdateInfo: #{@nodeInfo} -> #{nodeInfo}"
             @nodeInfo = nodeInfo if (!@nodeInfo || (@nodeInfo.timestamp < nodeInfo.timestamp))
         end
+	
+	def updateLastHeartBeatTime()
+	    @lastHeartBeatTime = Time.now()
+	end
         
+	def markDead()
+	    $log.info "Marking node #{ipAddress} dead"
+	    @state = NodeState::DEAD
+	end
+	
         def ==(other)
             @id == other.id
-        end
+        end	
         
         def to_s
             "Node - #{@ipAddress}"
