@@ -85,7 +85,7 @@ class MembershipManager
                 if session then
                     # TODO: Devel proof
                     succeeded = @filesystemConnector.connect(nodeIpAddress, session.authenticationProof)
-                    $log.info("Connection attempt to #{nodeIpAddress} #{succeeded ? 'succeeded' : 'failed'}.")
+                    $log.info("Connection attempt to #{nodeIpAddress} with proof #{session.authenticationProof} #{succeeded ? 'succeeded' : 'failed'}.")
                     if succeeded
                         slotIndex = @filesystemConnector.findDetachedManagerSlot(nodeIpAddress)
                         @detachedManagers[slotIndex] = DetachedNodeManager.new(node, slotIndex)
