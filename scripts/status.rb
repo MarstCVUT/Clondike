@@ -46,10 +46,10 @@ def parseTasksData(rootPath, nodeMap)
 	  #cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
           cmdline = File.readlink("/proc/#{filename}/exe");
 
-	  peername = peername.split(":")[-2] if nodeMap[peername.chop] == nil and peername.split(":").size > 1
+	  peername = peername.split(":")[-2] if nodeMap[peername.strip] == nil and peername.split(":").size > 1
 					      
-	  if (nodeMap[peername.chop] != nil)
-	    nodeMap[peername.chop].addTask(Task.new(filename, cmdline))
+	  if (nodeMap[peername.strip] != nil)
+	    nodeMap[peername.strip].addTask(Task.new(filename, cmdline))
 	  else
 	    puts "Task #{filename}: #{cmdline} does not have any node! Should be on '#{peername}'"
 	  end
