@@ -36,19 +36,25 @@ end
   
 
 def parseTasksData(rootPath, nodeMap)
-  Dir.foreach("#{rootPath}/mig/migproc/") { |filename|      
-      next if filename =~ /^\..?/ # Exclude . and ..
-                                          
-      taskPath = "#{rootPath}/mig/migproc/#{filename}"
-      peername = File.open("#{taskPath}/migman/connections/ctrlconn/peername") {|f| f.readline}
-      cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
-      
-      if (nodeMap[peername.chop] != nil)
-	nodeMap[peername.chop].addTask(Task.new(filename, cmdline))
-      else
-        puts "Task #{filename}: #{cmdline} does not have any node! Should be on '#{peername}'"
-      end
-  }
+  begin
+    Dir.foreach("#{rootPath}/mig/migproc/") { |filename|      
+	next if filename =~ /^\..?/ # Exclude . and ..
+					    
+	taskPath = "#{rootPath}/mig/migproc/#{filename}"
+	peername = File.open("#{taskPath}/migman/connections/ctrlconn/peername") {|f| f.readline}
+	cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
+
+        peername = peername.split(":")[-1] if nodeMap[peername.chop] == nil
+                                            
+	if (nodeMap[peername.chop] != nil)
+	  nodeMap[peername.chop].addTask(Task.new(filename, cmdline))
+	else
+	  puts "Task #{filename}: #{cmdline} does not have any node! Should be on '#{peername}'"
+	end
+    }
+  rescue Errno::ENOENT
+    puts "No data for task #{filename}. Task likely already finished"
+  end
   
 end
 
