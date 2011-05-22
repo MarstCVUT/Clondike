@@ -43,7 +43,8 @@ def parseTasksData(rootPath, nodeMap)
 					      
 	  taskPath = "#{rootPath}/mig/migproc/#{filename}"
 	  peername = File.open("#{taskPath}/migman/connections/ctrlconn/peername") {|f| f.readline}
-	  cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
+	  #cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
+          cmdline = File.readlink("/proc/#{filename}/exe");
 
 	  peername = peername.split(":")[-2] if nodeMap[peername.chop] == nil and peername.split(":").size > 1
 					      
