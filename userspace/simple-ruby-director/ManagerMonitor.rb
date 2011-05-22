@@ -66,7 +66,7 @@ private
 			  next if !element
 		          next if element.state != NodeState::DEAD
 		                          
-			  $log.info("Disconnecting code node index #{index} due to too many missed heartbeats")
+			  $log.info("Disconnecting code node index #{slotIndex} due to too many missed heartbeats")
 		                                                               
 			  @filesystemConnector.disconnectNode(CORE_MANAGER_SLOT, slotIndex)		                                                               
 		          sleep 5
@@ -77,7 +77,7 @@ private
 			  next if !element
 		          next if element.coreNode.state != NodeState::DEAD
 		          
-		          $log.info("Disconnecting detached node index #{index} due to too many missed heartbeats")
+		          $log.info("Disconnecting detached node index #{slotIndex} due to too many missed heartbeats")
 		                                                      
 			  @filesystemConnector.disconnectNode(DETACHED_MANAGER_SLOT, slotIndex)
 		          sleep 5
