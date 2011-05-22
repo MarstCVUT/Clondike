@@ -129,8 +129,8 @@ static long tcmi_syscall_hooks_in_fork(struct task_struct* child) {
  * \<\<private\>\> post-fork
  */
 static long tcmi_syscall_hooks_post_fork(struct task_struct* child, long res, pid_t remote_pid, 
-					int __user *parent_tidptr, int __user *child_tidptr
-) {	
+					int __user *parent_tidptr, int __user *child_tidptr) 
+{
 	if ( current->tcmi.task_type == guest ) {
 		// Guest task hook
 		struct tcmi_task* child_task = NULL;
@@ -153,12 +153,14 @@ static long tcmi_syscall_hooks_post_fork(struct task_struct* child, long res, pi
 
 		// We have to duplicate all proxyfs file references for child.. this way we are in a same situation as
 		// if the fork happend on CCN before the migration
-		proxyfs_server_duplicate_all_parent(current, child);
+		if (!IS_ERR((void*)res) ) {			
+			proxyfs_server_duplicate_all_parent(current, child);
+		}
 	}
 
-	director_task_fork(child->pid, current->pid);
+	director_task_fork(res, current->pid);
 
-	return child->pid;
+	return res;
 };
 
 
