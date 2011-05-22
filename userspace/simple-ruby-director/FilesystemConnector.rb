@@ -74,4 +74,24 @@ class FilesystemConnector
             `echo tcp:#{ipAddress}:54321#{authString} > #{@detachedRootPath}/connect`
             $? == 0 ? true : false
         end
+	
+	# Attempt to gracefully disconnect node
+	def disconnectNode(slotType, index)	  
+	  root = @detachedRootPath
+	  if ( slotType == CORE_MANAGER_SLOT )
+	    root = @coreRootPath
+	  end
+	  
+	  `echo 1 > #{root}/nodes/#{index}/stop`
+	end
+	
+	# Forcefully disconnects node
+	def killNode(slotType, index)
+	  root = @detachedRootPath
+	  if ( slotType == CORE_MANAGER_SLOT )
+	    root = @coreRootPath
+	  end
+	  
+	  `echo 1 > #{root}/nodes/#{index}/kill`	  
+	end
 end

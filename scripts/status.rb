@@ -42,8 +42,12 @@ def parseTasksData(rootPath, nodeMap)
       taskPath = "#{rootPath}/mig/migproc/#{filename}"
       peername = File.open("#{taskPath}/migman/connections/ctrlconn/peername") {|f| f.readline}
       cmdline = File.open("/proc/#{filename}/cmdline") {|f| f.readline}
-                                          
-      nodeMap[peername.chop].addTask(Task.new(filename, cmdline))
+      
+      if (nodeMap[peername.chop] != nil)
+	nodeMap[peername.chop].addTask(Task.new(filename, cmdline))
+      else
+        puts "Task #{filename}: #{cmdline} does not have any node! Should be on '#{peername}'"
+      end
   }
   
 end

@@ -64,7 +64,7 @@ class Director
 		@nodeRepository = NodeRepository.new(currentNode)                                
 		@filesystemConnector = FilesystemConnector.new
                 @membershipManager = MembershipManager.new(@filesystemConnector, @nodeRepository, @trustManagement)
-		@managerMonitor = ManagerMonitor.new(@interconnection, @membershipManager, @nodeRepository)
+		@managerMonitor = ManagerMonitor.new(@interconnection, @membershipManager, @nodeRepository, @filesystemConnector)
                 @taskRepository = TaskRepository.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)

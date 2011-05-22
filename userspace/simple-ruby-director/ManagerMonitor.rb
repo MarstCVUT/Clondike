@@ -1,12 +1,15 @@
 require 'MonitoringMessages'
 
 # This class is responsible for monitoring node connectivity
-# TODO: At the moment, there is no monitoring functionality, just periodic heartbeating that sends node ids
 class ManagerMonitor	
-	def initialize(interconnection, membershipManager, nodeRepository)
+	# Time withouth heartbeat in second when node is considered dead
+	DEAD_TIMEOUT = 30
+  
+	def initialize(interconnection, membershipManager, nodeRepository, filesystemConnector)
 		@interconnection = interconnection
 		@membershipManager = membershipManager
 		@currentNodeId = nodeRepository.selfNode.id
+		@filesystemConnector = filesystemConnector
 		# In seconds
 		@heartBeatPeriod = 5
 
@@ -15,18 +18,76 @@ class ManagerMonitor
 
 	# Starts background threads
 	def start
-		Thread.new() {
-			begin
-				while true do
-					emitHeartBeats()
-					sleep @heartBeatPeriod # This is not correct, we should actually sleep just the remaining portion of time..
-				end
-			rescue => err
-				$log.error "Error in monitor thread: #{err.message} \n#{err.backtrace.join("\n")}"
-			end
+		ExceptionAwareThread.new() {
+		    heartBeatingThread();
 		}
+
+		ExceptionAwareThread.new() {
+		    updateAllNodesStatusThread()
+		}
+
+		ExceptionAwareThread.new() {
+		    purgeDeadNodesThread();
+		}		
 	end
 private
+	def heartBeatingThread()
+		while true do
+			emitHeartBeats()
+			sleep @heartBeatPeriod # This is not correct, we should actually sleep just the remaining portion of time..
+		end	  
+	end
+
+	# Thread updating status of nodes based on last hearthbeat seen
+	def updateAllNodesStatusThread()		
+		while true do
+		  now = Time.now()
+		  @membershipManager.coreManager.detachedNodes.each_with_index { |element, slotIndex|
+			  next if !element
+		          next if element.state == NodeState::DEAD
+			  element.markDead if ( now - element.lastHeartBeatTime > DEAD_TIMEOUT )
+		  }
+
+		  @membershipManager.detachedManagers.each_with_index { |element, slotIndex|
+			  next if !element
+		          next if element.coreNode.state == NodeState::DEAD
+			  element.coreNode.markDead if ( now - element.coreNode.lastHeartBeatTime > DEAD_TIMEOUT )
+		  }		  
+		  
+		sleep 2
+		end	  				
+	end
+	
+	# Thread purging dead nodex
+	# TODO: Attemp kill only if disconnect fails.. and maybe add separate asynchronicity for it?
+	def purgeDeadNodesThread()
+		while true do
+		  @membershipManager.coreManager.detachedNodes.each_with_index { |element, slotIndex|
+			  next if !element
+		          next if element.state != NodeState::DEAD
+		                          
+			  $log.info("Disconnecting code node index #{index} due to too many missed heartbeats")
+		                                                               
+			  @filesystemConnector.disconnectNode(CORE_MANAGER_SLOT, slotIndex)		                                                               
+		          sleep 5
+		          @filesystemConnector.killNode(CORE_MANAGER_SLOT, slotIndex)
+		  }
+
+		  @membershipManager.detachedManagers.each_with_index { |element, slotIndex|
+			  next if !element
+		          next if element.coreNode.state != NodeState::DEAD
+		          
+		          $log.info("Disconnecting detached node index #{index} due to too many missed heartbeats")
+		                                                      
+			  @filesystemConnector.disconnectNode(DETACHED_MANAGER_SLOT, slotIndex)
+		          sleep 5
+		          @filesystemConnector.killNode(DETACHED_MANAGER_SLOT, slotIndex)			  
+		  }
+		  
+		sleep 2
+		end	  	  				
+	end
+
 	def emitHeartBeats
 		@membershipManager.coreManager.detachedNodes.each_with_index { |element, slotIndex|
 			next if !element
@@ -63,17 +124,21 @@ class HeartBeatHandler
 			node = @membershipManager.coreManager.detachedNodes[fromManagerSlot.slotIndex]
 			if node.id == nil
 				$log.debug "Updated core node id #{nodeId} from a heartbeat message"
- 				newNode, isNew = @nodeRepository.getOrCreateNode(nodeId, node.ipAddress)
+ 				node, isNew = @nodeRepository.getOrCreateNode(nodeId, node.ipAddress)
 				@membershipManager.coreManager.unregisterDetachedNode(fromManagerSlot.slotIndex)
-				@membershipManager.coreManager.registerDetachedNode(fromManagerSlot.slotIndex,newNode)
+				@membershipManager.coreManager.registerDetachedNode(fromManagerSlot.slotIndex,node)
 			end
+			
+			node.updateLastHeartBeatTime();
 		else
 			node = @membershipManager.detachedManagers[fromManagerSlot.slotIndex].coreNode
 			if node.id == nil
 				$log.debug "Updated detached node id #{nodeId} from a heartbeat message"
- 				newNode, isNew = @nodeRepository.getOrCreateNode(nodeId, node.ipAddress)
-				@membershipManager.detachedManagers[fromManagerSlot.slotIndex].coreNode = newNode
+ 				node, isNew = @nodeRepository.getOrCreateNode(nodeId, node.ipAddress)
+				@membershipManager.detachedManagers[fromManagerSlot.slotIndex].coreNode = node
 			end
+			
+			node.updateLastHeartBeatTime();
 		end		
 	end
 end
