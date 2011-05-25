@@ -88,7 +88,7 @@ int tcmi_migman_init(struct tcmi_migman *self, struct kkc_sock *sock,
 {
 	int err = -EINVAL;
 
-	minfo(INFO2, "Creating new TCMI CCN migration manager");
+	minfo(INFO2, "Creating new TCMI migration manager");
 	atomic_set(&self->state, TCMI_MIGMAN_INIT);
 	self->ccn_id = ccn_id;
 	self->pen_id = pen_id;
