@@ -641,7 +641,7 @@ static void tcmi_ccnman_process_sock(struct kkc_sock *sock)
 		minfo(ERR1, "Failed to instantiate the CCN migration manager"); 
 		goto exit2;
 	}
-	if ((tcmi_ccnmigman_auth_pen(TCMI_CCNMIGMAN(migman))) < 0) {
+	if ((err = tcmi_ccnmigman_auth_pen(TCMI_CCNMIGMAN(migman))) < 0) {
 		minfo(ERR1, "Failed to authenticate the PEN! %d", err); 
 		goto exit3;
 	}
