@@ -249,8 +249,13 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
     struct nlmsgerr* nl_err = (struct nlmsgerr*)nlmsg_data(nlmsg_hdr(ans_msg));
     ret_val = nl_err->error;
     if ( ret_val != 0 ) {
-    	printf("Error message response code in read: %d!!\n", nl_err->error);    
-        goto read_error;
+	if ( nl_err->error == -ENOENT ) {
+	  printf("No node in target slot, cannot deliver the message\n");	  
+	  goto read_error_no_print;
+	} else {
+	  printf("Error message response code in read: %d!!\n", nl_err->error);
+	  goto read_error;
+	}	    	        
     }
     // Ret_val == ZERO means that we got just ack message
   }
@@ -262,6 +267,7 @@ int read_message(struct nl_handle* hndl, struct nl_msg** result_message) {
 
 read_error:
   printf("Read message error: %d\n", ret_val);
+read_error_no_print:  
   free(data);
   nlmsg_free(ans_msg);
   *result_message = NULL;
