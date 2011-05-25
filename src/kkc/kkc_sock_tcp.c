@@ -467,7 +467,41 @@ static int kkc_sock_tcp_getname(struct kkc_sock *self, char *name, int size, int
 	return err;
 }
 
+/**
+ * \<\<private\>\> IP Comparator
+ *
+ * @param *address - string with the address in the form a.b.c.d:p
+ * @param *addr_length
+ * @param *local - 1 to compare with local IP, 0 if to compare with peer IP
+ * @return 1, if address equals to local or peer addres (depending on local flag)
+ */
+static int kkc_sock_tcp_is_address_equal_to(struct kkc_sock *self, const char* addr, int addr_length, int local) {
+	int err = 0;
+	int len = sizeof(struct sockaddr_in);
+	struct socket *sock = KKC_SOCK_TCP(self)->sock;
+	struct sockaddr_in address;
+	unsigned char *paddr;
+	char name[KKC_SOCK_MAX_ADDR_LENGTH];
+	
+	if ( !addr )
+	    return 0;	
 
+	/* used to remap the s_addr for byte access */	
+	if ((err = sock->ops->getname(sock, (struct sockaddr *)&address, 
+				      &len, local)) < 0) {
+		goto exit0;
+	}
+	paddr = (char *) &address.sin_addr.s_addr;	
+	snprintf(name, KKC_SOCK_MAX_ADDR_LENGTH, "tcp:%u.%u.%u.%u:%u", paddr[0], paddr[1], paddr[2], paddr[3],
+		 ntohs(address.sin_port));
+	
+//	printk("Comparing: %s with %s local %d, %d, %d\n", name, addr, local, strncmp(addr, name, min((size_t)addr_length, strlen(name))), strcmp(addr, name));
+			
+	return strncmp(addr, name, min((size_t)addr_length, strlen(name))) == 0;
+	/* error handling */
+ exit0:
+	return 0;  
+}
 
 /**
  * \<\<private\>\> Helper class method for extracting ip address and port
@@ -539,7 +573,8 @@ static struct kkc_sock_ops tcp_sock_ops = {
 	.remove_wait_queue = kkc_sock_tcp_remove_wait_queue,
 	.register_read_callback = kkc_sock_tcp_register_read_callback,
 	.free = kkc_sock_tcp_free,
-	.getname = kkc_sock_tcp_getname
+	.getname = kkc_sock_tcp_getname,
+	.is_address_equal_to = kkc_sock_tcp_is_address_equal_to
 };
 
 

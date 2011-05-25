@@ -124,6 +124,8 @@ struct kkc_sock_ops {
 	void (*free)(struct kkc_sock*);
 	/** Socket name/peer name accessor. */
 	int (*getname)(struct kkc_sock *, char *, int, int);
+	/** Compare addresses */
+	int (*is_address_equal_to)(struct kkc_sock *, const char *, int, int);
 };
 
 /** \<\<public\>\> Initializes generic socket. */
@@ -151,6 +153,14 @@ extern int kkc_sock_remove_wait_queue(struct kkc_sock *self, wait_queue_t *wait)
 
 /** \<\<public\>\> Registers data_ready callback function, that should be called when there are some data read to be read on the socket*/
 extern int kkc_sock_register_read_callback(struct kkc_sock*, kkc_data_ready callback, void* callback_data);
+
+/** \<\<public\>\> Checks, whether an address passed as string is equal to this socket local/peer port. Can return true only if current socket is connected. */
+static inline int kkc_sock_is_address_equal_to(struct kkc_sock *self, const char *addr, int addr_length, int local) {
+	int err = 0;
+	if (self->sock_ops && self->sock_ops->is_address_equal_to)
+		err = self->sock_ops->is_address_equal_to(self, addr, addr_length, local);
+	return err;  
+}
 
 
 /**

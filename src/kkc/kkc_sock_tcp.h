@@ -91,6 +91,8 @@ static int kkc_sock_tcp_remove_wait_queue(struct kkc_sock *self, wait_queue_t *w
 static void kkc_sock_tcp_free(struct kkc_sock *self);
 /** Socket name accessor. */
 static int kkc_sock_tcp_getname(struct kkc_sock *self, char *name, int size, int local);
+/** Address comparator */
+static int kkc_sock_tcp_is_address_equal_to(struct kkc_sock *self, const char* address, int addr_length, int local);
 
 /** Transfers a buffer using the specified method. */
 /*static int kkc_sock_tcp_send_recv(struct kkc_sock *self, void *buf, int buflen, 
