@@ -128,6 +128,31 @@ static void tcmi_penman_stop_ctlfs_files(void)
 	tcmi_ctlfs_entry_put(self.f_connect);
 }
 
+/**
+ * @return 1, if there is a duplicate address for some of the peers
+ */
+static int check_duplicates(const char* address, int address_len) {
+    int ret = 0;
+    struct tcmi_slot *slot;
+    tcmi_slot_node_t* node;
+    struct tcmi_migman *migman = NULL;    
+    tcmi_slotvec_lock(TCMI_MAN(&self)->mig_mans);
+    
+    tcmi_slotvec_for_each_used_slot(slot, TCMI_MAN(&self)->mig_mans) {
+	    tcmi_slot_for_each(node, slot) {		    
+		    migman = tcmi_slot_entry(node, struct tcmi_migman, node);		    		    		    		    
+		    
+		    if ( kkc_sock_is_address_equal_to(tcmi_migman_sock(migman),address,address_len, 1) ) {
+			ret = 1;
+			goto found;		    
+		    }		   
+	    };
+    };
+    
+found:    
+    tcmi_slotvec_unlock(TCMI_MAN(&self)->mig_mans);
+    return ret;
+}
 
 /**
  * \<\<private\>\> Creates a new connection and instantiates a new
@@ -159,7 +184,13 @@ static int tcmi_penman_connect(void *obj, void *str)
 		// We separate the string by zero so that it is internally threated as a short string for kkc soct
 		connect_str[separation_index] = '\0';
 		auth_data = connect_str + separation_index + 1;
+	}			
+	
+	if ( check_duplicates(connect_str, strlen(connect_str)) ) {
+	    mdbg(ERR3, "Duplicate peer, already connected:'%s' ", connect_str);
+	    goto exit0;
 	}
+	  
 
 	/* check if there is incoming connection */
 	if (kkc_connect(&sock, connect_str)) {
