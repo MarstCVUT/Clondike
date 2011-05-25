@@ -202,7 +202,7 @@ int tcmi_man_send_generic_user_message(struct tcmi_man *self, int target_slot_in
 	/* error handling */
  exit0:
 	tcmi_slotvec_unlock(self->mig_mans);
-	return -EINVAL;
+	return err;
 }
 
 /** @addtogroup tcmi_man_class
