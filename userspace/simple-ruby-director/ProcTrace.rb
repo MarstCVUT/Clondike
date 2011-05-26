@@ -28,6 +28,7 @@ class CollectStats
 	actions.each do |a|
 	    if a == last_fork then sibling_indent = '   ' end
 
+	    # Counting of global execs stats
 	    if (a.class == LogExec) then 
                 if (@execs.has_key?(a.image)) then
 	            @execs[a.image][0] += 1
@@ -38,6 +39,7 @@ class CollectStats
 	        end
 	    end
 
+	    # Counting of global operation stats
 	    if "#{a.class}" =~ /^Log/ then
 	        op = "#{a.class}".sub(/^Log/, '')
                 if @operations.has_key?(op) then
@@ -47,6 +49,7 @@ class CollectStats
 	        end
 	    end
 
+	    # Printing out record data
 	    rtn = a.collect
 	    if rtn[0] then
         	@log.write("%09.04f%s%s%s" % [(a.time - @start).to_f, prefix, (rtn[1] or sibling_indent), rtn[0]])
@@ -56,6 +59,7 @@ class CollectStats
 		if a.sys_time then
 		    @log.write(" S: #{a.sys_time}ms")
 		end
+		@log.write(" C: #{a.clockTime}ms");
 		@log.write("\n")
 	    end
 	    self.collect(rtn[2], prefix + sibling_indent)
@@ -68,6 +72,7 @@ end
 #
 class Log
     attr_reader :time
+    attr_reader :endTime
     attr_reader :rusage
     attr_accessor :user_time
     attr_accessor :sys_time
@@ -80,6 +85,15 @@ class Log
 
     def collect
         return [nil, nil, []]
+    end
+    
+    def finish()
+      @endTime = Time.now
+    end
+    
+    def clockTime()
+      return nil if !@endTime
+      return @endTime - @time
     end
 end
 
@@ -128,6 +142,19 @@ class LogExit < Log
     	super()
 	@code = code
 	@rusage = rusage
+	
+	# Exit is a last action in chain and is always considered to be finished immediatelly
+	finish()
+    end
+end
+
+class LogMigrate < Log
+    attr_reader :targetIndex
+    def initialize(code, rusage, targetIndex)
+    	super()
+	@code = code
+	@rusage = rusage
+	@targetIndex
     end
 end
 
@@ -136,6 +163,7 @@ end
 #
 class TracedProcess < Log
     attr_reader :currentImage
+    
     def initialize(image, collector=nil)
     	super()
         @initialImage = image
@@ -145,8 +173,11 @@ class TracedProcess < Log
     end
 
     def logAction(action)
+	@actions.last().finish() if  !@actions.empty? 
         @actions.push(action)
+	
 	if (action.class == LogExit and @collector) then
+	    finish()
 	    @collector.collect([self], '')
 	    @collector.finalize()
 	end
@@ -154,7 +185,7 @@ class TracedProcess < Log
 	    @currentImage = action.image
 	end
     end
-
+    
     def collect
 	# compute cpu_usage
 	last_log = nil
@@ -202,8 +233,8 @@ class ProcTrace
         if args == nil and envp == nil then
             if (@tasks.has_key?(pid)) then
 	        @tasks[pid].logAction(LogExec.new(name, rusage))
-    	    elsif (name == '/usr/bin/make') then
-	        @tasks[pid] = TracedProcess.new(name, CollectStats.new(name.rpartition('/')[2] + Time.now.strftime("-%Y%m%d-%H%M%S-") + "#{pid}.log"))
+    	    elsif (name == '/usr/bin/make' || name == '/usr/bin/gcc') then
+	        @tasks[pid] = TracedProcess.new(name, CollectStats.new(name.split('/')[-1] + Time.now.strftime("-%Y%m%d-%H%M%S-") + "#{pid}.log"))
 	    end
 	end
 	nil        
@@ -212,7 +243,7 @@ class ProcTrace
     # Callback on task exit
     def onExit(pid, exitCode, rusage)
         if (@tasks.has_key?(pid)) then
-	    @tasks.delete(pid).logAction(LogExit.new(exitCode, rusage))
+	    finishTask(pid, exitCode, rusage)
 	end
     end
     
@@ -224,4 +255,10 @@ class ProcTrace
         # TODO: Ignoring migrate back decision
         return if response[0] != DirectorNetlinkApi::MIGRATE
     end
+    
+private
+    def finishTask(pid, exitCode, rusage)
+      @tasks[pid].logAction(LogExit.new(exitCode, rusage))    
+      @tasks.delete(pid)
+    end      
 end
