@@ -111,7 +111,7 @@ struct tcmi_migman* tcmi_ccnmigman_new(struct kkc_sock *sock, u_int32_t ccn_id, 
 int tcmi_ccnmigman_auth_pen(struct tcmi_ccnmigman *self)
 {
 	int ret;
-	mdbg(INFO3, "Waiting for connection authentication..");
+	mdbg(INFO3, "Waiting for connection authentication.. %p", self);
 	ret = wait_event_interruptible_timeout(self->wq,
 					       (tcmi_migman_state(TCMI_MIGMAN(self)) == 
 						TCMI_MIGMAN_CONNECTED), 5*HZ); 
@@ -248,6 +248,7 @@ static void tcmi_ccnmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 		}
 		tcmi_msg_put(resp);
 		tcmi_migman_set_state(self, TCMI_MIGMAN_CONNECTED);
+		wake_up(&self->wq);
 		break;
 	case TCMI_GENERIC_USER_MSG_ID:
 		user_msg = TCMI_GENERIC_USER_MSG(m);
