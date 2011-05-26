@@ -26,12 +26,17 @@ class TrustManagement
     # This method pre-establishes secret needed to authenticate.
     # If succeeded, returns authentication data to be used by the client
     def authenticate(publicKey)
-        proof = @authenticationDispatcher.prepareSession(publicKey)
-        if !proof then
-            $log.debug("Authentication negotiation has failed (Peer: #{publicKey.undecorated_to_s})!")
-            return nil
-        end        
-        return Session.new(publicKey, "#{proof}")
+        begin 
+	  proof = @authenticationDispatcher.prepareSession(publicKey)
+	  if !proof then
+	      $log.debug("Authentication negotiation has failed (Peer: #{publicKey.undecorated_to_s})!")
+	      return nil
+	  end        	
+	  return Session.new(publicKey, "#{proof}")
+	rescue TimeoutException
+	  $log.debug("Authentication request time-outed")
+	  return nil
+	end
     end
 
     # Called by server to verify if a login attempt is valid

@@ -1,5 +1,17 @@
 require 'monitor.rb'
 
+class TimeoutException<RuntimeError
+    attr_reader :text
+    
+    def initialize(text)
+        @text = text
+    end
+    
+    def to_s
+        "#{text}"
+    end
+end
+
 class NegotiatedSession
     # Public key of the node requesting the session
     attr_reader :client
@@ -107,7 +119,8 @@ class AuthenticationDispatcher
         @clientNegotiations[remoteKey].waitForConfirmationState(10)
         $log.debug("Negotiation finished. Confirmed = #{@clientNegotiations[remoteKey].confirmed}")
 
-	return nil if ( !@clientNegotiations[remoteKey].confirmed )
+	return nil if ( @clientNegotiations[remoteKey].confirmed == false )
+	raise TimeoutException.new("No response arrived") if ( @clientNegotiations[remoteKey].confirmed == nil )
 
         return @clientNegotiations[remoteKey].proof
     end
