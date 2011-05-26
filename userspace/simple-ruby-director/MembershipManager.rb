@@ -60,7 +60,7 @@ class MembershipManager
 	
         #This callback is invoked, when remote node is disconnected (could be both core or detached remote node)
         def nodeDisconnected(managerSlot)
-            $log.debug("Disconnecting node: #{managerSlot}")
+            $log.debug("Node disconnected: #{managerSlot}")
 	    if ( managerSlot.slotType == DETACHED_MANAGER_SLOT )
 	      $log.warn("Slot #{managerSlot.slotIndex} is already empty!") if !@detachedManagers[managerSlot.slotIndex]
 	      @detachedManagers[managerSlot.slotIndex] = nil
@@ -95,6 +95,17 @@ class MembershipManager
         end
 
 private
+  def containsDetachedNode(node)
+    res = false;
+    @detachedManagers.each { |manager|
+       if ( manager != nil && manager.coreNode == node )
+          res = true                    
+	  break
+       end
+    }
+    return res;
+  end
+
   def startAutoconnectingThread()
     ExceptionAwareThread.new() {
       while true do
@@ -106,7 +117,10 @@ private
 
   def connectAllUnconnectedNodes()
      @nodeRepository.eachNode { |node|
-         connectToNode(node) if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
+          # TODO: This is incorrect, we just connect all nodes not yet connected
+          # A better solution would be to send a "connect-me" message to peer if connectedNodesCount < minimumConnectedPeers .. this way, we would act from a position of core node, instead of detached node as now..
+	  connectToNode(node) if !containsDetachedNode(node)
+     #    connectToNode(node) if @coreManager.connectedNodesCount < @minimumConnectedPeers && !@coreManager.containsNode(node)
      }
   end
 end
