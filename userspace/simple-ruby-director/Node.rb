@@ -38,10 +38,11 @@ class Node
         
         def updateInfo(nodeInfo)
             #$log.debug "[Id: #{id}]UpdateInfo: #{@nodeInfo} -> #{nodeInfo}"
-            @nodeInfo = nodeInfo if (!@nodeInfo || (@nodeInfo.timestamp < nodeInfo.timestamp))
+            @nodeInfo = nodeInfo if (!@nodeInfo || (@nodeInfo.timestamp < nodeInfo.timestamp))	    
         end
 	
 	def updateLastHeartBeatTime()
+	    @state = NodeState::ALIVE
 	    @lastHeartBeatTime = Time.now()
 	end
         
