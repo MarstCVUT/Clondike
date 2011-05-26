@@ -80,7 +80,7 @@ class Director
                 #@taskRepository.registerListener(ExecutionTimeTracer.new)
                 @taskRepository.registerListener(balancingStrategy)
                 @taskRepository.registerListener(acceptLimiter)
-                @loadBalancer.registerMigrationListener(@taskRepository)
+                @loadBalancer.registerMigrationListener(@taskRepository)		
                                                 
 		initializeMeasurements()
                 initializeCliServer()
@@ -113,6 +113,8 @@ class Director
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
 		@netlinkConnector.startProcessingThread                                
+		
+		@loadBalancer.registerMigrationListener(procTrace)
                 
                 #Start notification thread
                 @nodeInfoProvider.startNotifyThread

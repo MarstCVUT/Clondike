@@ -52,6 +52,11 @@ class CollectStats
 	    # Printing out record data
 	    rtn = a.collect
 	    if rtn[0] then
+		if ( a.slotIndex ) 
+		  @log.write("[%02d] " % [a.slotIndex])
+		else
+		  @log.write("[  ] ")
+		end
         	@log.write("%09.04f%s%s%s" % [(a.time - @start).to_f, prefix, (rtn[1] or sibling_indent), rtn[0]])
 		if a.user_time then
 		    @log.write(" U: #{a.user_time}ms")
@@ -76,6 +81,9 @@ class Log
     attr_reader :rusage
     attr_accessor :user_time
     attr_accessor :sys_time
+    # Node, where the operation was performed
+    attr_reader :slotIndex
+
     def initialize
     	@time = Time.now
 	@rusage = nil
@@ -83,6 +91,10 @@ class Log
 	@sys_time = nil
     end
 
+    def updateNode(slotIndex)
+      @slotIndex = slotIndex
+    end
+    
     def collect
         return [nil, nil, []]
     end
@@ -171,8 +183,9 @@ class TracedProcess < Log
 	@collector = collector
 	@actions = []
     end
-
+    
     def logAction(action)
+	action.updateNode(self.slotIndex)
 	@actions.last().finish() if  !@actions.empty? 
         @actions.push(action)
 	
@@ -223,7 +236,8 @@ class ProcTrace
     # Callback on fork
     def onFork(pid, parentPid)
         if (@tasks.has_key?(parentPid)) then
-	    @tasks[pid] = TracedProcess.new(@tasks[parentPid].currentImage)
+	    @tasks[pid] = TracedProcess.new(@tasks[parentPid].currentImage)	    
+	    @tasks[pid].updateNode(@tasks[parentPid].slotIndex) # Children are forked on a same node where parent resides
 	    @tasks[parentPid].logAction(LogFork.new(@tasks[pid]))
 	end
     end
@@ -254,6 +268,9 @@ class ProcTrace
         
         # TODO: Ignoring migrate back decision
         return if response[0] != DirectorNetlinkApi::MIGRATE
+
+	slotIndex = response[1]
+	@tasks[pid].updateNode(slotIndex) if ( @tasks[pid] )
     end
     
 private
