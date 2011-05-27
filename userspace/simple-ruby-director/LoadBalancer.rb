@@ -18,15 +18,15 @@ class LoadBalancer
     #in case a migration should be performed
     def onExec(pid, uid, name, is_guest, args=nil, envp=nil, rusage=nil)
         response = is_guest ? onExecGuest(pid, name, args, envp) : onExecCore(pid, uid, name, args, envp)
-        notifyMigration(pid, response)
+        notifyMigration(pid, response, rusage)
         response
     end
     
 private
     include ConfigurablePatternMatcher
     
-    def notifyMigration(pid, response)
-        @migrationListeners.each { |listener| listener.onMigration(pid, response) }
+    def notifyMigration(pid, response, rusage)
+        @migrationListeners.each { |listener| listener.onMigration(pid, response, rusage) }
     end
   
     # Returns true, if the binary specified by name can be migrated

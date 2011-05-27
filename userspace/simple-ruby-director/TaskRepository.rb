@@ -110,7 +110,7 @@ class TaskRepository
     end
     
     # Callback in load balancer
-    def onMigration(pid, response)
+    def onMigration(pid, response, rusage)
         # TODO: It is not guaranteed the migration will succeed at this time!
         return if !response
         

@@ -162,12 +162,15 @@ end
 
 class LogMigrate < Log
     attr_reader :targetIndex
-    def initialize(code, rusage, targetIndex)
+    def initialize(rusage, targetIndex)
     	super()
-	@code = code
 	@rusage = rusage
-	@targetIndex
+	@targetIndex = targetIndex
     end
+    
+    def collect
+	return ["[Node: #{@targetIndex}]", '---> ', []]
+    end    
 end
 
 #
@@ -189,11 +192,16 @@ class TracedProcess < Log
 	@actions.last().finish() if  !@actions.empty? 
         @actions.push(action)
 	
+	if (action.class == LogMigrate) then
+	  updateNode(action.targetIndex)
+	end
+	
 	if (action.class == LogExit and @collector) then
 	    finish()
 	    @collector.collect([self], '')
 	    @collector.finalize()
 	end
+	
 	if (action.class == LogExec) then
 	    @currentImage = action.image
 	end
@@ -216,7 +224,7 @@ class TracedProcess < Log
 		last_log = a
 	    end
 	end
-
+	
         if (@actions[0].class == LogExec) then # detect fork() and exec() cases
 	    @actions[0].outputTreeLine = false
 	    @user_time = @actions[0].user_time
@@ -262,7 +270,7 @@ class ProcTrace
     end
     
     # Callback in load balancer
-    def onMigration(pid, response)
+    def onMigration(pid, response, rusage)
         # TODO: It is not guaranteed the migration will succeed at this time!
         return if !response
         
@@ -270,7 +278,7 @@ class ProcTrace
         return if response[0] != DirectorNetlinkApi::MIGRATE
 
 	slotIndex = response[1]
-	@tasks[pid].updateNode(slotIndex) if ( @tasks[pid] )
+	@tasks[pid].logAction(LogMigrate.new(rusage, slotIndex)) if ( @tasks.has_key?(pid) )	
     end
     
 private
