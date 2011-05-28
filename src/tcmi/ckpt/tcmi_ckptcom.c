@@ -205,7 +205,7 @@ int tcmi_ckptcom_restart(struct linux_binprm *bprm, struct pt_regs *regs)
 		mdbg(ERR3, "Error reading checkpoint header!");
 		goto exit1;
 	}
-
+memory_sanity_check("Post header");
 	/* Flush all traces of the currently running executable */
 	if (flush_old_exec(bprm)) {
 		mdbg(ERR3, "Error flushing the old execution context!");
@@ -216,7 +216,7 @@ memory_sanity_check("Pre-rlimit");
 		mdbg(ERR3, "Error reading checkpoint rlimit!");
 		goto exit1;
 	}
-
+memory_sanity_check("Post-rlimit");
 	if ( FD_ISSET(0, current->files->fdt->open_fds) ) {
 		mdbg(INFO3, "Closing open fs.. this should not happend though..");
 		sys_close(0);
@@ -231,7 +231,7 @@ memory_sanity_check("Post - files");
 		mdbg(ERR3, "Error reading memory descriptor!");
 		goto exit1;
 	}
-
+memory_sanity_check("Post mm");
 	if ( !ckpt->hdr.is_npm ) {
 		if (tcmi_ckpt_read_vmas(ckpt) < 0) {
 			mdbg(ERR3, "Error reading VM areas");
