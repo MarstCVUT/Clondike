@@ -248,7 +248,7 @@ static void tcmi_ccnmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 		}
 		tcmi_msg_put(resp);
 		tcmi_migman_set_state(self, TCMI_MIGMAN_CONNECTED);
-		wake_up(&self->wq);
+		wake_up(&(TCMI_CCNMIGMAN(self)->wq));
 		break;
 	case TCMI_GENERIC_USER_MSG_ID:
 		user_msg = TCMI_GENERIC_USER_MSG(m);
