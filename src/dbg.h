@@ -196,14 +196,21 @@ do {											\
 #define memory_sanity_check(msg)								\
 do {													\
 	int i = 1;												\
-	int kmsize = 2;												\
-	void* memtest;												\
-	for ( i = 1; i < 10; i++ ) {											\
-	  memtest = kmalloc(kmsize, GFP_KERNEL);											\
-	  kmsize = kmsize * 2;												\
-	  printk(KERN_DEBUG __APP_NAME " %s()[%d]: " msg " -> Memory check size %d -> %p\n", __FUNCTION__, current->pid, kmsize, memtest);\
-	  kfree(memtest);												\
-	}											\
+	int kmsize = 1;												\
+	int test_size = 50;												\
+	int res = 0;												\
+	void** memtest;												\
+	memtest = kmalloc(sizeof(void*)*test_size, GFP_KERNEL);												\
+	for ( i = 0; i < test_size; i++ ) {											\
+	  memtest[i] = kmalloc(kmsize, GFP_KERNEL);											  \
+	  kmsize = (kmsize * 2) % 8500;												\
+	  res = res + (int)memtest[i];												\
+	}										\
+	for ( i = 0; i < test_size; i++ ) {											\
+	  kfree(memtest[i]);												\
+	}													\
+	printk(KERN_DEBUG __APP_NAME " %s()[%d]: " msg " -> Memory check -> %p\n", __FUNCTION__, current->pid, memtest); \
+	kfree(memtest);												\
 } while(0)
 
 
