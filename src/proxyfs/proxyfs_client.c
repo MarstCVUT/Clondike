@@ -128,9 +128,9 @@ exit0:
  **/
 void proxyfs_client_loop(struct proxyfs_client_task* self)
 {
-	while(!kthread_should_stop()){
+	while(!kthread_should_stop()){		
 		proxyfs_task_wait_for_data_ready(PROXYFS_TASK(self));
-
+		
 		down( & self->files_sem); // TODO: It may be nicer to make it more granual and lock only when needed, right? ;) At least add & remove must be locked
 		proxyfs_client_open_files( self );
 		proxyfs_task_send_buffers( PROXYFS_TASK(self) );
@@ -139,6 +139,11 @@ void proxyfs_client_loop(struct proxyfs_client_task* self)
 		up( & self->files_sem);
 
 		proxyfs_task_handle_dead_peers( PROXYFS_TASK(self) );		
+		
+		if ( !self->server ) {
+		    mdbg(ERR2, "Terminating client loop thread, peer is marked as dead");
+		    break;
+		}		  
 	}
 }
 
@@ -420,6 +425,13 @@ static void proxyfs_client_handle_dead_peer(struct proxyfs_task* self, struct pr
 		}
 		
 	}
+	
+	if ( PROXYFS_CLIENT_TASK(self)->server == peer ) {
+	    PROXYFS_CLIENT_TASK(self)->server = NULL;
+	} else {
+	    mdbg(ERR1, "Unexpected peer death being handled. Server was %p, but peer %p", PROXYFS_CLIENT_TASK(self)->server, peer);
+	}
+	  
 
 	mdbg(INFO1, "Client handling dead peers done");
 }

@@ -88,7 +88,10 @@ struct proxyfs_client_task {
 	struct semaphore try_open_sem;
 	/** This semaphore prevents race conditions between client task and checking for task presence in the client */
 	struct semaphore files_sem;
-
+	/** 
+	 * TODO: This reference is actually only an alias to a single element of list "peers" of task structure. Having this alias is causing race like problems
+	 * and is not really well readable, so would be better to get rid of it
+	 */
 	struct proxyfs_peer_t *server;
 };
 #endif // _PROXYFS_CLIENT_H_PROTECTED
