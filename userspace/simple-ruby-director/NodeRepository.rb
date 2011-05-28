@@ -41,7 +41,7 @@ class NodeRepository
             yield(node)
         }        
     end
-    
+
     # Count of known 'remote' nodes. Does not include self
     def knownNodesCount
 	return nodes.size

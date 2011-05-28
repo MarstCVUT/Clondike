@@ -69,6 +69,7 @@ class Director
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
                 balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
+		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy)                
                 @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, idResolver.getCurrentId)
                 @nodeInfoConsumer.registerNewNodeListener(@membershipManager)

@@ -77,6 +77,8 @@ class QuantityLoadBalancingStrategy
         @nestedLoadBalancer = CpuLoadBalancingStrategy.new(nodeRepository, membershipManager)
         
         @counter = PerNodeTaskCounter.new
+	
+	@log = nil
     end
     
     # Return ID of the node where the process shall be migrated
@@ -86,9 +88,11 @@ class QuantityLoadBalancingStrategy
         detachedNodes = @membershipManager.coreManager.detachedNodes
         
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
+	
         #puts "Best target #{bestTarget} for name #{name}."
 	# Temporary hack.. we count only tasks that are migrateable somewhere... TODO: Instead introduce either some filter for counting tasks, or count based on their CPU usage (unlikely.. to difficult for short term)
         updateCounter(bestTarget, name, pid) if UserConfiguration.getConfig(uid).canMigrateSomewhere(name)
+	flushDebugLog()
         bestTarget
     end    
 
@@ -108,14 +112,50 @@ class QuantityLoadBalancingStrategy
 	$log.debug("Removing pid task #{task.pid}. Post-rem count: #{@counter.getCount(task.executionNode)}. Node: #{task.executionNode}")
     end
     
+    def startDebuggingToFile(logname)
+      @log = File.new("#{Director::LOG_DIR}/#{logname}", "w")      
+    end
+    
+    def stopDebugging()
+      @log = nil
+    end
+    
 private
+    def flushDebugLog()
+      return if !@log
+      
+      @log.flush
+    end
+
+    def debugDecision(pid, targetNode)
+      return if !@log
+      
+      debugDumpState()
+      if ( targetNode.id != @nodeRepository.selfNode.id )
+	@log.write("Migrating #{pid} to #{targetNode.ipAddress}\n");
+      else
+	@log.write("#{pid} kept locally\n");
+      end
+    end
+
+    def debugDumpState()
+      return if !@log
+      
+      @log.write("Local Node: #{@counter.getCount(@nodeRepository.selfNode)}\n");
+      @nodeRepository.eachNode { |node|
+	  @log.write("Node #{node.ipAddress}: #{@counter.getCount(node)}\n");
+      }
+    end      
+
     def updateCounter(slotIndex, name, pid)            
         if ( !slotIndex )
 	   $log.debug("Adding pid task #{pid} (#{name}) to self. Pre-add count: #{@counter.getCount(@nodeRepository.selfNode)}")
-           @counter.addPid(@nodeRepository.selfNode, pid) 
+	   debugDecision(pid, @nodeRepository.selfNode)
+           @counter.addPid(@nodeRepository.selfNode, pid) 	   
         else
 	   $log.debug("Adding pid task #{pid} (#{name}) to slot #{slotIndex}. Pre-add count: #{@counter.getCount(@membershipManager.coreManager.detachedNodes[slotIndex])}" )
-           @counter.addPid(@membershipManager.coreManager.detachedNodes[slotIndex], pid)
+	   debugDecision(pid, @membershipManager.coreManager.detachedNodes[slotIndex])
+           @counter.addPid(@membershipManager.coreManager.detachedNodes[slotIndex], pid)	   
         end
     end
 
