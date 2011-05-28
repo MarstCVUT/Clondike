@@ -28,47 +28,56 @@ class CollectStats
 	actions.each do |a|
 	    if a == last_fork then sibling_indent = '   ' end
 
-	    # Counting of global execs stats
-	    if (a.class == LogExec) then 
-                if (@execs.has_key?(a.image)) then
-	            @execs[a.image][0] += 1
-	            @execs[a.image][1] += a.user_time 
-	            @execs[a.image][2] += a.sys_time 
+	    updateGlobalExecStats(a)
+	    updateGlobalOperationStats(a)
+	    collectSubaction(a, prefix, sibling_indent)
+	end
+    end
+private
+    def updateGlobalExecStats(action)
+      	    if (action.class == LogExec) then 
+                if (@execs.has_key?(action.image)) then
+	            @execs[action.image][0] += 1
+	            @execs[action.image][1] += action.user_time 
+	            @execs[action.image][2] += action.sys_time 
 	        else
-	            @execs[a.image] = [1, a.user_time, a.sys_time]
+	            @execs[action.image] = [1, action.user_time, action.sys_time]
 	        end
 	    end
-
-	    # Counting of global operation stats
-	    if "#{a.class}" =~ /^Log/ then
-	        op = "#{a.class}".sub(/^Log/, '')
+    end
+    
+    def updateGlobalOperationStats(action)
+      	    if "#{action.class}" =~ /^Log/ then
+	        op = "#{action.class}".sub(/^Log/, '')
                 if @operations.has_key?(op) then
 	            @operations[op] += 1
 	        else
 	            @operations[op] = 1
 	        end
 	    end
-
+    end
+    
+    def collectSubaction(action, prefix, sibling_indent)
 	    # Printing out record data
-	    rtn = a.collect
+	    rtn = action.collect
 	    if rtn[0] then
-		if ( a.slotIndex ) 
-		  @log.write("[%02d] " % [a.slotIndex])
+		if ( action.slotIndex ) 
+		  @log.write("[%02d] " % [action.slotIndex])
 		else
 		  @log.write("[  ] ")
 		end
-        	@log.write("%09.04f%s%s%s" % [(a.time - @start).to_f, prefix, (rtn[1] or sibling_indent), rtn[0]])
-		if a.user_time then
-		    @log.write(" U: #{a.user_time}ms")
+        	@log.write("%09.04f%s%s%s" % [(action.time - @start).to_f, prefix, (rtn[1] or sibling_indent), rtn[0]])
+		if action.user_time then
+		    @log.write(" U: #{action.user_time}ms")
 		end
-		if a.sys_time then
-		    @log.write(" S: #{a.sys_time}ms")
+		if action.sys_time then
+		    @log.write(" S: #{action.sys_time}ms")
 		end
-		@log.write(" C: #{a.clockTime}ms");
+		@log.write(" C: #{action.clockTime}ms");
 		@log.write("\n")
 	    end
-	    self.collect(rtn[2], prefix + sibling_indent)
-	end
+	    # Process its children
+	    self.collect(rtn[2], prefix + sibling_indent)      
     end
 end
 
