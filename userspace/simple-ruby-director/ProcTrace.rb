@@ -274,8 +274,12 @@ class ProcTrace
     
     # Callback on task exit
     def onExit(pid, exitCode, rusage)
-        if (@tasks.has_key?(pid)) then
-	    finishTask(pid, exitCode, rusage)
+	begin
+	  if (@tasks.has_key?(pid)) then
+	      finishTask(pid, exitCode, rusage)
+	  end
+	rescue => err
+	  $log.error "Error in ProcTrace while processing onExit \n#{err.backtrace.join("\n")}"
 	end
     end
     
