@@ -237,8 +237,9 @@ class TracedProcess < Log
 end
 
 class ProcTrace
-    def initialize()
+    def initialize(tracedProcesses)
         @tasks = {}
+	@tracedProcesses = tracedProcesses
     end
 
     # Callback on fork
@@ -255,7 +256,7 @@ class ProcTrace
         if args == nil and envp == nil then
             if (@tasks.has_key?(pid)) then
 	        @tasks[pid].logAction(LogExec.new(name, rusage))
-    	    elsif (name == '/usr/bin/make' || name == '/usr/bin/gcc') then
+    	    elsif (processTraced?(name)) then
 	        @tasks[pid] = TracedProcess.new(name, CollectStats.new(name.split('/')[-1] + Time.now.strftime("-%Y%m%d-%H%M%S-") + "#{pid}.log"))
 	    end
 	end
@@ -282,6 +283,17 @@ class ProcTrace
     end
     
 private
+    def processTraced?(name)
+      traced = false
+      @tracedProcesses.each { |procName|
+	  if ( name == procName )
+	      traced = true
+              break
+          end
+      }
+      return traced
+    end
+
     def finishTask(pid, exitCode, rusage)
       @tasks[pid].logAction(LogExit.new(exitCode, rusage))    
       @tasks.delete(pid)

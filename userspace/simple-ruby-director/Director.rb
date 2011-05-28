@@ -101,7 +101,7 @@ class Director
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
                 end
 		cacheFSController = CacheFSController.new
-		procTrace = ProcTrace.new
+		procTrace = ProcTrace.new(['/usr/bin/make','/usr/bin/gcc'])
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
                 @netlinkConnector.pushNpmHandlers(procTrace)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
