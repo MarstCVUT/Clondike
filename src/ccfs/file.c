@@ -128,9 +128,12 @@ ccfs_fsync(struct file *file, struct dentry *dentry, int datasync)
 {
 	struct file *lower_file = ccfs_get_nested_file(file);
 	struct dentry *lower_dentry = ccfs_get_nested_dentry(dentry);
-	struct inode *lower_inode = lower_dentry->d_inode;
+	struct inode *lower_inode = lower_dentry != NULL ? lower_dentry->d_inode : NULL;
 	int rc = -EINVAL;
-
+	
+	BUG_ON(!lower_dentry);
+	BUG_ON(!lower_inode);	
+	
 	if (lower_inode->i_fop->fsync) {
 		mutex_lock(&lower_inode->i_mutex);
 		rc = lower_inode->i_fop->fsync(lower_file, lower_dentry,
