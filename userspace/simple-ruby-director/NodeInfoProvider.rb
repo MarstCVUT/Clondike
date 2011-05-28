@@ -109,7 +109,7 @@ private
                  sleep(0.2)
                  newInfo = getCurrentInfo
                  @listeners.each do |listener| 
-                     listener.notifyChange(NodeInfoWithId.new(Node.getCurrentId(),newInfo))
+                     listener.notifyChange(NodeInfoWithId.new(getCurrentId(),newInfo))
                  end 
          end
      end
