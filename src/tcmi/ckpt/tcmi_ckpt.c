@@ -162,7 +162,7 @@ int tcmi_ckpt_read_hdr(struct tcmi_ckpt *self)
 	}
 	tcmi_ckpt_file_count(self);
 	
-	 strlcpy(current->comm, self->hdr.comm, sizeof(current->comm));
+	strncpy(current->comm, self->hdr.comm, sizeof(current->comm));
 
 	/* TODO: To some arch file ? */
 	#if defined(__x86_64__) 
