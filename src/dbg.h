@@ -188,5 +188,23 @@ do {											\
 #define debug_enabled 0
 #endif
 
+/**
+ * This function just allocs and frees various size memory blocks. It is intended to collaborate with kernel memory access check functions
+ * that check for memory poisioning. This call should be added to code just temporarily when chasing broken allocations and trying to find out
+ * when the memory is already broken.
+ */
+#define memory_sanity_check(msg)								\
+do {													\
+	int i = 1;												\
+	int kmsize = 2;												\
+	void* memtest;												\
+	for ( i = 1; i < 10; i++ ) {											\
+	  memtest = kmalloc(kmsize, GFP_KERNEL);											\
+	  kmsize = kmsize * 2;												\
+	  printk(KERN_DEBUG __APP_NAME " %s()[%d]: " msg " -> Memory check size %d -> %p\n", __FUNCTION__, current->pid, kmsize, memtest);\
+	  kfree(memtest);												\
+	}											\
+} while(0)
+
 
 #endif /* DBG_H */

@@ -155,12 +155,16 @@ static struct dentry *proxyfs_fs_rootinode_lookup(
 	uint32_t file_number;
 	uint32_t owner_pid;
 
+	memory_sanity_check("Prescan");
+	
 	mdbg(INFO3, "filename %s", dentry->d_name.name);
 
 
 	if ( sscanf(dentry->d_name.name, "%u-%u", &owner_pid, &file_number) != 2 ) 
 		goto not_found; // Invalid format
 
+	memory_sanity_check("Postscan");
+	
 	inode_num = (owner_pid << 16) + file_number;
 
 	mdbg(INFO3, "rootinode lookup %lx (pid: %d, file_num: %d)\n", inode_num, owner_pid, file_number);

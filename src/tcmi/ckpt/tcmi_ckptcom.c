@@ -185,6 +185,8 @@ int tcmi_ckptcom_restart(struct linux_binprm *bprm, struct pt_regs *regs)
 	struct tcmi_ckpt *ckpt;
 	struct pt_regs* original_regs;	
 //	int i;	
+
+	memory_sanity_check("Start");
 	
 	original_regs = kmalloc(sizeof(struct pt_regs), GFP_KERNEL);
 	if ( !original_regs )
@@ -209,7 +211,7 @@ int tcmi_ckptcom_restart(struct linux_binprm *bprm, struct pt_regs *regs)
 		mdbg(ERR3, "Error flushing the old execution context!");
 		goto exit0;
 	}
-
+memory_sanity_check("Pre-rlimit");
 	if (tcmi_ckpt_read_rlimit(ckpt, current) < 0) {
 		mdbg(ERR3, "Error reading checkpoint rlimit!");
 		goto exit1;
@@ -219,12 +221,12 @@ int tcmi_ckptcom_restart(struct linux_binprm *bprm, struct pt_regs *regs)
 		mdbg(INFO3, "Closing open fs.. this should not happend though..");
 		sys_close(0);
 	}
-
+memory_sanity_check("Pre files");
 	if (tcmi_ckpt_read_files(ckpt) < 0) {
 		mdbg(ERR3, "Error reading checkpoint files!");
 		goto exit1;
 	}
-
+memory_sanity_check("Post - files");
 	if (tcmi_ckpt_mm_read(ckpt) < 0) {
 		mdbg(ERR3, "Error reading memory descriptor!");
 		goto exit1;
