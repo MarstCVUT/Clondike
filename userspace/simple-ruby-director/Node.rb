@@ -52,7 +52,7 @@ class Node
 	end
 	
         def ==(other)
-            @id == other.id
+            other.class == Node && @id == other.id
         end	
         
         def to_s
