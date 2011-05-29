@@ -69,6 +69,8 @@ int add_filter_pattern(struct filter* filter, const char* pattern, int pattern_l
 	if ( strcmp(pattern, "OLD") == 0 ) {
 	  filter_pattern->pattern = NULL;
 	  filter_pattern->older_than = CURRENT_TIME;
+	  // Consider also files created in last hour to be new files.. as we may assume they may change again soon (not realy smart but should be good enough for our purposes)	 
+	  filter_pattern->older_than.tv_sec = filter_pattern->older_than.tv_sec - 3600;
 	} else {	
 	  filter_pattern->pattern = kmalloc(pattern_length, GFP_KERNEL);
 	  if ( !filter_pattern->pattern ) {
