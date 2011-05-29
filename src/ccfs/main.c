@@ -112,10 +112,12 @@ int ccfs_interpose(struct dentry *lower_dentry, struct dentry *dentry,
 
 	lower_inode = lower_dentry->d_inode;
 	if (lower_inode->i_sb != ccfs_superblock_to_lower(sb)) {
+		mdbg(ERR3, "Dentry %s EXDEV", dentry->d_name.name);
 		rc = -EXDEV;
 		goto out;
 	}
 	if (!igrab(lower_inode)) {
+		mdbg(ERR3, "Dentry %s STALE", dentry->d_name.name);
 		rc = -ESTALE;
 		goto out;
 	}
@@ -123,6 +125,7 @@ int ccfs_interpose(struct dentry *lower_dentry, struct dentry *dentry,
 			     ccfs_inode_test, ccfs_inode_set,
 			     lower_inode);
 	if (!inode) {
+	      mdbg(ERR3, "Dentry %s No access", dentry->d_name.name);
 		rc = -EACCES;
 		iput(lower_inode);
 		goto out;

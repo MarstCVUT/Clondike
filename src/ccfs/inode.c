@@ -195,7 +195,7 @@ out_dput:
 	dput(lower_dentry);
 	d_drop(dentry);
 out:
-	mdbg(INFO3,"lookup done with res: %d (dentry inode: %p)", rc, dentry->d_inode);
+	mdbg(INFO3,"lookup done with res: %d (dentry inode: %p name: %s)", rc, dentry->d_inode, dentry->d_name.name);
 	return ERR_PTR(rc);
 }
 
