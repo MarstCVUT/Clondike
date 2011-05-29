@@ -78,6 +78,8 @@ static int ccfs_open(struct inode *inode, struct file *file)
 		// last reference to them is dropped which seems like a safe behaviour.. my suspition is, the comment was saying it does not happen for root node, which is always
 		// held, but not sure.. for now disable due to caused races and if I find what is the real reason for this call I'll update this code/comment
 		// ccfs_reopen_persistent_file(file->f_path.dentry, inode);
+		
+		invalidate_inode_pages2(inode->i_mapping);
 	}	
 
 	lower_file = ccfs_inode_to_private(inode)->lower_file;
