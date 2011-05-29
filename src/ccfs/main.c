@@ -53,7 +53,9 @@ static int ccfs_init_persistent_file_unlocked(struct dentry *ccfsdentry, struct 
 			rc = PTR_ERR(inode_info->lower_file);
 			inode_info->lower_file = NULL;
 		}
-	}		
+	} else {
+		mdbg(INFO3, "Inode %p (%p) was already initialized initialized lower file: %p (%ld)", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
+	}
 	
 	return rc;
 }
@@ -87,7 +89,7 @@ int ccfs_reopen_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsino
 	if ( inode_info->lower_file )	{
 		mdbg(INFO3, "Inode %p file release (%p -> %ld)", ccfsdentry->d_inode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
 		fput(inode_info->lower_file);		
-		mdbg(INFO3, "Inode %p file release done");
+		mdbg(INFO3, "Inode file release done");
 		inode_info->lower_file = NULL;		
 	}
 	
