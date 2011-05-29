@@ -81,7 +81,7 @@ int ccfs_reopen_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsino
 
 	inode_info = ccfs_inode_to_private(ccfsinode);
 
-	mdbg(INFO3, "Inode %p ($p) with lower file: %p being reopened", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file);
+	mdbg(INFO3, "Inode %p (%p) with lower file: %p being reopened", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file);
 
 	mutex_lock(&inode_info->lower_file_mutex);
 	if ( inode_info->lower_file )	{
