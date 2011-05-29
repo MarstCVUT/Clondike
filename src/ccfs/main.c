@@ -15,14 +15,12 @@
 
 #include <dbg.h>
 
-static int ccfs_init_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsinode)
-{
-	struct ccfs_inode *inode_info =
+static int ccfs_init_persistent_file_unlocked(struct dentry *ccfsdentry, struct inode* ccfsinode) {
+  	struct ccfs_inode *inode_info =
 		ccfs_inode_to_private(ccfsinode);
 	int rc = 0;
 
-	mutex_lock(&inode_info->lower_file_mutex);
-	if (!inode_info->lower_file) {
+  	if (!inode_info->lower_file) {
 		struct dentry *lower_dentry;
 		struct vfsmount *lower_mnt =
 			ccfs_dentry_to_nested_mnt(ccfsdentry);
@@ -48,14 +46,26 @@ static int ccfs_init_persistent_file(struct dentry *ccfsdentry, struct inode* cc
 							     (O_RDONLY
 							      | O_LARGEFILE), current_cred());
 		}
-		mdbg(INFO3, "Inode %p initialized lower file: %p", ccfsdentry->d_inode, inode_info->lower_file);
+		mdbg(INFO3, "Inode %p (%p) initialized lower file: %p", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file);
 		if (IS_ERR(inode_info->lower_file)) {
 			mdbg(INFO3, "Error opening lower persistent file for lower_dentry [0x%p] and lower_mnt [0x%p]",
 			       lower_dentry, lower_mnt);
 			rc = PTR_ERR(inode_info->lower_file);
 			inode_info->lower_file = NULL;
 		}
-	}
+	}		
+	
+	return rc;
+}
+
+static int ccfs_init_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsinode)
+{
+	struct ccfs_inode *inode_info =
+		ccfs_inode_to_private(ccfsinode);
+	int rc = 0;
+
+	mutex_lock(&inode_info->lower_file_mutex);
+	rc = ccfs_init_persistent_file_unlocked(ccfsdentry, ccfsinode);
 	mutex_unlock(&inode_info->lower_file_mutex);
 	return rc;
 }
@@ -71,7 +81,7 @@ int ccfs_reopen_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsino
 
 	inode_info = ccfs_inode_to_private(ccfsinode);
 
-	mdbg(INFO3, "Inode %p with lower file: %p being reopened", ccfsdentry->d_inode, inode_info->lower_file);
+	mdbg(INFO3, "Inode %p ($p) with lower file: %p being reopened", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file);
 
 	mutex_lock(&inode_info->lower_file_mutex);
 	if ( inode_info->lower_file )	{
@@ -79,9 +89,9 @@ int ccfs_reopen_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsino
 		inode_info->lower_file = NULL;
 		mdbg(INFO3, "Inode %p file released", ccfsdentry->d_inode);
 	}
+	
+	rc = ccfs_init_persistent_file_unlocked(ccfsdentry, ccfsinode);
 	mutex_unlock(&inode_info->lower_file_mutex);
-
-	rc = ccfs_init_persistent_file(ccfsdentry, ccfsinode);
 
 	return rc;
 }

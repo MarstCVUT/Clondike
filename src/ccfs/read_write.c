@@ -2,6 +2,8 @@
 #include <linux/pagemap.h>
 #include "ccfs.h"
 
+#include <dbg.h>
+
 int ccfs_write_lower(struct inode *ccfsinode, char *data,
 			 loff_t offset, size_t size)
 {
@@ -54,6 +56,10 @@ int ccfs_read_lower(char *data, loff_t offset, size_t size,
 	mm_segment_t fs_save;
 	int rc = 0;
 
+	BUG_ON(!inode_info);
+	
+	mdbg(INFO3, "Inode %p has lower file: %p", ccfsinode, inode_info->lower_file);
+	
 	mutex_lock(&inode_info->lower_file_mutex);
 	BUG_ON(!inode_info->lower_file);
 	inode_info->lower_file->f_pos = offset;
