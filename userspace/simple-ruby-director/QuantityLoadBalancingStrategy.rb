@@ -141,10 +141,11 @@ private
     def debugDumpState()
       return if !@log
       
-      @log.write("Local Node: #{@counter.getCount(@nodeRepository.selfNode)}\n");
+      @log.write("Local Node: #{@counter.getCount(@nodeRepository.selfNode)}\n|");
       @nodeRepository.eachNode { |node|
-	  @log.write("Node #{node.ipAddress}: #{@counter.getCount(node)}\n");
+	  @log.write(" Node #{node.ipAddress}: #{@counter.getCount(node)} |");
       }
+      @log.write("\n");
     end      
 
     def updateCounter(slotIndex, name, pid)            
