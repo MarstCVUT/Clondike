@@ -52,7 +52,7 @@ static int ccfs_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
 
 int ccfs_close_lower_file(struct file *lower_file)
 {
-	mdbg(INFO3,"Closing lower file file %p", file);
+	mdbg(INFO3,"Closing lower file file %p", lower_file);
 	fput(lower_file);
 	return 0;
 }
