@@ -58,7 +58,7 @@ int ccfs_read_lower(char *data, loff_t offset, size_t size,
 
 	BUG_ON(!inode_info);
 	
-	mdbg(INFO3, "Inode %p has lower file: %p", ccfsinode, inode_info->lower_file);
+	mdbg(INFO3, "Inode %p has lower file: %p (%ld)", ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
 	
 	mutex_lock(&inode_info->lower_file_mutex);
 	BUG_ON(!inode_info->lower_file);
