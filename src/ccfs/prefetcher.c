@@ -12,6 +12,7 @@
 #include <linux/pagevec.h>
 
 #include "prefetcher.h"
+#include <dbg.h>
 
 struct prefetcher_data {
 	/** Reference to current prefetcher thread, if there is any */
@@ -126,6 +127,7 @@ static void do_file_prefetch(struct file* filp) {
 
 static void perform_prefetch(struct prefetch_info* info) {
 	do_file_prefetch(info->filp);
+	mdbg(INFO3,  "Puting lower file: %p (%ld)", info->filp, atomic_long_read(info->filp->f_count));
 	fput(info->filp);
 	kfree(info);
 }
