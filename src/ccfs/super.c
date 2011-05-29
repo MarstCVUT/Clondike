@@ -43,7 +43,7 @@ static void ccfs_destroy_inode(struct inode *inode)
 		BUG_ON(!lower_dentry);
 		mdbg(INFO3,  "Destroying nested dentry: %s", lower_dentry->d_iname);
 		if (lower_dentry->d_inode) {
-			mdbg(INFO3,  "Puting lower file: %p (%ld)", c_inode->lower_file, atomic_long_read(c_inode->lower_file->f_count));
+			mdbg(INFO3,  "Puting lower file: %p (%ld)", c_inode->lower_file, atomic_long_read(&c_inode->lower_file->f_count));
 			fput(c_inode->lower_file);
 			c_inode->lower_file = NULL;
 			//d_drop(lower_dentry); This is likely not neccesary, but worse it is a race as the lower dentry is not held at this time

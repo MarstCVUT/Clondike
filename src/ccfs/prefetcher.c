@@ -127,7 +127,7 @@ static void do_file_prefetch(struct file* filp) {
 
 static void perform_prefetch(struct prefetch_info* info) {
 	do_file_prefetch(info->filp);
-	mdbg(INFO3,  "Puting lower file: %p (%ld)", info->filp, atomic_long_read(info->filp->f_count));
+	mdbg(INFO3,  "Puting lower file: %p (%ld)", info->filp, atomic_long_read(&info->filp->f_count));
 	fput(info->filp);
 	kfree(info);
 }

@@ -118,7 +118,7 @@ static int ccfs_flush(struct file *file, fl_owner_t td)
 
 	mdbg(INFO3,"Flush file %p", file);
 	lower_file = ccfs_get_nested_file(file);
-	mdbg(INFO3,"Flush lower file %p (%ld)", lower_file, atomic_long_read(lower_file->f_count));
+	mdbg(INFO3,"Flush lower file %p (%ld)", lower_file, atomic_long_read(&lower_file->f_count));
 	
 	BUG_ON(!lower_file);
 	

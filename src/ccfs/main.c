@@ -46,7 +46,7 @@ static int ccfs_init_persistent_file_unlocked(struct dentry *ccfsdentry, struct 
 							     (O_RDONLY
 							      | O_LARGEFILE), current_cred());
 		}
-		mdbg(INFO3, "Inode %p (%p) initialized lower file: %p (%ld)", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file, atomic_long_read(inode_info->lower_file->f_count));
+		mdbg(INFO3, "Inode %p (%p) initialized lower file: %p (%ld)", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
 		if (IS_ERR(inode_info->lower_file)) {
 			mdbg(INFO3, "Error opening lower persistent file for lower_dentry [0x%p] and lower_mnt [0x%p]",
 			       lower_dentry, lower_mnt);
@@ -85,7 +85,7 @@ int ccfs_reopen_persistent_file(struct dentry *ccfsdentry, struct inode* ccfsino
 
 	mutex_lock(&inode_info->lower_file_mutex);
 	if ( inode_info->lower_file )	{
-		mdbg(INFO3, "Inode %p file release (%p -> %ld)", ccfsdentry->d_inode, inode_info->lower_file, atomic_long_read(inode_info->lower_file->f_count));
+		mdbg(INFO3, "Inode %p file release (%p -> %ld)", ccfsdentry->d_inode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
 		fput(inode_info->lower_file);		
 		mdbg(INFO3, "Inode %p file release done");
 		inode_info->lower_file = NULL;		
