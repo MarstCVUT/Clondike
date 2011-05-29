@@ -64,18 +64,21 @@ static int ccfs_open(struct inode *inode, struct file *file)
 	int rc = 0;
 	struct ccfs_super* sb_info = ccfs_superblock_to_private(inode->i_sb);
 
-	if ( !ccfs_inode_to_private(inode)->cacheable ) {
-		// TODO: This is a hack to reopen "root" dentry, it is not required for other entries. Moreover, we can now reset cacheable flag, but do we need to?
-		ccfs_reopen_persistent_file(file->f_path.dentry, inode);
-	}
-
 	file_info = kmem_cache_zalloc(ccfs_file_cache, GFP_KERNEL);
 	if ( !file_info ) {
 		rc = -ENOMEM;
 		goto out;
 	}
-
+	
 	ccfs_set_file_private(file, file_info);
+
+	if ( !ccfs_inode_to_private(inode)->cacheable ) {
+		// TODO: This is a hack to reopen "root" dentry, it is not required for other entries. Moreover, we can now reset cacheable flag, but do we need to?
+		// TODO: The comment above is really cryptic and not sure what I was trying to say :(... Generally, the files are refreshed when they are non-cacheable and
+		// last reference to them is dropped which seems like a safe behaviour.. my suspition is, the comment was saying it does not happen for root node, which is always
+		// held, but not sure.. for now disable due to caused races and if I find what is the real reason for this call I'll update this code/comment
+		// ccfs_reopen_persistent_file(file->f_path.dentry, inode);
+	}	
 
 	lower_file = ccfs_inode_to_private(inode)->lower_file;
 	mdbg(INFO3, "Opening inode %p (file %p) associated with lower file: %p", inode, file, lower_file);
