@@ -582,7 +582,7 @@ static int ccfs_getattr(struct vfsmount *mnt, struct dentry *dentry, struct ksta
 	rc = vfs_getattr(lower_mnt, lower_dentry, stat);
 	mutex_unlock(&lower_dentry->d_inode->i_mutex);
 
-	if ( !rc ) {
+	if ( !rc && inode->cacheable) {
 		inode->stat = kmalloc(sizeof(struct kstat), GFP_KERNEL);
 		if ( inode->stat ) {
 			*(inode->stat) = *stat;
