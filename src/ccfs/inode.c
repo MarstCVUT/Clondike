@@ -525,8 +525,7 @@ static int ccfs_permission(struct inode *inode, int mask)
 {
 	int rc = inode_permission(ccfs_get_nested_inode(inode), mask);
 
-	mdbg(INFO3,"Permission check for inode [%ld] returned [%d]",
-			inode->i_ino, rc);
+	mdbg(INFO3,"Permission check for inode %p [%ld] returned [%d]", inode, inode->i_ino, rc);
 
 	return rc;
 }
