@@ -39,6 +39,8 @@ static int ccfs_init_persistent_file_unlocked(struct dentry *ccfsdentry, struct 
 						     current_cred()		
 						     );
 		if (IS_ERR(inode_info->lower_file)) {
+			mdbg(INFO3, "Error opening lower persistent file for lower_dentry [0x%p] and lower_mnt [0x%p] in write mode. Will try read only mode.",
+			       lower_dentry, lower_mnt);
 			dget(lower_dentry);
 			mntget(lower_mnt);
 			inode_info->lower_file = dentry_open(lower_dentry,
@@ -46,7 +48,7 @@ static int ccfs_init_persistent_file_unlocked(struct dentry *ccfsdentry, struct 
 							     (O_RDONLY
 							      | O_LARGEFILE), current_cred());
 		}
-		mdbg(INFO3, "Inode %p (%p) initialized lower file: %p (%ld)", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
+		mdbg(INFO3, "Inode %p (%p) initialized lower file: %p (%ld) - write mode: %d", ccfsdentry->d_inode, ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count), try_write_mode);
 		if (IS_ERR(inode_info->lower_file)) {
 			mdbg(INFO3, "Error opening lower persistent file for lower_dentry [0x%p] and lower_mnt [0x%p]",
 			       lower_dentry, lower_mnt);
