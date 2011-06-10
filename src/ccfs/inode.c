@@ -155,8 +155,7 @@ static struct dentry *ccfs_lookup(struct inode *dir, struct dentry *dentry,
 						     GFP_KERNEL));
 	if (!ccfs_dentry_to_private(dentry)) {
 		rc = -ENOMEM;
-		printk(KERN_ERR "Out of memory whilst attempting "
-				"to allocate ccfs_dentry_info struct\n");
+		minfo(ERR1, "Out of memory whilst attempting to allocate ccfs_dentry_info struct");
 		goto out_dput;
 	}
 	ccfs_set_nested_dentry(dentry, lower_dentry);
@@ -168,7 +167,7 @@ static struct dentry *ccfs_lookup(struct inode *dir, struct dentry *dentry,
 	}
 	rc = ccfs_interpose(lower_dentry, dentry, dir->i_sb, 1);
 	if (rc) {
-		printk(KERN_ERR "Error interposing\n");
+	  	minfo(ERR1, "Error interposing inode: %d", rc);
 		goto out_dput;
 	}
 	if (S_ISDIR(lower_inode->i_mode)) {
@@ -192,8 +191,11 @@ static struct dentry *ccfs_lookup(struct inode *dir, struct dentry *dentry,
 
 	goto out;
 out_dput:
+	mdbg(INFO3,"lookup PUT done with res: %d (dentry inode: %p name: %s)", rc, dentry->d_inode, dentry->d_name.name);
 	dput(lower_dentry);
 	d_drop(dentry);
+	return ERR_PTR(rc);
+	
 out:
 	mdbg(INFO3,"lookup done with res: %d (dentry inode: %p name: %s)", rc, dentry->d_inode, dentry->d_name.name);
 	return ERR_PTR(rc);
