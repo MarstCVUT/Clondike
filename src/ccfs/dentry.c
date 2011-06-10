@@ -17,7 +17,7 @@ static int ccfs_d_revalidate(struct dentry *dentry, struct nameidata *nd)
 	mdbg(INFO3,"Revalidating dentry: (%s) %p", dentry->d_iname, dentry);
 	
 	// Do not cache negative dentries or uncachable dentries
-	if ( !dentry->d_inode || !ccfs_inode_to_private(dentry->d_inode)->cacheable ) {		
+	if ( !dentry->d_inode ) {		
 		return 0;
 	}
 	
@@ -39,6 +39,9 @@ static int ccfs_d_revalidate(struct dentry *dentry, struct nameidata *nd)
 		fsstack_copy_attr_all(dentry->d_inode, lower_inode);
 	}
 out:
+        if ( ccfs_inode_to_private(dentry->d_inode)->cacheable )
+	    return 0;
+
 	return rc;
 }
 
