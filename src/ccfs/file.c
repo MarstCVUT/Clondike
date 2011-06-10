@@ -83,7 +83,7 @@ static int ccfs_open(struct inode *inode, struct file *file)
 	}	
 
 	lower_file = ccfs_inode_to_private(inode)->lower_file;
-	mdbg(INFO3, "Opening inode %p (file %p) associated with lower file: %p", inode, file, lower_file);
+	mdbg(INFO3, "Opening inode %p (file %p) associated with lower file: %p (dname: [%s])", inode, file, lower_file, file->f_dentry->d_name.name);
 	if ( !lower_file ) {
 		minfo(ERR3, "Assertion failed! Lower file does not exist!");
 		kmem_cache_free(ccfs_file_cache, file_info);
