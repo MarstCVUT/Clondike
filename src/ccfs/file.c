@@ -143,6 +143,8 @@ ccfs_fsync(struct file *file, struct dentry *dentry, int datasync)
 	BUG_ON(!lower_dentry);
 	BUG_ON(!lower_inode);	
 	
+	mdbg(INFO3,"Fsync file %p", file);
+	
 	if (lower_inode->i_fop->fsync) {
 		mutex_lock(&lower_inode->i_mutex);
 		rc = lower_inode->i_fop->fsync(lower_file, lower_dentry,
@@ -157,6 +159,8 @@ static int ccfs_fasync(int fd, struct file *file, int flag)
 	int rc = 0;
 	struct file *lower_file = NULL;
 
+	mdbg(INFO3,"Fasync file %p", file);
+	
 	lower_file = ccfs_get_nested_file(file);
 	if (lower_file->f_op && lower_file->f_op->fasync)
 		rc = lower_file->f_op->fasync(fd, lower_file, flag);
@@ -178,10 +182,16 @@ static ssize_t ccfs_splice_read(struct file *file, loff_t * ppos,
 	return rc;
 }
 
+static int ccfs_file_mmap(struct file * file, struct vm_area_struct * vma) {
+	mdbg(INFO3,"Mmap file %p [%s]", file, file->f_dentry->d_name.name);
+  
+	return generic_file_mmap(file, vma);
+}
+
 const struct file_operations ccfs_dir_fops = {
 	.readdir = ccfs_readdir,
 	.ioctl = ccfs_ioctl,
-	.mmap = generic_file_mmap,
+	.mmap = ccfs_file_mmap,
 	.open = ccfs_open,
 	.flush = ccfs_flush,
 	.release = ccfs_release,
@@ -198,7 +208,7 @@ const struct file_operations ccfs_main_fops = {
 	.aio_write = generic_file_aio_write,
 	.readdir = ccfs_readdir,
 	.ioctl = ccfs_ioctl,
-	.mmap = generic_file_mmap,
+	.mmap = ccfs_file_mmap,
 	.open = ccfs_open,
 	.flush = ccfs_flush,
 	.release = ccfs_release,
