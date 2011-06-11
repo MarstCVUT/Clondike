@@ -40,7 +40,7 @@ static int ccfs_d_revalidate(struct dentry *dentry, struct nameidata *nd)
 		fsstack_copy_attr_all(dentry->d_inode, lower_inode);
 	}
 out:
-        if ( ccfs_inode_to_private(dentry->d_inode)->cacheable ) {
+        if ( !ccfs_inode_to_private(dentry->d_inode)->cacheable ) {
 	    mdbg(INFO3,"Non-cacheable inode -> invalid");
 	    return 0;
 	}
