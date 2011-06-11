@@ -16,16 +16,17 @@ int ccfs_write_lower(struct inode *ccfsinode, char *data,
 	mutex_lock(&inode_info->lower_file_mutex);
 	BUG_ON(!inode_info->lower_file);
 	inode_info->lower_file->f_pos = offset;
+	mdbg(INFO3, "Inode %p has lower file: %p (%ld)", ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
+	
 	fs_save = get_fs();
 	set_fs(get_ds());
 	octets_written = vfs_write(inode_info->lower_file, data, size,
 				   &inode_info->lower_file->f_pos);
 	set_fs(fs_save);
 	if (octets_written < 0) {
-		printk(KERN_ERR "%s: octets_written = [%td]; "
-		       "expected [%td]\n", __FUNCTION__, octets_written, size);
+	  	mdbg(INFO3, "Error writing. Written %d, size %d", octets_written, size);
 		rc = -EINVAL;
-	}
+	}	
 	mutex_unlock(&inode_info->lower_file_mutex);
 	mark_inode_dirty_sync(ccfsinode);
 	return rc;
@@ -35,10 +36,14 @@ int ccfs_write_lower_page_segment(struct inode *ccfsinode,
 				      struct page *page_for_lower,
 				      size_t offset_in_page, size_t size)
 {
+	struct ccfs_inode *inode_info;
 	char *virt;
 	loff_t offset;
 	int rc;
+	inode_info = ccfs_inode_to_private(ccfsinode);
 
+	mdbg(INFO3, "Inode %p has lower file: %p (%ld)", ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));
+	
 	offset = ((((loff_t)page_for_lower->index) << PAGE_CACHE_SHIFT)
 		  + offset_in_page);
 	virt = kmap(page_for_lower);
@@ -85,6 +90,10 @@ int ccfs_read_lower_page_segment(struct page *page_for_ccfs,
 	char *virt;
 	loff_t offset;
 	int rc;
+	struct ccfs_inode *inode_info =
+		ccfs_inode_to_private(ccfsinode);
+		
+	mdbg(INFO3, "Inode %p has lower file: %p (%ld)", ccfsinode, inode_info->lower_file, atomic_long_read(&inode_info->lower_file->f_count));	
 
 	offset = ((((loff_t)page_index) << PAGE_CACHE_SHIFT) + offset_in_page);
 	virt = kmap(page_for_ccfs);
