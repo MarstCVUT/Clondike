@@ -135,7 +135,7 @@ static struct dentry *ccfs_lookup(struct inode *dir, struct dentry *dentry,
 	mutex_unlock(&lower_dir_dentry->d_inode->i_mutex);
 
 	if (IS_ERR(lower_dentry)) {
-		printk(KERN_ERR "ERR from lower_dentry\n");
+		mdbg(INFO3,"Error in lower dentry lookup");
 		rc = PTR_ERR(lower_dentry);
 		d_drop(dentry);
 		goto out;
@@ -199,7 +199,7 @@ out_dput:
 	return ERR_PTR(rc);
 	
 out:
-	mdbg(INFO3,"lookup done with res: %d (dentry inode: %p name: %s)", rc, dentry->d_inode, dentry->d_name.name);
+	mdbg(INFO3,"lookup done with res: %d (dentry inode: %p name: %s dir cacheable: %d)", rc, dentry->d_inode, dentry->d_name.name, ccfs_inode_to_private(dir)->cacheable);
 	return ERR_PTR(rc);
 }
 
