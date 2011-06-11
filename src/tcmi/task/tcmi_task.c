@@ -767,10 +767,10 @@ int tcmi_task_prepare_execve(struct tcmi_task *self, char *file, char **argv, ch
 		goto exit1;
 	}
 	if (tcmi_task_copy_strings(&self->envp, envp) < 0) {
-		mdbg(ERR3, "Failed copying ARGV array for file '%s'", file);
+		mdbg(ERR3, "Failed copying ENVP array for file '%s'", file);
 		goto exit2;
 	}
-	mdbg(INFO4, "Allocated TCMI task execve context(%p, %p, %p) PID=%d, %p", 
+	mdbg(INFO4, "Allocated TCMI task execve context(%s, %p, %p) PID=%d, %p", 
 	     self->ckpt_pathname, self->argv, self->envp, tcmi_task_local_pid(self), self);
 	return 0;
 
@@ -805,7 +805,7 @@ int tcmi_task_execve(void *self, struct tcmi_method_wrapper *wr)
 	mm_segment_t oldfs;
 	struct tcmi_task *self_tsk = TCMI_TASK(self);
 
-	mdbg(INFO2, "Performing exec on '%s' in atomic=%d", self_tsk->ckpt_pathname, in_atomic());
+	mdbg(INFO2, "Performing exec on '%s' Args: %p ([0] -> %p) Envp: %p ([0] -> %p) in atomic=%d", self_tsk->ckpt_pathname, self_tsk->argv, self_tsk->argv[0], self_tsk->envp, self_tsk->envp[0], in_atomic());
 	/* discard the method wrapper prior to doing anything */
 	tcmi_method_wrapper_put(wr);
 	/* instance specific execve notification */

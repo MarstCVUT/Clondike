@@ -105,7 +105,7 @@ static inline int tcmi_ckpt_npm_params_read(struct tcmi_ckpt *ckpt, struct tcmi_
 	fixup_npm_params_pointers(params);
 
 	mdbg(INFO4, "Read npm params. Size: %d.", (filename_length+data_length));
-//	mdbg(INFO3, "Read npm '%s', Args: %d, Envps %d", params->file_name, params->argsc, params->envpc);
+	mdbg(INFO3, "Read npm '%s', Args: %d, Envps %d", params->file_name, params->argsc, params->envpc);
 
 	return 0;
 		
