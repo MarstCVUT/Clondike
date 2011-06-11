@@ -193,14 +193,14 @@ static int ccfs_file_mmap(struct file * file, struct vm_area_struct * vma) {
 static ssize_t ccfs_do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos) {
   ssize_t res;
   res = do_sync_read(filp, buf, len, ppos);
-  mdbg(INFO3,"Read file %p [%s] -> Len: %ld, Res: %ld", file, file->f_dentry->d_name.name, len, res);  
+  mdbg(INFO3,"Read file %p [%s] -> Len: %ld, Res: %ld", filp, filp->f_dentry->d_name.name, len, res);  
   return res;
 }
 
 static ssize_t ccfs_generic_file_aio_read(struct kiocb *iocb, const struct iovec *iov, unsigned long nr_segs, loff_t pos) {
   ssize_t res;
   res = generic_file_aio_read(iocb, iov, nr_segs, pos);
-  mdbg(INFO3,"Async Read file %p [%s] -> Pos: %ld, Res: %ld", file, file->f_dentry->d_name.name, pos, res);  
+  mdbg(INFO3,"Async Read ... Pos: %ld, Res: %ld", pos, res);  
   return res;
 }
 
