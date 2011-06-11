@@ -46,6 +46,8 @@ ccfs_create_underlying_file(struct inode *lower_dir_inode,
 	vfsmount_save = nd->path.mnt;
 	nd->path.dentry = lower_dentry;
 	nd->path.mnt = lower_mnt;
+	
+	mdbg(INFO3,"Create file w/ lower_dentry->d_name.name = [%s] -> [%s] ", lower_dentry->d_name.name, nd->path.dentry->d_name.name);
 	rc = vfs_create(lower_dir_inode, lower_dentry, mode, nd);
 	nd->path.dentry = dentry_save;
 	nd->path.mnt = vfsmount_save;
@@ -209,12 +211,15 @@ static int ccfs_link(struct dentry *old_dentry, struct inode *dir,
 	struct dentry *lower_dir_dentry;
 	u64 file_size_save;
 	int rc;
+	
 // TODO: Update cached link
 	file_size_save = i_size_read(old_dentry->d_inode);
 	lower_old_dentry = ccfs_get_nested_dentry(old_dentry);
-	lower_new_dentry = ccfs_get_nested_dentry(new_dentry);
+	lower_new_dentry = ccfs_get_nested_dentry(new_dentry);	
 	dget(lower_old_dentry);
 	dget(lower_new_dentry);
+	
+	mdbg(INFO3,"Link w/ lower_dentry->d_name.name = [%s] Link = [%s]", lower_old_dentry->d_name.name, lower_new_dentry->d_name.name);
 	lower_dir_dentry = lock_parent(lower_new_dentry);
 	rc = vfs_link(lower_old_dentry, lower_dir_dentry->d_inode,
 		      lower_new_dentry);
@@ -244,6 +249,7 @@ static int ccfs_unlink(struct inode *dir, struct dentry *dentry)
 	struct dentry *lower_dentry = ccfs_get_nested_dentry(dentry);
 	struct inode *lower_dir_inode = ccfs_get_nested_inode(dir);
 // TODO: Update cached link
+	mdbg(INFO3,"Unlink w/ lower_dentry->d_name.name = [%s]", lower_dentry->d_name.name);
 	lock_parent(lower_dentry);
 	rc = vfs_unlink(lower_dir_inode, lower_dentry);
 	if (rc) {
@@ -268,8 +274,10 @@ static int ccfs_symlink(struct inode *dir, struct dentry *dentry,
 	struct dentry *lower_dir_dentry;
 	umode_t mode;
 // TODO: Update cached link
-	lower_dentry = ccfs_get_nested_dentry(dentry);
+	lower_dentry = ccfs_get_nested_dentry(dentry);		
 	dget(lower_dentry);
+	
+	mdbg(INFO3,"Symlink w/ lower_dentry->d_name.name = [%s] Link = [%s]", lower_dentry->d_name.name, symname);
 	lower_dir_dentry = lock_parent(lower_dentry);
 	mode = S_IALLUGO;
 
@@ -299,6 +307,8 @@ static int ccfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
 
 	lower_dentry = ccfs_get_nested_dentry(dentry);
 	lower_dir_dentry = lock_parent(lower_dentry);
+	
+	mdbg(INFO3,"MKDIR w/ lower_dentry->d_name.name = [%s] DIR = [%s]", lower_dentry->d_name.name, lower_dir_dentry->d_name.name);
 	rc = vfs_mkdir(lower_dir_dentry->d_inode, lower_dentry, mode);
 	if (rc || !lower_dentry->d_inode)
 		goto out;
@@ -322,6 +332,9 @@ static int ccfs_rmdir(struct inode *dir, struct dentry *dentry)
 	int rc;
 
 	lower_dentry = ccfs_get_nested_dentry(dentry);
+	
+	mdbg(INFO3,"RMDIR w/ lower_dentry->d_name.name = [%s]", lower_dentry->d_name.name);
+	
 	dget(dentry);
 	lower_dir_dentry = lock_parent(lower_dentry);
 	dget(lower_dentry);
@@ -343,9 +356,12 @@ static int ccfs_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t 
 	int rc;
 	struct dentry *lower_dentry;
 	struct dentry *lower_dir_dentry;
-
+		
 	lower_dentry = ccfs_get_nested_dentry(dentry);
 	lower_dir_dentry = lock_parent(lower_dentry);
+	
+	mdbg(INFO3,"MKNOD w/ lower_dentry->d_name.name = [%s]", lower_dentry->d_name.name);
+	
 	rc = vfs_mknod(lower_dir_dentry->d_inode, lower_dentry, mode, dev);
 	if (rc || !lower_dentry->d_inode)
 		goto out;
@@ -479,7 +495,7 @@ static void *ccfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	}
 	old_fs = get_fs();
 	set_fs(get_ds());
-	mdbg(INFO3, "Calling readlink w/ "
+	mdbg(INFO3, "Calling followlink w/ "
 			"dentry->d_name.name = [%s]", dentry->d_name.name);
 	rc = dentry->d_inode->i_op->readlink(dentry, (char __user *)buf, len);
 	buf[rc] = '\0';
