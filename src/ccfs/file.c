@@ -79,9 +79,9 @@ static int ccfs_open(struct inode *inode, struct file *file)
 		// held, but not sure.. for now disable due to caused races and if I find what is the real reason for this call I'll update this code/comment
 		// ccfs_reopen_persistent_file(file->f_path.dentry, inode);
 		
-		if ( !invalidate_inode_pages2(inode->i_mapping) ) {
-		    minfo(ERR3, "Cache invalidation has failed");
-		}
+//		if ( !invalidate_inode_pages2(inode->i_mapping) ) {
+//		    minfo(ERR3, "Cache invalidation has failed");
+//		}
 	}	
 
 	lower_file = ccfs_inode_to_private(inode)->lower_file;
