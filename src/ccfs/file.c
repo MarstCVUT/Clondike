@@ -28,7 +28,7 @@ int ccfs_readdir (struct file *filp, void *dirent, filldir_t filldir) {
 		fsstack_copy_attr_atime(inode, lower_file->f_path.dentry->d_inode);
 
 	// We need to disable file caching after readdir, as some filesystems (9P) are not able to repear readdirs on a same file!
-	ccfs_inode_to_private(inode)->cacheable = 0;
+	//ccfs_inode_to_private(inode)->cacheable = 0;
 
 	return rc;
 }
