@@ -805,6 +805,8 @@ int tcmi_task_execve(void *self, struct tcmi_method_wrapper *wr)
 	mm_segment_t oldfs;
 	struct tcmi_task *self_tsk = TCMI_TASK(self);
 
+memory_sanity_check("Sanity check on execve");
+	
 	mdbg(INFO2, "Performing exec on '%s' Args: %p ([0] -> %p) Envp: %p ([0] -> %p) in atomic=%d", self_tsk->ckpt_pathname, self_tsk->argv, self_tsk->argv[0], self_tsk->envp, self_tsk->envp[0], in_atomic());
 	/* discard the method wrapper prior to doing anything */
 	tcmi_method_wrapper_put(wr);
@@ -819,7 +821,7 @@ int tcmi_task_execve(void *self, struct tcmi_method_wrapper *wr)
 	set_fs(KERNEL_DS);
 
 	//mm_segment_t fs = get_fs();
-
+memory_sanity_check("Sanity check on execve - just before the call");
 	if ((err = copyof_kernel_execve(self_tsk->ckpt_pathname, self_tsk->argv,
 	/* if ((err = execve(self_tsk->ckpt_pathname, self_tsk->argv, */
 			  self_tsk->envp)) < 0) {
