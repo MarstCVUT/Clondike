@@ -308,7 +308,7 @@ static int tcmi_ckpt_openfile_read_newfd(struct tcmi_ckpt *ckpt)
 	}
 	mdbg(INFO3, "Read: Fd: %ld, Pos %llu, File name size: %lu, Flags: %08lo, Mode: %08lo", (long)new_hdr.fd, (unsigned long long)new_hdr.pos, (unsigned long)new_hdr.pathname_size, (unsigned long)new_hdr.flags, (unsigned long)new_hdr.mode);
 
-	if ( new_hdr.pathname_size > PAGE_SIZE )
+	if ( new_hdr.pathname_size >= PAGE_SIZE )
 		goto exit0;
 
 	/* resolve the path name. */
