@@ -275,7 +275,10 @@ static void tcmi_penmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 	struct tcmi_penmigman *self_pen  = TCMI_PENMIGMAN(self);
 	int err;
 
-	mdbg(INFO4, "Processing message ID");
+	mdbg(INFO4, "Processing message (%p)", m);
+	
+	if ( !m )
+	    return;
 
 	switch(tcmi_msg_id(m)) {
 		case TCMI_AUTHENTICATE_RESP_MSG_ID:
