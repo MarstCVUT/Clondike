@@ -319,6 +319,8 @@ static int tcmi_guesttask_process_p_emigrate_msg(struct tcmi_task *self,
 	mdbg(INFO2, "Processing emigration request, remote PID=%d, checkpoint: '%s'",
 		     tcmi_task_remote_pid(self), ckpt_name);
 
+memory_sanity_check("On processing");
+
 	/* schedules process restart from a checkpoint image */
 	if (tcmi_taskhelper_restart(self, ckpt_name) < 0) {
 		/* report a problem */
@@ -330,6 +332,9 @@ static int tcmi_guesttask_process_p_emigrate_msg(struct tcmi_task *self,
 			goto exit0;
 		} 
 	}
+	
+memory_sanity_check("After restart");
+
 	/* restart successfully scheduled, respond with our local PID */
 	else {
 		if (!(resp = tcmi_guest_started_procmsg_new_tx(tcmi_msg_req_id(m), 
