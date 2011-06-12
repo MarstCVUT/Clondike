@@ -27,6 +27,7 @@ int ccfs_readdir (struct file *filp, void *dirent, filldir_t filldir) {
 	if (rc >= 0)
 		fsstack_copy_attr_atime(inode, lower_file->f_path.dentry->d_inode);
 
+	// The following does not seem to be true at least with kernel 2.6.33.1, so we leave dirs cacheable again
 	// We need to disable file caching after readdir, as some filesystems (9P) are not able to repear readdirs on a same file!
 	//ccfs_inode_to_private(inode)->cacheable = 0;
 
@@ -73,6 +74,9 @@ static int ccfs_open(struct inode *inode, struct file *file)
 	ccfs_set_file_private(file, file_info);
 
 	if ( !ccfs_inode_to_private(inode)->cacheable ) {
+		// Haven't found a reason why would we reopen file here, we just wait let the file close and invalidate when nobody is using it. It is not 100% correct thing in cases of races
+		// but since this is just a toy FS for experimental measurements, we can leave it as it is (unless we want to measure something with races in FS;)
+	  
 		// TODO: This is a hack to reopen "root" dentry, it is not required for other entries. Moreover, we can now reset cacheable flag, but do we need to?
 		// TODO: The comment above is really cryptic and not sure what I was trying to say :(... Generally, the files are refreshed when they are non-cacheable and
 		// last reference to them is dropped which seems like a safe behaviour.. my suspition is, the comment was saying it does not happen for root node, which is always
