@@ -81,6 +81,7 @@ struct tcmi_transaction* tcmi_transaction_new(struct tcmi_slotvec *transactions,
 
 	trans->resp_id = resp_id;
 	trans->state = TCMI_TRANSACTION_INIT;
+	trans->transactions = transactions;
 	init_waitqueue_head(&trans->wq);
 
 	/* setup the timer that handles transaction timeout */
@@ -166,12 +167,14 @@ int tcmi_transaction_start(struct tcmi_transaction *self, int flags)
  */
 void* tcmi_transaction_abort(struct tcmi_transaction *self)
 {
+	int put_needed = 0;
+  
 	del_timer_sync(&self->timer);
 	tcmi_transaction_lock(self);
 	if (!tcmi_transaction_is_expired(self)) {
 		mdbg(INFO3, "Transaction hasn't expired yet, dropping timer reference.");
 		tcmi_transaction_set_expired(self);
-		tcmi_transaction_put(self);
+		put_needed = 1;
 	}
 	/* Transaction can be aborted from RUNNING as well as from
 	 * INIT state. */
@@ -182,6 +185,11 @@ void* tcmi_transaction_abort(struct tcmi_transaction *self)
 	}
 	tcmi_transaction_unlock(self);
 
+	if ( put_needed ) {
+	    tcmi_transaction_put(self);
+	    return NULL;
+	}
+	
 	return self->context;
 }
 
@@ -217,12 +225,14 @@ int tcmi_transaction_complete(struct tcmi_transaction *self, void *context,
 {
 	/* default is error */
 	int err = -EINVAL;
+	int put_needed = 0;
+	
 	del_timer_sync(&self->timer);
 	tcmi_transaction_lock(self);
 	if (!tcmi_transaction_is_expired(self)) {
 		mdbg(INFO3, "Transaction hasn't expired yet, dropping timer reference.");
 		tcmi_transaction_set_expired(self);
-		tcmi_transaction_put(self);
+		put_needed = 1;
 	}
 	mdbg(INFO3, "Transaction state: %d", tcmi_transaction_state(self));
 	if (!tcmi_transaction_is_running(self)) {
@@ -246,6 +256,9 @@ int tcmi_transaction_complete(struct tcmi_transaction *self, void *context,
 
  exit0:
 	tcmi_transaction_unlock(self);
+	
+	if ( put_needed )
+	    tcmi_transaction_put(self);
 
 	return err;
 }
@@ -314,12 +327,19 @@ struct tcmi_transaction* tcmi_transaction_lookup(struct tcmi_slotvec *transactio
  */
 void tcmi_transaction_put(struct tcmi_transaction *self)
 {
+	struct tcmi_slotvec *transactions = self->transactions;
+	
+	// Transactions slotvec lock used to guard against lookup/put races
+	tcmi_slotvec_lock(transactions);
+  
 	if (self && atomic_dec_and_test(&self->ref_count)) {
 		mdbg(INFO4, "Destroying transaction ID=%x, memory=%p", 
 		     tcmi_transaction_id(self), self);
 		tcmi_slot_remove(self->slot, &self->node);
 		kfree(self);
 	}
+	
+	tcmi_slotvec_unlock(transactions);
 }
 
 /** @addtogroup tcmi_transaction_class

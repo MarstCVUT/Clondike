@@ -140,6 +140,9 @@ struct tcmi_transaction {
 	atomic_t ref_count;
 	/** spin lock - serializes access to the transaction. */
 	spinlock_t t_lock;
+	
+	/** Back-references to slotvec where the transaction is present.. used to get access to slotvec lock to guard agains lookup/put races. */
+	struct tcmi_slotvec *transactions;
 };
 
 /** \<\<public\>\> Creates a new transaction. */
