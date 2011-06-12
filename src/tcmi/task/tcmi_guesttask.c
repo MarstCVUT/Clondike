@@ -316,8 +316,7 @@ static int tcmi_guesttask_process_p_emigrate_msg(struct tcmi_task *self,
 	/* extract the checkpoint name */
 	ckpt_name =  tcmi_p_emigrate_msg_ckpt_name(TCMI_P_EMIGRATE_MSG(m));
 		
-	mdbg(INFO2, "Processing emigration request, remote PID=%d, checkpoint: '%s'",
-		     tcmi_task_remote_pid(self), ckpt_name);
+	mdbg(INFO2, "Processing emigration request, remote PID=%d, checkpoint: '%s'", tcmi_task_remote_pid(self), ckpt_name);
 
 memory_sanity_check("On processing");
 
@@ -331,10 +330,8 @@ memory_sanity_check("On processing");
 			mdbg(ERR3, "Cannot create a guest error response!!");
 			goto exit0;
 		} 
-	}
-	
-memory_sanity_check("After restart");
-
+		memory_sanity_check("After restart");
+	}	
 	/* restart successfully scheduled, respond with our local PID */
 	else {
 		if (!(resp = tcmi_guest_started_procmsg_new_tx(tcmi_msg_req_id(m), 
@@ -343,6 +340,7 @@ memory_sanity_check("After restart");
 			mdbg(ERR3, "Cannot create a guest response!!");
 			goto exit0;
 		}
+		memory_sanity_check("After restart 2");
 	}
 	/* preliminary announce - the guest has been started (execve still might fail) */
 	tcmi_task_check_peer_lost(self, tcmi_task_send_anonymous_msg(self, resp));
