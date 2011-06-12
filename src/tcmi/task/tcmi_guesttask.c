@@ -102,6 +102,7 @@ static int tcmi_guesttask_process_msg(struct tcmi_task *self, struct tcmi_msg *m
 	int res = TCMI_TASK_KEEP_PUMPING;
 	/* struct tcmi_guesttask *self_tsk = TCMI_GUESTTASK(self); */
 
+memory_sanity_check("On process message");
 
 	switch (tcmi_msg_id(m)) {
 		/* task PPM phys. migration request */
@@ -119,6 +120,7 @@ static int tcmi_guesttask_process_msg(struct tcmi_task *self, struct tcmi_msg *m
 		break;
 	}
 
+memory_sanity_check("After process message");
 
 	return res;
 }

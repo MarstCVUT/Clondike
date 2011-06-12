@@ -197,7 +197,7 @@ do {											\
 do {													\
 	int i = 1;												\
 	int kmsize = 1;												\
-	int test_size = 50;												\
+	int test_size = 99;												\
 	int res = 0;												\
 	void** memtest;												\
 	memtest = kmalloc(sizeof(void*)*test_size, GFP_KERNEL);												\
