@@ -43,9 +43,11 @@ private
       
     # TODO: This is hardcoded for current measurement, but should be generalized. It tries to mount a specified path 
     # so that only files older than current time are cached, the others remain uncached. Useful for kernel compilation testing
-    restrictedMountPath = "#{prefix}/usr/src/linux-2.6.33.1"
-    system("umount #{restrictedMountPath}")
-    system("mount -t ccfs -o cache_filter=OLD #{restrictedMountPath} #{restrictedMountPath}")      
+    restrictedMount = ["/usr/src/linux-2.6.33.1", "/root/clondike"]
+    restrictedMount.each { |path|
+      system("umount #{prefix + path}")
+      system("mount -t ccfs -o cache_filter=OLD #{prefix + path} #{prefix + path}")      
+    }
   end
     
 end
