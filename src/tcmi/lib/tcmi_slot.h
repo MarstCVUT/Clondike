@@ -339,9 +339,13 @@ static inline void __tcmi_slot_remove(struct tcmi_slot *self, tcmi_slot_node_t *
 static inline void tcmi_slot_remove(struct tcmi_slot *self, tcmi_slot_node_t *node)
 {
 	if (self) {
-		tcmi_slot_lock(self);
-		__tcmi_slot_remove(self, node);
-		tcmi_slot_unlock(self);
+		if ( spin_is_locked(self->s_lock) ) {
+		    __tcmi_slot_remove(self, node);
+		} else {
+		    tcmi_slot_lock(self);
+		    __tcmi_slot_remove(self, node);
+		    tcmi_slot_unlock(self);		  
+		}	  
 	}
 }
 
