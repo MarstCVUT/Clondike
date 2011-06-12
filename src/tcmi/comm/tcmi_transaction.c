@@ -327,7 +327,12 @@ struct tcmi_transaction* tcmi_transaction_lookup(struct tcmi_slotvec *transactio
  */
 void tcmi_transaction_put(struct tcmi_transaction *self)
 {
-	struct tcmi_slotvec *transactions = self->transactions;
+	struct tcmi_slotvec *transactions;
+	
+	if ( !self ) 
+	    return;
+	
+	transactions = self->transactions;
 	
 	// Transactions slotvec lock used to guard against lookup/put races
 	tcmi_slotvec_lock(transactions);
