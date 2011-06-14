@@ -74,7 +74,7 @@ class QuantityLoadBalancingStrategy
         # Minimum tasks runnign on a remote node we want
         @minimumTasksRemote = 5
         # Fallback load balancing strategy, in case minimum task guarantees are satisfied
-        @nestedLoadBalancer = CpuLoadBalancingStrategy.new(nodeRepository, membershipManager)
+        @nestedLoadBalancer = RoundRobinBalancingStrategy.new(nodeRepository, membershipManager)
         
         @counter = PerNodeTaskCounter.new
 	
@@ -170,10 +170,11 @@ private
         best = TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|
 	    taskCount = @counter.getCount(node)
             # Note that taskCount has to be returned negative, so that less tasks is better candidate!
+	    # TODO: This is STUPID! If there are too many tasks then we fallback-to next strategy, but that strategy does not behave well and we get a HUGE load imabalance!
             taskCount < @minimumTasksRemote ? -taskCount : nil
         }                
         
-        # Not found best? Delegate further
+        # Not found best? Delegate further	
         return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp, emigPreferred) if !best
         # Found best
         return best
