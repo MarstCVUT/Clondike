@@ -13,6 +13,7 @@ require 'LoadBalancer'
 require 'RandomBalancingStrategy'
 require 'CpuLoadBalancingStrategy'
 require 'QuantityLoadBalancingStrategy'
+require 'RoundRobinBalancingStrategy'
 require 'SignificanceTracingFilter'
 require 'ExecDumper'
 require 'ExecutionTimeTracer'
@@ -68,6 +69,7 @@ class Director
                 @taskRepository = TaskRepository.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
+		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		
                 balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy)                
