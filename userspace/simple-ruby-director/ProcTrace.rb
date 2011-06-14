@@ -35,6 +35,7 @@ class CollectStats
     end
 private
     def updateGlobalExecStats(action)
+	  begin
       	    if (action.class == LogExec) then 
                 if (@execs.has_key?(action.image)) then
 	            @execs[action.image][0] += 1
@@ -44,6 +45,9 @@ private
 	            @execs[action.image] = [1, action.user_time, action.sys_time]
 	        end
 	    end
+	  rescue
+	      $log.debug "Global stats update has failed"
+	  end
     end
     
     def updateGlobalOperationStats(action)
