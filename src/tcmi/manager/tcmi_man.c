@@ -548,7 +548,9 @@ int tcmi_man_fork(struct tcmi_man *self, struct task_struct* parent, struct task
 	unsigned long flags;
 
 	// We perform all manager fork operation with interrupts disabled to prevent possible lock inversion problems
-	raw_local_irq_save(flags);
+	// Not sure what the intention was, but it does not work well.. interfere with getinode on ccfs initialization 
+	// (there are actually more interferences and we ideally need to get rid of getinode in this call chain altoghether)
+//	raw_local_irq_save(flags);
 
 	tcmi_parent = TCMI_TASK(parent->tcmi.tcmi_task);
 	migman_slot_index = tcmi_task_migman_slot_index(tcmi_parent);
@@ -582,12 +584,13 @@ int tcmi_man_fork(struct tcmi_man *self, struct task_struct* parent, struct task
 	}
 	tcmi_slotvec_unlock(self->mig_mans);
 
+	
 	if (self->ops->fork)
 		err = self->ops->fork(parent, child, migman);
 
+//	raw_local_irq_restore(flags);
 	/* release the migration manager, task has now its own reference to it */
-	tcmi_migman_put(migman);
-	raw_local_irq_restore(flags);
+	tcmi_migman_put(migman);	
 
 	return err;
 
