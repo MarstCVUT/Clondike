@@ -75,11 +75,24 @@ class MeasurementTask
   end
 end
 
+class NodeUsageRecord
+  attr_reader :timestamp
+  attr_reader :cpuUsage
+  attr_reader :cpuLoad
+  
+  def initialize(timestamp, cpuUsage, cpuLoad)
+    @timestamp = timestamp
+    @cpuUsage = cpuUsage
+    @cpuLoad = cpuLoad
+  end
+end
+
 # Measurement plan for a single node
 class NodeMeasurementPlan    
   def initialize(nodeId)
     @nodeId = nodeId
     @tasks = []
+    @nodeUsage = []
     @executedTaskIndexes = Set.new
   end
   
@@ -89,6 +102,10 @@ class NodeMeasurementPlan
   
   def addResult(taskIndex, result)
     @tasks[taskIndex].setResult(result)
+  end
+  
+  def addNodeUsageRecord(timestamp, cpuUsage, cpuLoad)
+    @nodeUsage << NodeUsageRecord.new(timestamp, cpuUsage, cpuLoad)
   end
   
   def execute(planStartTime, resultListener)                
@@ -118,6 +135,13 @@ class NodeMeasurementPlan
     @tasks.each { |task|
         file.puts("  Command: #{task.command} Should start: #{Time.at(planStartTime + task.startTimeOffset)} Started: #{Time.at(task.result.startTime)} Finished: #{Time.at(task.result.endTime)}")
     }    
+  end
+  
+  def saveStatsToFile(file, nodeName)
+    file.puts("Name: #{nodeName}")
+    @nodeUsage.each { |usage|
+	file.puts("  #{usage.timestamp} -> #{usage.timestamp.to_f}, #{usage.cpuLoad}, #{usage.cpuUsage}")
+    }
   end
 private
   def findNextTaskToExecute(planStartTime)
@@ -175,6 +199,11 @@ class MeasurementPlan
     
     $log.debug("Got result. Now has #{@receivedResultCount} results out of #{@requiredResultCount} required")
   end
+  
+  def addNodeUsageRecord(nodeId, timestamp, cpuUsage, cpuLoad)
+    plan = getOrCreateNodeMeasurementPlan(nodeId)
+    plan.addNodeUsageRecord(timestamp, cpuUsage, cpuLoad)
+  end  
     
   def hasAllResults()
     return @receivedResultCount >= @requiredResultCount
@@ -198,7 +227,13 @@ class MeasurementPlan
     plan = @nodePlanMapping[nodeId]
     plan.saveToFile(file, @startTime, nodeName)
   end  
+  
+  def saveStatsToFile(file, nodeId, nodeName)
+    plan = @nodePlanMapping[nodeId]
+    plan.saveStatsToFile(file, nodeName)
+  end    
 private
+
   def getOrCreateNodeMeasurementPlan(nodeId)
      plan = @nodePlanMapping[nodeId]
      if ( !plan )
@@ -289,6 +324,10 @@ private
 	@nodeMapping.each { |name, node|
             @measurementPlan.saveToFile(file, node.id, name)	    
 	}
+        file.puts("-------------------- Usage stats------ ----------------------")
+	@nodeMapping.each { |name, node|
+            @measurementPlan.saveStatsToFile(file, node.id, name)	    
+	}                                    
         file.puts("----------------------- End of results ----------------------")
     }                   
   end                

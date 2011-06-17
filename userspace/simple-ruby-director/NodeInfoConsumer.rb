@@ -6,13 +6,18 @@ class NodeInfoConsumer
     def initialize(nodeRepository, currentNodeId)
         @nodeRepository = nodeRepository
         @newNodeListeners = Set.new
+	@updateListeners = Set.new
         @currentNodeId = currentNodeId
     end
     
     def registerNewNodeListener(listener)        
         @newNodeListeners.add(listener)
     end
-    
+
+    def registerUpdateListener(listener)        
+        @updateListeners.add(listener)
+    end
+
     # Called, when a new information is received
     def infoReceived(fromIp, info)
         case info
@@ -28,10 +33,15 @@ class NodeInfoConsumer
     
 private
     def dispatchNodeInfo(fromIp, nodeInfoWithId)     
-      node, isNew = @nodeRepository.getOrCreateNode(nodeInfoWithId.nodeId, fromIp)      
-      node.updateInfo(nodeInfoWithId.nodeInfo)      
+        node, isNew = @nodeRepository.getOrCreateNode(nodeInfoWithId.nodeId, fromIp)      
+        node.updateInfo(nodeInfoWithId.nodeInfo)      
 #	puts "UPDATED #{node} was new #{isNew} -> Node info #{nodeInfoWithId.nodeInfo}"
-      notifyNewNode(node) if isNew 
+        notifyNewNode(node) if isNew 
+        notifyUpdate(node, nodeInfoWithId.nodeInfo)
+    end
+    
+    def notifyUpdate(node, nodeInfo)
+        @updateListeners.each { |listener| listener.notifyUpdate(node, nodeInfo) }
     end
     
     def notifyNewNode(node)

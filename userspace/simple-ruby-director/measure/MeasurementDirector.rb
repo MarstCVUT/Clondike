@@ -19,4 +19,17 @@ class MeasurementDirector
     @interconnection.dispatch(nil, measurementMessage) if @interconnection != nil
     measurement.executeLocally(@localNodeId)
   end	
+  
+  def notifyUpdate(node, nodeInfo)
+    if ( @currentMeasurement )
+      @currentMeasurement.measurementPlan.addNodeUsageRecord(node.id, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load)
+    end
+  end
+  
+  def notifyChange(localNodeInfoWithId)
+    if ( @currentMeasurement )
+      nodeInfo = localNodeInfoWithId.nodeInfo
+      @currentMeasurement.measurementPlan.addNodeUsageRecord(localNodeInfoWithId.nodeId, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load)
+    end    
+  end
 end

@@ -74,10 +74,10 @@ class Director
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy)                
                 @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, idResolver.getCurrentId)
-                @nodeInfoConsumer.registerNewNodeListener(@membershipManager)
+                @nodeInfoConsumer.registerNewNodeListener(@membershipManager)		
                 @informationDistributionStrategy = InformationDistributionStrategy.new(@nodeInfoProvider, @nodeInfoConsumer)
                 @nodeInfoProvider.addListener(SignificanceTracingFilter.new(@informationDistributionStrategy))
-                @nodeInfoProvider.addListener(currentNode)                                
+                @nodeInfoProvider.addListener(currentNode)
                 @nodeInfoProvider.addLimiter(acceptLimiter)
                 
                 #@taskRepository.registerListener(ExecutionTimeTracer.new)
@@ -147,6 +147,8 @@ private
 	
 	def initializeMeasurements()
 	      @measurementDirector = MeasurementDirector.new(@nodeInfoProvider.getCurrentId, @interconnection) 
+	      @nodeInfoConsumer.registerUpdateListener(@measurementDirector)
+	      @nodeInfoProvider.addListener(@measurementDirector)
 	end
         
         def initializeCliServer
