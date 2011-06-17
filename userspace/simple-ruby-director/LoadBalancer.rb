@@ -2,9 +2,10 @@ require 'ConfigurablePatternMatcher'
 
 #Makes the migration decisions.. currently only non-preemptive
 class LoadBalancer
-    def initialize(balancingStrategy)
+    def initialize(balancingStrategy, taskRepository)
         loadPatterns("migrateable.patterns")
         @balancingStrategy = balancingStrategy;
+	@taskRepository = taskRepository
         # Listeners on migration decisions
         @migrationListeners = []
     end
@@ -67,7 +68,10 @@ private
       
         migrationTarget = getEmigrationTarget(pid, uid, name, args, envp)
         if ( migrationTarget )
-	  $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget}")
+	  task = @taskRepository.getTask(pid)
+	  taskClassificationsString = nil
+	  taskClassificationsString = task.classifications.collect() { |i| i}.to_s if ( task )
+	  $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget} (#{taskClassificationsString})")
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
           [DirectorNetlinkApi::DO_NOT_MIGRATE]

@@ -19,6 +19,8 @@ class TaskInfo
     attr_reader :executionNode
     # Child tasks of this task
     attr_reader :children
+    # Set of classifications assigned to task
+    attr_reader :classifications
     
     def initialize(pid, uid, parent, name, args, homeNode)
         @pid = pid
@@ -30,6 +32,7 @@ class TaskInfo
         @executionNode = homeNode
         @startTime = Time.now.to_f
 	@children = Set.new
+	@classifications = Set.new
     end
     
     def updateExecutionNode(node)
@@ -46,6 +49,22 @@ class TaskInfo
         @children.remove(taskInfo)
     end
     
+    def addClassification(classification)
+	@classifications.add(classification)
+    end
+    
+    def copySurviveForkClassifications(toTask)
+	@classifications.each { |classification|
+	    toTask.addClassification(classification) if classification.surviveFork
+	}
+    end
+
+    def copySurviveExecClassifications(toTask)
+	@classifications.each { |classification|
+	    toTask.addClassification(classification) if classification.surviveExec
+	}
+    end
+
     def ==(other)
         @pid == other.pid && @startTime == other.startTime
     end
@@ -58,15 +77,21 @@ class TaskRepository
         # Patterns of executable names, that require full args to be retrieved
         @fullArgRequired = []
         # TODO: Currently hardcoded, but this shall be configurable by listeners
-        @fullArgRequired << Regexp.new("ld$")
+        #@fullArgRequired << Regexp.new("ld$")
+	@fullArgRequired << Regexp.new(".*") # Need full args in all cases now
         @lock = Mutex.new
         @nodeRepository = nodeRepository
         @membershipManager = membershipManager
         @listeners = []
+	@classificators = []
     end
 
     def registerListener(listener)
         @listeners << listener
+    end
+    
+    def addClassificator(classificator)
+        @classificators << classificator
     end
     
     def onFork(pid, parentPid)
@@ -77,10 +102,12 @@ class TaskRepository
 
 	if ( task ) 
 	  child = task.addForkedChild(pid)
+	  task.copySurviveForkClassifications(child)
+	  classifyNewTask(child)
 	  @lock.synchronize {	
 	      @tasks[pid] = child
 	  }
-	  
+	  	  
 	  notifyFork(child, task)
 	  notifyNewTask(child)
 	end
@@ -100,7 +127,9 @@ class TaskRepository
                 return [DirectorNetlinkApi::REQUIRE_ARGS_AND_ENVP] if argsRequired
         end
         
-        registerTask(pid, uid, name, args, @nodeRepository.selfNode())
+        newTask, oldTask = registerTask(pid, uid, name, args, @nodeRepository.selfNode())
+	oldTask.copySurviveExecClassifications(newTask) if oldTask
+	classifyNewTask(newTask)
         nil
     end
     
@@ -128,6 +157,14 @@ class TaskRepository
             end
         }        
     end
+    
+    def getTask(pid)
+        task = nil
+        @lock.synchronize {
+            task = @tasks[pid]
+        }              
+	return task
+    end
 private    
     def notifyNewTask(task)
         @listeners.each { |listener| listener.newTask(task) }
@@ -146,13 +183,16 @@ private
     def registerTask(pid, uid, name, args, homeNode=nil)
         alreadyContained = false
         task = TaskInfo.new(pid, uid, nil, name, args, homeNode)
+	oldTask = nil
         @lock.synchronize {	
-	    alreadyContained = @tasks.include?(pid)
+	    oldTask = @tasks[pid]
+	    alreadyContained = true if oldTask
             @tasks[pid] = task
         }
         	
 	# TODO: Notify listeners about exec, so that they know about change of code of the task?
         notifyNewTask(task) if !alreadyContained
+	return [task, oldTask]
     end
     
     def deregisterTask(pid, exitCode)        
@@ -164,5 +204,11 @@ private
         if ( task )
            notifyTaskExit(task, exitCode)
         end        
-    end        
+    end    
+    
+    def classifyNewTask(task)
+      @classificators.each{ |classificator|
+         classificator.classify(task) 
+      }
+    end    
 end

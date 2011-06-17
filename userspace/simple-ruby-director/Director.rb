@@ -19,6 +19,7 @@ require 'ExecDumper'
 require 'ExecutionTimeTracer'
 require 'TaskRepository'
 require 'CacheFSController'
+require 'Classifications'
 require 'logger'
 require 'trust/Identity.rb'
 require 'trust/TrustManagement.rb'
@@ -67,12 +68,13 @@ class Director
                 @membershipManager = MembershipManager.new(@filesystemConnector, @nodeRepository, @trustManagement)
 		@managerMonitor = ManagerMonitor.new(@interconnection, @membershipManager, @nodeRepository, @filesystemConnector)
                 @taskRepository = TaskRepository.new(@nodeRepository, @membershipManager)
+		@taskRepository.addClassificator(CompileNameClassificator.new())
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		
                 balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
-                @loadBalancer = LoadBalancer.new(balancingStrategy)                
+                @loadBalancer = LoadBalancer.new(balancingStrategy, @taskRepository)                
                 @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, idResolver.getCurrentId)
                 @nodeInfoConsumer.registerNewNodeListener(@membershipManager)		
                 @informationDistributionStrategy = InformationDistributionStrategy.new(@nodeInfoProvider, @nodeInfoConsumer)
