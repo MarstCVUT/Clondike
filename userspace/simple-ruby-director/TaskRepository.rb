@@ -153,7 +153,9 @@ class TaskRepository
         @lock.synchronize {
             task = @tasks[pid]
             if task
+		oldNode = task.executionNode
                 task.updateExecutionNode(node)
+		notifyTaskNodeChanged(task, oldNode)
             end
         }        
     end
@@ -165,7 +167,9 @@ class TaskRepository
 	}
 	
 	if task
-	  task.updateExecutionNode(task.homeNode)
+	  oldNode = task.executionNode
+	  task.updateExecutionNode(task.homeNode)	  
+	  notifyTaskNodeChanged(task, oldNode)
 	end
     end
     
@@ -176,7 +180,9 @@ class TaskRepository
 	}
 	
 	if task
-	  task.updateExecutionNode(task.homeNode)
+	  oldNode = task.executionNode	  
+	  task.updateExecutionNode(task.homeNode)	  
+	  notifyTaskNodeChanged(task, oldNode)
 	end      
     end
     
@@ -194,10 +200,16 @@ private
 
     def notifyFork(task, parentTask)
         @listeners.each { |listener| 	  
-	  listener.taskFork(task, parentTask) if listener.respond_to?("taskFork")
+	    listener.taskFork(task, parentTask) if listener.respond_to?("taskFork")
 	}
     end
 
+    def notifyTaskNodeChanged(task, oldNode)
+        @listeners.each { |listener| 	  	                  
+	    listener.taskNodeChanged(task, oldNode) if listener.respond_to?("taskNodeChanged")
+	}            
+    end
+    
     def notifyTaskExit(task, exitCode)
         @listeners.each { |listener| listener.taskExit(task, exitCode) }
     end
