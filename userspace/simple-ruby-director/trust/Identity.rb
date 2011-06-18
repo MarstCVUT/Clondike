@@ -156,7 +156,7 @@ class RSAPublicKey < SimpleDelegator
 	super(decoratedKeyText != nil ? OpenSSL::PKey::RSA.new(decoratedKeyText) : nil)
 
 	@cachedToS = nil
-	@cachedNestedToS = __getobj__.to_s
+	@cachedNestedToS = nil
 	@cachedUndecoratedToS = nil
 	@cachedHash = nil
    end
@@ -165,7 +165,7 @@ class RSAPublicKey < SimpleDelegator
 	return @cachedUndecoratedToS if @cachedUndecoratedToS
 	
         #puts "BEFORE UNDECOR: #{to_s}"
-        res = @cachedNestedToS
+        res = full_to_s
         res = res.sub("-----BEGIN RSA PUBLIC KEY-----","")
         res = res.sub("-----END RSA PUBLIC KEY-----","")
         unsplitBase64(res)
@@ -176,7 +176,7 @@ class RSAPublicKey < SimpleDelegator
     def self.undecoratedLoad(undecoratedPemKey)        
         decoratedText = decoratedKey(undecoratedPemKey)
         #puts "DEC TEXT #{decoratedText}"
-        RSAPublicKey.new(decoratedText)
+        RSAPublicKey.new(decoratedText)		
     end
     
     def public_key
@@ -190,7 +190,7 @@ class RSAPublicKey < SimpleDelegator
     def marshal_load(var)
         #puts "UNMARSHALING: #{var} #{var.class}"
 	rsaKey = OpenSSL::PKey::RSA.new(RSAPublicKey.decoratedKey(var))
-        __setobj__(rsaKey)
+        __setobj__(rsaKey)	
     end
     
     def hash()
@@ -227,6 +227,8 @@ class RSAPublicKey < SimpleDelegator
     end
     
     def full_to_s
+      return @cachedNestedToS if @cachedNestedToS
+      @cachedNestedToS = __getobj__.to_s
       return @cachedNestedToS
     end
     
