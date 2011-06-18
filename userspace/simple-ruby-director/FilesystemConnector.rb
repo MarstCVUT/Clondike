@@ -57,6 +57,11 @@ class FilesystemConnector
             }
             resultSlotIndex
         end
+	
+	def migrateHome(slotType, pid)
+	  root = getRoot(slotType)
+	  `echo #{pid}  > #{root}/mig/migrate-home`
+	end
         
         # Returns id of node, specified by its address
         def findNodeIdByAddress(ipAddress)
@@ -74,24 +79,24 @@ class FilesystemConnector
             `echo tcp:#{ipAddress}:54321#{authString} > #{@detachedRootPath}/connect`
             $? == 0 ? true : false
         end
-	
+		
 	# Attempt to gracefully disconnect node
 	def disconnectNode(slotType, index)	  
-	  root = @detachedRootPath
-	  if ( slotType == CORE_MANAGER_SLOT )
-	    root = @coreRootPath
-	  end
-	  
+	  root = getRoot(slotType)	  
 	  `echo 1 > #{root}/nodes/#{index}/stop`
 	end
 	
 	# Forcefully disconnects node
 	def killNode(slotType, index)
+	  root = getRoot(slotType)	  
+	  `echo 1 > #{root}/nodes/#{index}/kill`	  
+	end
+private
+	def getRoot(slotType)
 	  root = @detachedRootPath
 	  if ( slotType == CORE_MANAGER_SLOT )
 	    root = @coreRootPath
 	  end
-	  
-	  `echo 1 > #{root}/nodes/#{index}/kill`	  
+	  return root
 	end
 end
