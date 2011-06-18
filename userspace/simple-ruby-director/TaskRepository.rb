@@ -160,7 +160,7 @@ class TaskRepository
         }        
     end
     
-    def onMigrateBack(pid)	
+    def onMigratedHome(pid)	
 	task = nil
         @lock.synchronize {
             task = @tasks[pid]	    
