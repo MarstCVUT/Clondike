@@ -308,14 +308,11 @@ static void tcmi_penmigman_process_msg(struct tcmi_migman *self, struct tcmi_msg
 		case TCMI_P_EMIGRATE_MSG_ID:
 			minfo(INFO1, "Physical emigrate message has arrived..");
 			if (tcmi_migcom_immigrate(m, self) < 0) {
-			  printk("FAILED\n");
 				minfo(ERR3, "Error immigrating process");
 												
 				if (!(resp = tcmi_err_procmsg_new_tx(TCMI_GUEST_STARTED_PROCMSG_ID, tcmi_msg_req_id(m), -EINVAL, tcmi_p_emigrate_msg_reply_pid(TCMI_P_EMIGRATE_MSG(m))))) {
-	printk("FAILED 2\n");
 				      minfo(ERR3, "Failed to send error response");
 				} else {
-				  printk("SENDING RESPONSE JUHU\n");
 				      tcmi_msg_send_anonymous(resp, tcmi_migman_sock(self));				      
 				}
 			}
