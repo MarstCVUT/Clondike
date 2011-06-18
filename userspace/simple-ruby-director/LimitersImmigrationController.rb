@@ -1,8 +1,8 @@
 # Limiter of immigration requests based deciding based on provided array of limiters.. if any of the limiters denies immigrations, no request is accepted
-# TODO: Extarct cound of currently immigrated tasks and check that value against limiters
 class LimitersImmigrationController
-  def initialize(limiters)
+  def initialize(limiters, immigratedTasksController)
     @limiters = limiters
+    @immigratedTasksController = immigratedTasksController
   end
   
   def onImmigrationRequest(node, execName)
@@ -12,7 +12,6 @@ class LimitersImmigrationController
       maximum = limiterMax if ( limiterMax < maximum )
     }
     
-    # TODO: Not > 0, but > than current count of immigrated tasks
-    return maximum > 0
+    return maximum > @immigratedTasksController.immigratedTaskCount
   end
 end

@@ -57,7 +57,7 @@ class Director
                 #acceptLimiter = TestMakeAcceptLimiter.new();
 		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"])
 		@immigratedTasksController = ImmigratedTasksController.new()
-		@immigrationController = LimitersImmigrationController.new([acceptLimiter])
+		@immigrationController = LimitersImmigrationController.new([acceptLimiter], @immigratedTasksController)
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
 		initializeTrust()
