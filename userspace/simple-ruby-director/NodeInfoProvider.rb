@@ -106,7 +106,7 @@ private
          return if @listeners.empty?
 
          while true
-                 sleep(0.2)
+                 sleep(0.5)
                  newInfo = getCurrentInfo
                  @listeners.each do |listener| 
                      listener.notifyChange(NodeInfoWithId.new(getCurrentId(),newInfo))
