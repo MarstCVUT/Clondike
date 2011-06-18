@@ -158,6 +158,28 @@ class TaskRepository
         }        
     end
     
+    def onMigrateBack(pid)	
+	task = nil
+        @lock.synchronize {
+            task = @tasks[pid]	    
+	}
+	
+	if task
+	  task.updateExecutionNode(task.homeNode)
+	end
+    end
+    
+    def onEmigrationFailed(pid)
+	task = nil
+        @lock.synchronize {
+            task = @tasks[pid]	    
+	}
+	
+	if task
+	  task.updateExecutionNode(task.homeNode)
+	end      
+    end
+    
     def getTask(pid)
         task = nil
         @lock.synchronize {
