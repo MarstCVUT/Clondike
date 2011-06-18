@@ -43,8 +43,6 @@ class CompileNameClassificator
     
     if ( fileName )
       task.addClassification(CompileNameClassification.new(fileName))
-    else
-      $log.warn("Task #{task} does not have compileFileName classification")
     end
   end
 end
