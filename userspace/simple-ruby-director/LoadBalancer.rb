@@ -34,8 +34,7 @@ private
     def canMigrate(name, uid)
         # TODO: This is incorrect.. it does not work for execution like "./binary"
 	return false if !File.exists?(name)
-        #return true if matchesPattern(name)
-        true
+        return matchesPattern(name)        
     end
     
     # Return slot index of the node where the process shall be migrated
