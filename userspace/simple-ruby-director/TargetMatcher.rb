@@ -12,8 +12,8 @@ class TargetMatcher
         userConfig = UserConfiguration.getConfig(uid)
         candidateNodes.each_index do |index|
             node = candidateNodes[index]            
-            puts "Index: #{index} node #{node} #{node ? node.nodeInfo : "No Node"} #{node && node.nodeInfo ? node.nodeInfo.maximumAccept : "No Node-Info"}... #{node.id}"
-            next if !node || !node.nodeInfo || node.nodeInfo.maximumAccept < 1 || !userConfig.canMigrateTo(name, node.id)
+            #puts "Index: #{index} node #{node} #{node ? node.nodeInfo : "No Node"} #{node && node.nodeInfo ? node.nodeInfo.maximumAccept : "No Node-Info"}... #{node.id}"
+            next if !canMigrateTo(pid, uid, name, node)
             nodeQuality = yield node                         
             if ( nodeQuality != nil && (targetQuality == nil || nodeQuality > targetQuality) ) then                
                 targetQuality = nodeQuality
@@ -22,5 +22,10 @@ class TargetMatcher
         end
                 
         target
+    end
+    
+    def TargetMatcher.canMigrateTo(pid, uid, name, node)
+      userConfig = UserConfiguration.getConfig(uid)
+      return node && node.nodeInfo && node.nodeInfo.maximumAccept >= 1 && userConfig.canMigrateTo(name, node.id)
     end
 end
