@@ -381,6 +381,7 @@ int tcmi_migcom_immigrate(struct tcmi_msg *m, struct tcmi_migman *migman)
 		goto exit1;
 	}
 	mdbg(INFO2, "Guest successfully picked up: %p", guest);
+	director_immigration_confirmed(tcmi_migman_slot_index(migman), tcmi_p_emigrate_msg_euid(msg), tcmi_p_emigrate_msg_exec_name(msg), pid, tcmi_p_emigrate_msg_reply_pid(msg));	
 	tcmi_task_put(guest);
 	return 0;
 

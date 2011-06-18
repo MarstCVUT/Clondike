@@ -41,6 +41,18 @@ int director_npm_check(pid_t pid, uid_t uid, int is_guest, const char* name, cha
 int director_immigration_request(int slot_index, uid_t uid, const char* name, int* accept);
 
 /**
+ * Notification about successful imigration
+ *
+ * @param slot_index Index of the remote core node manager that requests immigration to this node
+ * @param uid Uid of user on the remote node that is requesting the migration
+ * @param name Name of the binary the process (executable) that should be immigrated
+ * @param local_pid Local pid of the task
+ * @param remote_pid Pid of the task on core node
+ * @return 0 on success, error code otherwise
+ */
+int director_immigration_confirmed(int slot_index, uid_t uid, const char* name, pid_t local_pid, pid_t remote_pid);
+
+/**
  * Called, when a detached node connects to the core node.
  *
  * @param address Protocol specific address string of a detached node

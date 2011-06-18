@@ -8,6 +8,7 @@
 #include "netlink/task_exitted_msg.h"
 #include "netlink/task_forked_msg.h"
 #include "netlink/immigration_request_msg.h"
+#include "netlink/immigration_confirmed_msg.h"
 #include "netlink/emigration_failed_msg.h"
 #include "netlink/migrated_home_msg.h"
 
@@ -60,6 +61,11 @@ int director_immigration_request(int slot_index, uid_t uid, const char* name, in
 }
 
 EXPORT_SYMBOL(director_immigration_request);
+
+int director_immigration_confirmed(int slot_index, uid_t uid, const char* name, pid_t local_pid, pid_t remote_pid) {
+	return immigration_confirmed(slot_index, uid, name, local_pid, remote_pid);
+}
+EXPORT_SYMBOL(director_immigration_confirmed);
 
 int director_node_connected(const char* address, int slot_index, int auth_data_size, char* auth_data,  int* accept) {
 	return node_connected(address, slot_index, auth_data_size, auth_data, accept);
