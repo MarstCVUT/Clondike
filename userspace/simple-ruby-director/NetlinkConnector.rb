@@ -74,6 +74,8 @@ class NetlinkConnector
 		  break if !result
 		end
 		
+		$log.info("Immigration request for process #{name} REJECTED!") if !result
+		
                 return result
         end
 
