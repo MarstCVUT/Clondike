@@ -1,6 +1,3 @@
-# Accept limiters generally can limit a number of external tasks this node is willing to acccept
-# TODO: Limiters are not used when accepting tasks, so we can in fact accept more taks. We need to add support for REJECTING tasks!
-# 
 # This is a configurable accept limiter that does not accept any task if any task with matching any of restricted names is running
 class TaskNameBasedAcceptLimiter        
     def initialize(names)
