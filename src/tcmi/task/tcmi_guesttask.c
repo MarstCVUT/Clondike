@@ -148,16 +148,14 @@ static int tcmi_guesttask_emigrate_p(struct tcmi_task *self)
 static int tcmi_guesttask_migrateback_p(struct tcmi_task* self, struct tcmi_npm_params* npm_params) {
 	struct tcmi_msg *req;
 
-	mdbg(INFO2, "Process '%s' - guest local PID %d, migrating back (npm params: %p)",
-	     current->comm, tcmi_task_local_pid(self), npm_params);
+	mdbg(INFO2, "Process '%s' - guest local PID %d, migrating back (npm params: %p)", current->comm, tcmi_task_local_pid(self), npm_params);
 
 	if (tcmi_taskhelper_checkpoint(self, npm_params) < 0) {
 		mdbg(ERR3, "Failed to create a checkpoint");
 		goto exit0;
 	}
 	tcmi_taskhelper_flushfiles();
-	if (!(req = tcmi_ppm_p_migr_back_guestreq_procmsg_new_tx(tcmi_task_remote_pid(self),
-								tcmi_task_ckpt_name(self)))) {
+	if (!(req = tcmi_ppm_p_migr_back_guestreq_procmsg_new_tx(tcmi_task_remote_pid(self), tcmi_task_ckpt_name(self)))) {
 		mdbg(ERR3, "Error creating a migration back message");
 		goto exit0;
 	}
@@ -166,6 +164,8 @@ static int tcmi_guesttask_migrateback_p(struct tcmi_task* self, struct tcmi_npm_
 		goto exit1;
 	}
 
+	director_migrated_home(tcmi_task_local_pid(self));
+	
 	return 0;
  exit1:
 	tcmi_msg_put(req);
