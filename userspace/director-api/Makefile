@@ -1,4 +1,4 @@
-OBJECTS = msg-common.o director-api.o npm-check.o node-connected.o node-disconnected.o immigration-request.o task-exitted.o task-forked.o generic_user_message.o migrated-home.o emigration-failed.o
+OBJECTS = msg-common.o director-api.o npm-check.o node-connected.o node-disconnected.o immigration-request.o immigration-confirmed.o task-exitted.o task-forked.o generic_user_message.o migrated-home.o emigration-failed.o
 OPENSSL_FUNC =../openssl-func
 CFLAGS += -g -I$(OPENSSL_FUNC) -fPIC
 AR		= ar

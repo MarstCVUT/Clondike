@@ -13,6 +13,7 @@ class NetlinkConnector
 		@forkHandlers = []
 		@userMessageHandlers = []
 		@immigrationHandlers = []
+		@immigrationConfirmedHandlers = []
 		@migrationFailedHandlers = []
 		@migratedHomeHandlers = []
 	end
@@ -27,6 +28,7 @@ class NetlinkConnector
                     DirectorNetlinkApi.instance.registerTaskExittedCallback(instance, :connectorTaskExittedCallbackFunction)
 		    DirectorNetlinkApi.instance.registerTaskForkedCallback(instance, :connectorTaskForkedCallbackFunction)
                     DirectorNetlinkApi.instance.registerImmigrateRequestCallback(instance, :connectorImmigrationRequestCallbackFunction)
+		    DirectorNetlinkApi.instance.registerImmigrationConfirmedCallback(instance, :connectorImmigrationConfirmedCallbackFunction)
 		    DirectorNetlinkApi.instance.registerEmigrationFailedCallback(instance, :connectorEmigrationFailedCallbackFunction)
 		    DirectorNetlinkApi.instance.registerMigratedHomeCallback(instance, :connectorMigratedHomeCallbackFunction)
 		    DirectorNetlinkApi.instance.registerUserMessageReceivedCallback(instance, :connectorUserMessageReceivedCallbackFunction)
@@ -79,6 +81,18 @@ class NetlinkConnector
 		$log.info("Immigration request for process #{name} REJECTED!") if !result
 		
                 return result
+        end
+
+	def pushImmigrationConfirmedHandler(handler)
+            @immigrationConfirmedHandlers << handler;
+        end	
+	
+        def connectorImmigrationConfirmedCallbackFunction(uid, slotIndex, name, localPid, remotePid)
+                #$log.info("Immigration of process #{name} (#{localPid}, #{remotePid}) confirmed.")
+		@immigrationConfirmedHandlers.each do |handler|
+		    node = @membershipManager.detachedManagers[slotIndex].coreNode
+		    handler.onImmigrationConfirmed(node, name, localPid, remotePid)
+		end
         end
 
 	def connectorNodeConnectedCallbackFunction (address, slotIndex, authenticationData)
