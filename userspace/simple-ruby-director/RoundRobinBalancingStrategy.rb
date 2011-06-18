@@ -1,4 +1,6 @@
-# TODO: This strategy does NOT honour UserConfiguration of allowed migrations per node! Fix it
+# TODO: This strategy is round robin only "acceptability" rules of remote nodes are same, otherwise it is not purely RR because some nodes may reject their turns due
+# to migrateability restrictions
+# It would be better to keep the nodes who rejected task in a pool of "candidates" so that they can accept some other task
 class RoundRobinBalancingStrategy
 
     def initialize(nodeRepository, membershipManager, includeLocal = false)
@@ -21,7 +23,7 @@ class RoundRobinBalancingStrategy
 
 	return nil if @detachedNodesCandidates.empty?
 	
-        bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred)
+        bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, @membershipManager.coreManager.detachedNodes)
 	
         $log.debug("Task #{pid} best target is #{bestTarget}")
         bestTarget
@@ -47,11 +49,13 @@ private
 	
       	0.upto(detachedNodes.length) { |i| 
 	    result << i if detachedNodes[i]
-	}		
+	}			
 	return result
     end
 
-    def findBestTarget(pid, uid, name, args, envp, emigPreferred)
-        return @detachedNodesCandidates.pop
+    def findBestTarget(pid, uid, name, args, envp, emigPreferred, nodes)
+        candidate = @detachedNodesCandidates.pop
+	return nil if !candidate || !TargetMatcher.canMigrateTo(pid, uid, name, nodes[candidate])
+	return candidate
     end        
 end
