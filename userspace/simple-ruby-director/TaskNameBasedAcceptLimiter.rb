@@ -1,6 +1,7 @@
 # This is a configurable accept limiter that does not accept any task if any task with matching any of restricted names is running
 class TaskNameBasedAcceptLimiter        
-    def initialize(names)
+    def initialize(names, immigratedTasksController)
+	@immigratedTasksController = immigratedTasksController
         @blockingPids = Set.new()
 	@patterns = []
 	names.each { |name|
@@ -37,20 +38,12 @@ private
     def blockingModeStarted(task)
       $log.info("Task #{task.name}##{task.pid} blocked accepting of tasks")
       @inBlockingMode = true
+      # Async request to migrate all immigrated tasks home
+      @immigratedTasksController.migrateAllHome()
     end
     
     def blockingModeFinished(task)
       $log.info("Task #{task.name}##{task.pid} unblocked accepting of tasks")
       @inBlockingMode = false
-    end
-    
-
-    def migrateHomeThread
-	# Wait 10 seconds before migrating home just to give locally running remote tasks some chance to finish
-	Thread.sleep(10)
-        while @inBlockingMode
-	  
-        end
-    end
-
+    end   
 end

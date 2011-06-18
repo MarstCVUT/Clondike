@@ -2,8 +2,9 @@
 #
 # TODO: Make thread safe
 class ImmigratedTasksController
-  def initialize()
+  def initialize(filesystemConnector)
     @immigratedTasks = {}
+    @filesystemConnector = filesystemConnector
   end
   
   def onImmigrationConfirmed(node, name, localPid, remotePid)
@@ -25,4 +26,22 @@ class ImmigratedTasksController
   def immigratedTaskCount()
     return @immigratedTasks.size
   end
+  
+  def migrateAllHome()
+    ExceptionAwareThread.new() {
+	migrateHomeThread()
+    }
+  end
+  
+private
+    def migrateHomeThread
+	$log.info("Preparing to request migrate home")
+	# Wait 10 seconds before migrating home just to give locally running remote tasks some chance to finish
+	sleep(10)
+        @immigratedTasks.each_key { |pid|
+	    $log.info("Requesting migrated home for #{pid}")
+	    @filesystemConnector.migrateHome(DETACHED_MANAGER_SLOT ,pid)
+	}
+    end
+
 end

@@ -54,9 +54,11 @@ class Director
 	
 	def initialize
 		begin Dir.mkdir(Director::LOG_DIR) rescue Errno::EEXIST end
+		@filesystemConnector = FilesystemConnector.new
                 #acceptLimiter = TestMakeAcceptLimiter.new();
-		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"])
-		@immigratedTasksController = ImmigratedTasksController.new()
+		  		  		
+		@immigratedTasksController = ImmigratedTasksController.new(@filesystemConnector)
+		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"], @immigratedTasksController)
 		@immigrationController = LimitersImmigrationController.new([acceptLimiter], @immigratedTasksController)
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
@@ -69,8 +71,7 @@ class Director
 
 		$log.info("Starting director on node with id #{currentNode.id}")    
 
-		@nodeRepository = NodeRepository.new(currentNode)                                
-		@filesystemConnector = FilesystemConnector.new
+		@nodeRepository = NodeRepository.new(currentNode)                                		
                 @membershipManager = MembershipManager.new(@filesystemConnector, @nodeRepository, @trustManagement)
 		@managerMonitor = ManagerMonitor.new(@interconnection, @membershipManager, @nodeRepository, @filesystemConnector)
                 @taskRepository = TaskRepository.new(@nodeRepository, @membershipManager)
