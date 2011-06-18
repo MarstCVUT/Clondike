@@ -10,6 +10,8 @@ static void ruby_node_disconnected_callback(int slot_index, int slot_type, int r
 static void ruby_immigrate_request_callback(uid_t uid, int slot_index, const char* name, int* accept);
 static void ruby_task_exitted_callback(pid_t pid, int exit_code, struct rusage *rusage);
 static void ruby_task_forked_callback(pid_t pid, pid_t ppid);
+static void ruby_migrated_home_callback(pid_t pid);
+static void ruby_emigration_failed_callback(pid_t pid);
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
 
 static VALUE ruby_rusage(struct rusage *rusage)
@@ -61,6 +63,8 @@ static VALUE method_init(VALUE self)
 	register_immigration_request_callback(ruby_immigrate_request_callback);
 	register_task_exitted_callback(ruby_task_exitted_callback);
 	register_task_forked_callback(ruby_task_forked_callback);
+	register_migrated_home_callback(ruby_migrated_home_callback);
+	register_emigration_failed_callback(ruby_emigration_failed_callback);
 	register_generic_user_message_callback(ruby_user_message_received_callback);
 
 	rb_iv_set(self, "@npmCallbackTarget", Qnil);
@@ -77,6 +81,10 @@ static VALUE method_init(VALUE self)
 	rb_iv_set(self, "@taskExittedCallbackFunction", Qnil);
 	rb_iv_set(self, "@taskForkedCallbackTarget", Qnil);
 	rb_iv_set(self, "@taskForkedCallbackFunction", Qnil);	
+	rb_iv_set(self, "@migratedHomeCallbackTarget", Qnil);
+	rb_iv_set(self, "@migratedHomeCallbackFunction", Qnil);	
+	rb_iv_set(self, "@emigrationFailedCallbackTarget", Qnil);
+	rb_iv_set(self, "@emigrationFailedCallbackFunction", Qnil);	
 	rb_iv_set(self, "@userMessageReceivedCallbackTarget", Qnil);
 	rb_iv_set(self, "@userMessageReceivedCallbackFunction", Qnil);
 	return self;
@@ -234,6 +242,34 @@ static void ruby_task_forked_callback(pid_t pid, pid_t ppid) {
 	}
 }
 
+static void ruby_migrated_home_callback(pid_t pid) {
+	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
+	VALUE callResult = Qnil;
+	
+	selfClass = rb_const_get(rb_cObject, rb_intern("DirectorNetlinkApi"));
+	instanceMethod = rb_intern("instance");
+	self = rb_funcall(selfClass, instanceMethod, 0);
+	callbackMethod = rb_iv_get(self,"@migratedHomeCallbackFunction");
+	callbackTarget = rb_iv_get(self,"@migratedHomeCallbackTarget");
+	if ( callbackMethod != Qnil ) {
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 1, INT2FIX(pid));
+	}
+}
+
+static void ruby_emigration_failed_callback(pid_t pid) {
+	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
+	VALUE callResult = Qnil;
+	
+	selfClass = rb_const_get(rb_cObject, rb_intern("DirectorNetlinkApi"));
+	instanceMethod = rb_intern("instance");
+	self = rb_funcall(selfClass, instanceMethod, 0);
+	callbackMethod = rb_iv_get(self,"@emigrationFailedCallbackFunction");
+	callbackTarget = rb_iv_get(self,"@emigrationFailedCallbackTarget");
+	if ( callbackMethod != Qnil ) {
+		callResult = rb_funcall(callbackTarget, rb_to_id(callbackMethod), 1, INT2FIX(pid));
+	}
+}
+
 static void ruby_user_message_received_callback(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data) {
 	VALUE self, selfClass, instanceMethod, callbackTarget, callbackMethod;
 	VALUE callResult = Qnil;
@@ -299,6 +335,16 @@ static VALUE method_registerTaskForkedCallback(VALUE self, VALUE callbackTarget,
 	rb_iv_set(self, "@taskForkedCallbackFunction", callbackFunc);
 }
 
+static VALUE method_registerMigratedHomeCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
+	rb_iv_set(self, "@migratedHomeCallbackTarget", callbackTarget);
+	rb_iv_set(self, "@migratedHomeCallbackFunction", callbackFunc);
+}
+
+static VALUE method_registerEmigrationFailedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
+	rb_iv_set(self, "@emigrationFailedCallbackTarget", callbackTarget);
+	rb_iv_set(self, "@emigrationFailedCallbackFunction", callbackFunc);
+}
+
 static VALUE method_registerUserMessageReceivedCallback(VALUE self, VALUE callbackTarget, VALUE callbackFunc) {
 	rb_iv_set(self, "@userMessageReceivedCallbackTarget", callbackTarget);
 	rb_iv_set(self, "@userMessageReceivedCallbackFunction", callbackFunc);
@@ -350,6 +396,8 @@ Init_directorApi()
 	rb_define_method(netlinkApi, "registerImmigrateRequestCallback", method_registerImmigrateRequestCallback, 2);
 	rb_define_method(netlinkApi, "registerTaskExittedCallback", method_registerTaskExittedCallback, 2);
 	rb_define_method(netlinkApi, "registerTaskForkedCallback", method_registerTaskForkedCallback, 2);
+	rb_define_method(netlinkApi, "registerEmigrationFailedCallback", method_registerEmigrationFailedCallback, 2);
+	rb_define_method(netlinkApi, "registerMigratedHomeCallback", method_registerMigratedHomeCallback, 2);
 	rb_define_method(netlinkApi, "registerUserMessageReceivedCallback", method_registerUserMessageReceivedCallback, 2);
 	rb_define_method(netlinkApi, "sendUserMessage", method_sendUserMessage, 4);	
 	rb_define_method(netlinkApi, "runProcessingLoop", method_runDirectorNetlinkProcessingLoop, 0);	

@@ -20,6 +20,8 @@
 #include "immigration-request.h"
 #include "task-exitted.h"
 #include "task-forked.h"
+#include "migrated-home.h"
+#include "emigration-failed.h"
 #include "generic_user_message.h"
 
 
@@ -39,6 +41,8 @@ static uint8_t ans_mapping[DIRECTOR_MSG_MAX] = {
 	[DIRECTOR_IMMIGRATION_REQUEST] = DIRECTOR_IMMIGRATION_REQUEST_RESPONSE,
 	[DIRECTOR_TASK_EXIT] = DIRECTOR_ACK,
 	[DIRECTOR_TASK_FORK] = DIRECTOR_ACK,
+	[DIRECTOR_MIGRATED_HOME] = DIRECTOR_ACK,
+	[DIRECTOR_EMIGRATION_FAILED] = DIRECTOR_ACK,
 	[DIRECTOR_GENERIC_USER_MESSAGE] = DIRECTOR_ACK,
 };
 
@@ -353,6 +357,8 @@ int initialize_director_api(void) {
 	handlers[DIRECTOR_IMMIGRATION_REQUEST] = handle_immigration_request;
 	handlers[DIRECTOR_TASK_EXIT] = handle_task_exitted;
 	handlers[DIRECTOR_TASK_FORK] = handle_task_forked;
+	handlers[DIRECTOR_MIGRATED_HOME] = handle_migrated_home;
+	handlers[DIRECTOR_EMIGRATION_FAILED] = handle_emigration_failed;
 	handlers[DIRECTOR_GENERIC_USER_MESSAGE] = handle_generic_user_message;
 
 	printf("Comm channel initialized\n");

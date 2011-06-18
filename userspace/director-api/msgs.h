@@ -20,6 +20,8 @@ enum {
   DIRECTOR_TASK_EXIT, /* Informs, that a task has finished */
   DIRECTOR_TASK_FORK, /* Informs, that a task has forked */
   DIRECTOR_GENERIC_USER_MESSAGE, /* Informs about newly arrived generic user message */
+  DIRECTOR_EMIGRATION_FAILED, /* Informs director about failed emigration request (could be npm or ppm, director should know which one based on provided pid) */
+  DIRECTOR_MIGRATED_HOME, /* Informs director that a task was migrated home */
 
   /* Responses */
   DIRECTOR_NPM_RESPONSE, /* Response on non-preemptive migration check */

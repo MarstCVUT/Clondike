@@ -18,13 +18,15 @@ class NetlinkConnector
 	# Registers a netlink connector instance to native handler
 	def self.register(instance)
                 begin
-                    DirectorNetlinkApi.instance.registerNpmCallback(instance, :connetorNpmCallbackFunction)
+                    DirectorNetlinkApi.instance.registerNpmCallback(instance, :connectorNpmCallbackFunction)
                     DirectorNetlinkApi.instance.registerNpmFullCallback(instance, :connectorNpmFullCallbackFunction)
                     DirectorNetlinkApi.instance.registerNodeConnectedCallback(instance, :connectorNodeConnectedCallbackFunction)
 		    DirectorNetlinkApi.instance.registerNodeDisconnectedCallback(instance, :connectorNodeDisconnectedCallbackFunction)
                     DirectorNetlinkApi.instance.registerTaskExittedCallback(instance, :connectorTaskExittedCallbackFunction)
 		    DirectorNetlinkApi.instance.registerTaskForkedCallback(instance, :connectorTaskForkedCallbackFunction)
                     DirectorNetlinkApi.instance.registerImmigrateRequestCallback(instance, :connectorImmigrationRequestCallbackFunction)
+		    DirectorNetlinkApi.instance.registerEmigrationFailedCallback(instance, :connectorEmigrationFailedCallbackFunction)
+		    DirectorNetlinkApi.instance.registerMigratedHomeCallback(instance, :connectorMigratedHomeCallbackFunction)
 		    DirectorNetlinkApi.instance.registerUserMessageReceivedCallback(instance, :connectorUserMessageReceivedCallbackFunction)
                 rescue => err
 		    puts "#{err.backtrace.join("\n")}"		    
@@ -37,7 +39,7 @@ class NetlinkConnector
             @npmHandlers << handler;
         end
                 
-	def connetorNpmCallbackFunction (pid, uid, name, is_guest, rusage)
+	def connectorNpmCallbackFunction (pid, uid, name, is_guest, rusage)
                 result = nil
                 @npmHandlers.each do |handler|
                     result = handler.onExec(pid, uid, name, is_guest, nil, nil, rusage)
@@ -133,6 +135,12 @@ class NetlinkConnector
 		handler.onFork(pid, parentPid)
 	    end            	  
         end
+	
+	def connectorEmigrationFailedCallbackFunction(pid)
+	end
+	
+	def connectorMigratedHomeCallbackFunction(pid)
+	end	
 
 	# Starts the processing thread, that listens on incoming messages from kernel
 	def startProcessingThread

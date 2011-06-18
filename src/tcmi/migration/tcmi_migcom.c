@@ -178,10 +178,12 @@ int tcmi_migcom_emigrate_ccn_ppm_p(pid_t pid, struct tcmi_migman *migman)
 	tcmi_taskhelper_enter_mig_mode(shadow);
 
 	/* wait for pickup */
-	if (tcmi_taskhelper_wait_for_pick_up_timeout(shadow, 2*HZ) < 0)
+	if (tcmi_taskhelper_wait_for_pick_up_timeout(shadow, 2*HZ) < 0) {
 		mdbg(INFO1, "Shadow not picked up: %p", shadow);
-	else
+		director_emigration_failed(pid);
+	} else {
 		mdbg(INFO1, "Shadow successfully picked up: %p", shadow);
+	}
 
 	/* release the shadow instance reference (Reference is now held by the associated task_struct - it got it in attach method)*/
 	tcmi_task_put(shadow);
@@ -230,10 +232,13 @@ int tcmi_migcom_emigrate_ccn_npm(pid_t pid, struct tcmi_migman *migman, struct p
 	/* We are already in migmode so we can directly execute handler here */
 	tcmi_taskhelper_do_mig_mode(regs);
 	//tcmi_migcom_mig_mode_handler();
+			
 	// We get here only if npm migration failed, othewise either of the following happens:
 	// - task finishes remotely, so the handler exists
 	// - task migrates back, so it must execve to a new checkpoint => we still do not get here
 	mdbg(INFO3, "Got after npm migration handler start");
+	
+	director_emigration_failed(pid);
 
 	// Ok, the emigration failed. Task is going to release its reference to migman and we've release the reference we got
 	// from the manager.. we have to retake this reference so that the release made by manager has matching get

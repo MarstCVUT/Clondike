@@ -30,6 +30,10 @@ typedef void (*task_exitted_callback_t)(pid_t pid, int exit_code, struct rusage 
 
 typedef void (*task_forked_callback_t)(pid_t pid, pid_t ppid);
 
+typedef void (*migrated_home_callback_t)(pid_t pid);
+
+typedef void (*emigration_failed_callback_t)(pid_t pid);
+
 typedef void (*generic_user_message_callback_t)(int node_id, int slot_type, int slot_index, int user_data_size, char* user_data);
 
 #endif

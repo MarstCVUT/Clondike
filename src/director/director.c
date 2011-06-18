@@ -8,6 +8,8 @@
 #include "netlink/task_exitted_msg.h"
 #include "netlink/task_forked_msg.h"
 #include "netlink/immigration_request_msg.h"
+#include "netlink/emigration_failed_msg.h"
+#include "netlink/migrated_home_msg.h"
 
 #include <linux/module.h>
 #include <dbg.h>
@@ -100,6 +102,18 @@ int director_task_fork(pid_t pid, pid_t ppid) {
 }
 
 EXPORT_SYMBOL(director_task_fork);
+
+int director_emigration_failed(pid_t pid) {
+	return emigration_failed(pid);
+}
+
+EXPORT_SYMBOL(director_emigration_failed);
+
+int director_migrated_home(pid_t pid) {
+	return migrated_home(pid);
+}
+
+EXPORT_SYMBOL(director_migrated_home);
 
 static int __init init_director_module(void) {
 	init_director_comm();

@@ -94,8 +94,25 @@ int director_task_exit(pid_t pid, int exit_code, struct rusage *rusage);
 int director_task_fork(pid_t pid, pid_t ppid);
 
 /**
+ * Called, when a task emigration has failed
+ *
+ * @param pid Pid of a new task that failed to emigrate
+ * @return 0 on success, error code otherwise.
+ */
+int director_emigration_failed(pid_t pid);
+
+/**
+ * Called, when a task migrates home
+ *
+ * @param pid Pid of a new task that returned home
+ * @return 0 on success, error code otherwise.
+ */
+int director_migrated_home(pid_t pid);
+
+/**
  * Registers handler for send generic user message command..
  */
 void director_register_send_generic_user_message_handler(send_generic_user_message_handler_t handler);
+
 
 #endif

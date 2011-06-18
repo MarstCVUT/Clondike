@@ -42,6 +42,8 @@
 #include <asm/signal.h>
 #include <proxyfs/proxyfs_server.h>
 
+#include <director/director.h>
+
 /** 
  * This is just a "assertion check" handler. It should never be calles since all signals
  * of the CCN should be processed in its main processing loop. 
@@ -465,6 +467,8 @@ static int tcmi_shadowtask_process_ppm_p_migr_back_guestreq_procmsg(struct tcmi_
 	mdbg(INFO2, "Processing migrate back request, remote PID=%d, checkpoint: '%s'",
 		     tcmi_task_remote_pid(self), ckpt_name);
 
+	director_migrated_home(tcmi_task_local_pid(self));
+	
 	/* schedules process restart from a checkpoint image */
 	if (tcmi_taskhelper_restart(self, ckpt_name) < 0) {
 		mdbg(ERR3, "Cannot setup task restart!!");
