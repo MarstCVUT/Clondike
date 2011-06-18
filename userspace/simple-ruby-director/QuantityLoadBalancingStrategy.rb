@@ -131,7 +131,7 @@ private
       return if !@log
       
       debugDumpState()
-      if ( targetNode.id != @nodeRepository.selfNode.id )
+      if ( targetNode && targetNode.id != @nodeRepository.selfNode.id )
 	@log.write("Migrating #{pid} to #{targetNode.ipAddress}\n");
       else
 	@log.write("#{pid} kept locally\n");
