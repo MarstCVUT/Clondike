@@ -13,6 +13,8 @@ class NetlinkConnector
 		@forkHandlers = []
 		@userMessageHandlers = []
 		@immigrationHandlers = []
+		@migrationFailedHandlers = []
+		@migratedHomeHandlers = []
 	end
 	
 	# Registers a netlink connector instance to native handler
@@ -137,10 +139,18 @@ class NetlinkConnector
 		handler.onFork(pid, parentPid)
 	    end            	  
         end
-	
+
+        def pushEmigrationFailedHandler(handler)
+            @migratedHomeHandlers << handler;
+        end
+
 	def connectorEmigrationFailedCallbackFunction(pid)
 	    $log.info("Emigration failed for pid #{pid}")
 	end
+	
+        def pushMigratedHomeHandler(handler)
+            @migratedHomeHandlers << handler;
+        end
 	
 	def connectorMigratedHomeCallbackFunction(pid)
 	    $log.info("Migrating home: #{pid}")
