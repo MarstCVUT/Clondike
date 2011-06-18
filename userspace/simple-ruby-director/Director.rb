@@ -37,6 +37,7 @@ require 'Interconnection.rb'
 require 'ProcTrace.rb'
 
 require 'TestMakeAcceptLimiter'
+require 'TaskNameBasedAcceptLimiter'
 #require "xray/thread_dump_signal_handler"
 
 
@@ -51,7 +52,8 @@ class Director
 	
 	def initialize
 		begin Dir.mkdir(Director::LOG_DIR) rescue Errno::EEXIST end
-                acceptLimiter = TestMakeAcceptLimiter.new();
+                #acceptLimiter = TestMakeAcceptLimiter.new();
+		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"])
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
 		initializeTrust()
