@@ -141,11 +141,15 @@ class NetlinkConnector
         end
 
         def pushEmigrationFailedHandler(handler)
-            @migratedHomeHandlers << handler;
+            @migrationFailedHandlers << handler;
         end
 
 	def connectorEmigrationFailedCallbackFunction(pid)
 	    $log.info("Emigration failed for pid #{pid}")
+	    
+	    @migrationFailedHandlers.each do |handler|
+		handler.onEmigrationFailed(pid)
+	    end
 	end
 	
         def pushMigratedHomeHandler(handler)
@@ -154,6 +158,10 @@ class NetlinkConnector
 	
 	def connectorMigratedHomeCallbackFunction(pid)
 	    $log.info("Migrating home: #{pid}")
+	    
+	    @migratedHomeHandlers.each do |handler|
+		handler.onMigratedHome(pid)
+	    end
 	end	
 
 	# Starts the processing thread, that listens on incoming messages from kernel
