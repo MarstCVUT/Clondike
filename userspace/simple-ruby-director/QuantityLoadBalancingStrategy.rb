@@ -103,13 +103,13 @@ class QuantityLoadBalancingStrategy
 
     def taskFork(task, parentTask)
        @counter.taskForked(parentTask.executionNode, task.pid, parentTask.pid); 
-       $log.debug("Forked task #{parentTask.pid} to #{task.pid}. Post-fork count: #{@counter.getCount(parentTask.executionNode)}. Node: #{parentTask.executionNode}")
+#       $log.debug("Forked task #{parentTask.pid} to #{task.pid}. Post-fork count: #{@counter.getCount(parentTask.executionNode)}. Node: #{parentTask.executionNode}")
     end
 
     # Callback from task repository
     def taskExit(task, exitCode)            
         @counter.removePid(task.executionNode, task.pid)
-	$log.debug("Removing pid task #{task.pid}. Post-rem count: #{@counter.getCount(task.executionNode)}. Node: #{task.executionNode}")
+#	$log.debug("Removing pid task #{task.pid}. Post-rem count: #{@counter.getCount(task.executionNode)}. Node: #{task.executionNode}")
     end
     
     def startDebuggingToFile(logname)
@@ -150,11 +150,11 @@ private
 
     def updateCounter(slotIndex, name, pid)            
         if ( !slotIndex )
-	   $log.debug("Adding pid task #{pid} (#{name}) to self. Pre-add count: #{@counter.getCount(@nodeRepository.selfNode)}")
+#	   $log.debug("Adding pid task #{pid} (#{name}) to self. Pre-add count: #{@counter.getCount(@nodeRepository.selfNode)}")
 	   debugDecision(pid, @nodeRepository.selfNode)
            @counter.addPid(@nodeRepository.selfNode, pid) 	   
         else
-	   $log.debug("Adding pid task #{pid} (#{name}) to slot #{slotIndex}. Pre-add count: #{@counter.getCount(@membershipManager.coreManager.detachedNodes[slotIndex])}" )
+#	   $log.debug("Adding pid task #{pid} (#{name}) to slot #{slotIndex}. Pre-add count: #{@counter.getCount(@membershipManager.coreManager.detachedNodes[slotIndex])}" )
 	   debugDecision(pid, @membershipManager.coreManager.detachedNodes[slotIndex])
            @counter.addPid(@membershipManager.coreManager.detachedNodes[slotIndex], pid)	   
         end
