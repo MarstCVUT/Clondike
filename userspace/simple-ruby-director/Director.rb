@@ -38,6 +38,7 @@ require 'ProcTrace.rb'
 
 require 'TestMakeAcceptLimiter'
 require 'TaskNameBasedAcceptLimiter'
+require 'LimitersImmigrationController'
 #require "xray/thread_dump_signal_handler"
 
 
@@ -54,6 +55,7 @@ class Director
 		begin Dir.mkdir(Director::LOG_DIR) rescue Errno::EEXIST end
                 #acceptLimiter = TestMakeAcceptLimiter.new();
 		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"])
+		@immigrationController = LimitersImmigrationController.new([acceptLimiter])
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
 		initializeTrust()
@@ -119,6 +121,7 @@ class Director
 		@netlinkConnector.pushForkHandler(procTrace)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
+		@netlinkConnector.pushImmigrationHandler(@immigrationController)		
 		@netlinkConnector.startProcessingThread                                
 		
 		@loadBalancer.registerMigrationListener(procTrace)
