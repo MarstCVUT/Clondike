@@ -152,16 +152,24 @@ def unsplitBase64(string)
 end
 
 class RSAPublicKey < SimpleDelegator
-	def initialize(decoratedKeyText)
-		super(decoratedKeyText != nil ? OpenSSL::PKey::RSA.new(decoratedKeyText) : nil)
-	end
+   def initialize(decoratedKeyText)
+	super(decoratedKeyText != nil ? OpenSSL::PKey::RSA.new(decoratedKeyText) : nil)
+
+	@cachedToS = nil
+	@cachedNestedToS = __getobj__.to_s
+	@cachedUndecoratedToS = nil
+	@cachedHash = nil
+   end
 
     def undecorated_to_s
+	return @cachedUndecoratedToS if @cachedUndecoratedToS
+	
         #puts "BEFORE UNDECOR: #{to_s}"
-        res = __getobj__.to_s
+        res = @cachedNestedToS
         res = res.sub("-----BEGIN RSA PUBLIC KEY-----","")
         res = res.sub("-----END RSA PUBLIC KEY-----","")
         unsplitBase64(res)
+	@cachedUndecoratedToS = res	
         #res = res.gsub("\r","")
     end        
     
@@ -186,7 +194,9 @@ class RSAPublicKey < SimpleDelegator
     end
     
     def hash()
-        return undecorated_to_s.hash
+        return @cachedHash if @cachedHash
+	@cachedHash = undecorated_to_s.hash
+        return @cachedHash
     end
 
     # Short-cut method with hardcoded digest algorithm
@@ -217,11 +227,13 @@ class RSAPublicKey < SimpleDelegator
     end
     
     def full_to_s
-      return __getobj__.to_s
+      return @cachedNestedToS
     end
     
     def to_s
-      return toShortHashString().to_s
+      return @cachedToS if @cachedToS
+      @cachedToS = toShortHashString().to_s
+      return @cachedToS
     end
     
     def eql?(other)
