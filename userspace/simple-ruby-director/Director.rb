@@ -20,6 +20,7 @@ require 'ExecutionTimeTracer'
 require 'TaskRepository'
 require 'CacheFSController'
 require 'Classifications'
+require 'ImmigratedTasksController'
 require 'logger'
 require 'trust/Identity.rb'
 require 'trust/TrustManagement.rb'
@@ -55,6 +56,7 @@ class Director
 		begin Dir.mkdir(Director::LOG_DIR) rescue Errno::EEXIST end
                 #acceptLimiter = TestMakeAcceptLimiter.new();
 		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"])
+		@immigratedTasksController = ImmigratedTasksController.new()
 		@immigrationController = LimitersImmigrationController.new([acceptLimiter])
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
@@ -115,13 +117,23 @@ class Director
                 @netlinkConnector.pushNpmHandlers(procTrace)
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
-                @netlinkConnector.pushExitHandler(@taskRepository)
+
+		@netlinkConnector.pushExitHandler(@taskRepository)
+		@netlinkConnector.pushExitHandler(@immigratedTasksController)		
                 @netlinkConnector.pushExitHandler(procTrace)
+		
+		@netlinkConnector.pushForkHandler(@immigratedTasksController)
 		@netlinkConnector.pushForkHandler(@taskRepository)
+		@netlinkConnector.pushForkHandler(@immigratedTasksController)		
 		@netlinkConnector.pushForkHandler(procTrace)
+		
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
+		
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
 		@netlinkConnector.pushImmigrationHandler(@immigrationController)
+		
+		@netlinkConnector.pushImmigrationConfirmedHandler(@immigratedTasksController)
+		
 		@netlinkConnector.pushMigratedHomeHandler(@taskRepository)
 		@netlinkConnector.pushEmigrationFailedHandler(@taskRepository)
 		@netlinkConnector.startProcessingThread                                
