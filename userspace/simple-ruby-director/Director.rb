@@ -121,7 +121,9 @@ class Director
 		@netlinkConnector.pushForkHandler(procTrace)
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		@netlinkConnector.pushImmigrationHandler(cacheFSController)
-		@netlinkConnector.pushImmigrationHandler(@immigrationController)		
+		@netlinkConnector.pushImmigrationHandler(@immigrationController)
+		@netlinkConnector.pushMigratedHomeHandler(@taskRepository)
+		@netlinkConnector.pushEmigrationFailedHandler(@taskRepository)
 		@netlinkConnector.startProcessingThread                                
 		
 		@loadBalancer.registerMigrationListener(procTrace)
