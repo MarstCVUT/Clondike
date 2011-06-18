@@ -6,6 +6,7 @@ class TaskNameBasedAcceptLimiter
 	names.each { |name|
 	    @patterns << Regexp.new(name)
 	}
+	@inBlockingMode = false
     end
     
     # Returns maximum number of tasks that can be yet accepted (i.e. in addition to already accepted tasks)
@@ -18,7 +19,7 @@ class TaskNameBasedAcceptLimiter
     def newTask(task)
        	@patterns.each { |pattern|
 	    if ( task.name =~ pattern )
-		$log.info("Task #{task.name}##{task.pid} blocked accepting of tasks") if @blockingPids.empty?
+		blockingModeStarted(task) if @blockingPids.empty?
 		@blockingPids.add(task.pid)
 	        break
 	    end
@@ -29,6 +30,27 @@ class TaskNameBasedAcceptLimiter
     def taskExit(task, exitCode)    
 	emptyBefore = @blockingPids.empty?
 	@blockingPids.delete(task.pid)
-	$log.info("Task #{task.name}##{task.pid} unblocked accepting of tasks") if !emptyBefore && @blockingPids.empty?
+	blockingModeFinished(task) if !emptyBefore && @blockingPids.empty?
     end    
+    
+private
+    def blockingModeStarted(task)
+      $log.info("Task #{task.name}##{task.pid} blocked accepting of tasks")
+      @inBlockingMode = true
+    end
+    
+    def blockingModeFinished(task)
+      $log.info("Task #{task.name}##{task.pid} unblocked accepting of tasks")
+      @inBlockingMode = false
+    end
+    
+
+    def migrateHomeThread
+	# Wait 10 seconds before migrating home just to give locally running remote tasks some chance to finish
+	Thread.sleep(10)
+        while @inBlockingMode
+	  
+        end
+    end
+
 end
