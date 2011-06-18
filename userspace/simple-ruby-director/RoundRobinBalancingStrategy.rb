@@ -1,3 +1,4 @@
+# TODO: This strategy does NOT honour UserConfiguration of allowed migrations per node! Fix it
 class RoundRobinBalancingStrategy
 
     def initialize(nodeRepository, membershipManager, includeLocal = false)
