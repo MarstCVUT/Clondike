@@ -47,6 +47,10 @@ class PerNodeTaskCounter
 	return parentTask
     end
     
+    def taskNodeChange(oldNode, newNode, pid)
+	addPid(newNode, pid)
+    end
+    
     def getCount(node)
         res = nil
         @lock.synchronize { 
@@ -110,6 +114,11 @@ class QuantityLoadBalancingStrategy
     def taskExit(task, exitCode)            
         @counter.removePid(task.executionNode, task.pid)
 #	$log.debug("Removing pid task #{task.pid}. Post-rem count: #{@counter.getCount(task.executionNode)}. Node: #{task.executionNode}")
+    end
+    
+    # Callback from task repo
+    def taskNodeChanged(task, oldNode)
+      @counter.taskNodeChange(oldNode, task.executionNode, task.pid)
     end
     
     def startDebuggingToFile(logname)
