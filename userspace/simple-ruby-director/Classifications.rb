@@ -28,7 +28,7 @@ end
 class CompileNameClassificator
   def initialize
     @execPattern = Regexp.new("cc1$")
-    @filenamePattern = Regexp.new("^[^\/\.]*.c$")
+    @filenamePattern = Regexp.new("^[^\\/\\.]*\\.c$")
   end
   
   def classify(task)
