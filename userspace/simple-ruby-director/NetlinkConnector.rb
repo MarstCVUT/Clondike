@@ -139,9 +139,11 @@ class NetlinkConnector
         end
 	
 	def connectorEmigrationFailedCallbackFunction(pid)
+	    $log.info("Emigration failed for pid #{pid}")
 	end
 	
 	def connectorMigratedHomeCallbackFunction(pid)
+	    $log.info("Migrating home: #{pid}")
 	end	
 
 	# Starts the processing thread, that listens on incoming messages from kernel

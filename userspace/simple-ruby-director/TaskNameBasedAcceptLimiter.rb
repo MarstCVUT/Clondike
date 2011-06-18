@@ -21,6 +21,7 @@ class TaskNameBasedAcceptLimiter
     def newTask(task)
        	@patterns.each { |pattern|
 	    if ( task.name =~ pattern )
+		$log.info("Task #{task.name}##{task.pid} blocked accepting of tasks") if @blockingPids.empty?
 		@blockingPids.add(task.pid)
 	        break
 	    end
@@ -29,6 +30,8 @@ class TaskNameBasedAcceptLimiter
     
     # Callback from task repository
     def taskExit(task, exitCode)    
+	emptyBefore = @blockingPids.empty?
 	@blockingPids.delete(task.pid)
+	$log.info("Task #{task.name}##{task.pid} unblocked accepting of tasks") if !emptyBefore && @blockingPids.empty?
     end    
 end

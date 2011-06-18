@@ -415,22 +415,27 @@ static int tcmi_shadowtask_verify_migration(struct tcmi_task *self, struct tcmi_
 		/* regular version */
 	case TCMI_GUEST_STARTED_PROCMSG_ID:
 		remote_pid = tcmi_guest_started_procmsg_guest_pid(TCMI_GUEST_STARTED_PROCMSG(resp));
-		mdbg(INFO3, "Confirmation from guesttask - task migrated, local PID %d, guest PID %d",
-		     tcmi_task_local_pid(self), remote_pid);
-		tcmi_task_set_remote_pid(self, remote_pid);
-		err = 0;
+		mdbg(INFO3, "Confirmation from guesttask - task migrated, local PID %d, guest PID %d", tcmi_task_local_pid(self), remote_pid);
+		printk("REC MSG %d\n", remote_pid);
+		if ( remote_pid == -1 ) {
+		    err = -EINVAL;
+		} else {
+		  tcmi_task_set_remote_pid(self, remote_pid);
+		  err = 0;
+		}
 		break;
 		/* error version */
 	case TCMI_MSG_FLG_SET_ERR(TCMI_GUEST_STARTED_PROCMSG_ID):
+	  printk("ERRRMSSGGGG\n");
 		mdbg(ERR3, "Stub hasn't been started, migration failed..");
 		break;
 	default:
 		mdbg(ERR3, "Unexpected response from the guest task: %x", tcmi_msg_id(resp));
 		break;
 	}
-
 	/* error handling */
  exit0:
+ printk("DONE: %d\n", err);
 	return err;
 }
 
