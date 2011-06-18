@@ -62,7 +62,13 @@ class FilesystemConnector
 	  root = getRoot(slotType)
 	  `echo #{pid}  > #{root}/mig/migrate-home`
 	end
-        
+
+	def emigratePreemptively(index, pid)
+	  root = getRoot(CORE_MANAGER_SLOT)
+	  
+	  `echo #{pid} #{index}  > #{root}/mig/emigrate-ppm-p`
+	end
+
         # Returns id of node, specified by its address
         def findNodeIdByAddress(ipAddress)
             #For now, we can simply return address, since it is used as
