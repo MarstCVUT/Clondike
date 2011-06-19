@@ -28,6 +28,10 @@ class CpuLoadBalancingStrategy
         bestTarget
     end    
     
+    # No rebalancing
+    def findRebalancing()
+      return nil
+    end
 private 
     def findBestTarget(pid, uid, name, detachedNodes, emigrateThreshold)
         TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|

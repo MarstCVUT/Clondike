@@ -63,6 +63,20 @@ class PerNodeTaskCounter
         }
         res
     end
+    
+    # Gets a (copy) snapshot of pids associated with node at current time
+    def getPidsSnapshot(node)
+        res = nil
+        @lock.synchronize { 
+            pids = @counters[node.id]
+            if ( !pids )
+                res = 0
+            else 
+                res = pids.clone()
+            end    
+        }
+        res      
+    end
 end
 
 # This load balancing strategy tries to balance load based on a quantity
@@ -98,7 +112,17 @@ class QuantityLoadBalancingStrategy
         updateCounter(bestTarget, name, pid) if UserConfiguration.getConfig(uid).canMigrateSomewhere(name)
 	flushDebugLog()
         bestTarget
-    end    
+    end
+    
+    # Try to rebalance only in case there are more local tasks than 
+    def findRebalancing()
+	  rebalancePlan = nil
+	  pids = @counter.getPidsSnapshot(@localNode)
+	  if ( pids && pids.size() > @minimumTasksLocal )
+	    rebalancePlan = generateRebalancePlan(pids)
+	  end      
+	  return rebalancePlan	 
+    end
 
     # Callback from task repository
     def newTask(task)
@@ -179,7 +203,6 @@ private
         best = TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|
 	    taskCount = @counter.getCount(node)
             # Note that taskCount has to be returned negative, so that less tasks is better candidate!
-	    # TODO: This is STUPID! If there are too many tasks then we fallback-to next strategy, but that strategy does not behave well and we get a HUGE load imabalance!
             taskCount < @minimumTasksRemote ? -taskCount : nil
         }                
         
@@ -187,6 +210,10 @@ private
         return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp, emigPreferred) if !best
         # Found best
         return best
-    end    
+    end                
     
+    def generateRebalancePlan(pids)
+      # TODO: Finds those local tasks, that could be send preemptively to some other node
+      #       Initial idea is to use classificaitons for tasks that are preemptively migrateable
+    end    
 end

@@ -41,6 +41,11 @@ class RoundRobinBalancingStrategy
     def taskExit(task, exitCode)            
         # Nothing to be done
     end    
+    
+    # No rebalancing
+    def findRebalancing()
+      return nil
+    end
 private
     def extractIndexes(detachedNodes)
 	result = []

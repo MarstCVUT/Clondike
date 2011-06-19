@@ -19,4 +19,9 @@ class RandomBalancingStrategy
         return nil if !detachedNodes[target-1]
         target-1        
     end
+    
+    # No rebalancing
+    def findRebalancing()
+      return nil
+    end    
 end

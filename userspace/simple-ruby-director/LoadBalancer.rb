@@ -1,13 +1,22 @@
 require 'ConfigurablePatternMatcher'
 
-#Makes the migration decisions.. currently only non-preemptive
+#Makes the migration decisions (actual strategies are delegated to nested balancingStrategy instance)
+#Non-preemptive decisions are made on exec time
+#Preemptive are periodically evaluated (once per REBALANCING_INTERVAL seconds) and acted upon
 class LoadBalancer
-    def initialize(balancingStrategy, taskRepository)
+    REBALANCING_INTERVAL = 10
+    
+    def initialize(balancingStrategy, taskRepository, filesystemConnector)
         loadPatterns("migrateable.patterns")
         @balancingStrategy = balancingStrategy;
 	@taskRepository = taskRepository
         # Listeners on migration decisions
         @migrationListeners = []
+	@filesystemConnector = filesystemConnector
+	
+	ExceptionAwareThread.new() {
+	    rebalancingThread()
+	}    	
     end
     
     def registerMigrationListener(listener)
@@ -69,11 +78,26 @@ private
         if ( migrationTarget )
 	  task = @taskRepository.getTask(pid)
 	  taskClassificationsString = nil
-	  taskClassificationsString = task.classifications.collect() { |i| i}.to_s if ( task )
+	  taskClassificationsString = task.classifications.collect() { |i| i }.to_s if ( task )
 	  $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget} (#{taskClassificationsString})")
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
           [DirectorNetlinkApi::DO_NOT_MIGRATE]
         end
     end
+    
+    # Periodically check with strategies if a rebelance is required
+    def rebalancingThread()
+	while true do
+	  sleep(REBALANCING_INTERVAL)
+	
+	  rebalancingPlan = @balancingStrategy.findRebalancing
+	  next if !rebalancingPlan
+	  
+	  rebalancingPlan.each { |pid, nodeIndex|
+	      $log.info("LoadBalancer decided migrate preemptively #{pid} to #{nodeIndex}")
+	      @filesystemConnector.emigratePreemptively(nodeIndex, pid)
+	  }
+	end    
+    end    
 end
