@@ -64,6 +64,20 @@ class PerNodeTaskCounter
         res
     end
     
+    def getRemoteCount(selfNode)
+        res = 0
+        @lock.synchronize { 
+	    @counters.each { |nodeId, pids|
+	      next if nodeId == selfNode.id
+			    
+	      if ( pids )
+		  res = res + pids.size()
+	      end
+	    }
+        }
+        return res      
+    end
+    
     # Gets a (copy) snapshot of pids associated with node at current time
     def getPidsSnapshot(node)
         res = nil
@@ -88,7 +102,7 @@ class QuantityLoadBalancingStrategy
         @membershipManager = membershipManager
 	@taskRepository = taskRepository
         # Minimum tasks running locally we want .. currently equals to core counts, could consider core count + 1?
-        @minimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
+        @defaultMinimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
 #        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop
         # Minimum tasks runnign on a remote node we want
         @minimumTasksRemote = 5
@@ -111,7 +125,8 @@ class QuantityLoadBalancingStrategy
 	# Temporary hack.. we count only tasks that are migrateable somewhere... TODO: Instead introduce either some filter for counting tasks, or count based on their CPU usage (unlikely.. to difficult for short term)
         updateCounter(bestTarget, name, pid) if UserConfiguration.getConfig(uid).canMigrateSomewhere(name)
 	flushDebugLog()
-        bestTarget
+	
+	bestTarget
     end
     
     # Try to rebalance only in case there are more local tasks than 
@@ -123,7 +138,7 @@ class QuantityLoadBalancingStrategy
 	  pidsCount = 0
 	  pidsCount = pids.size if pids
 #	  $log.debug("Find rebalance with local load pids count #{pidsCount}")
-	  if ( pidsCount > @minimumTasksLocal )
+	  if ( pidsCount > getCurrentLocalMinimum() )
 	    rebalancePlan = generateRebalancePlan(pids, detachedNodes)
 	  end      
 	  return rebalancePlan	 
@@ -159,6 +174,12 @@ class QuantityLoadBalancingStrategy
     end
     
 private
+    def getCurrentLocalMinimum()      
+      remoteCount = @counter.getRemoteCount(@nodeRepository.selfNode)
+      return 0 if ( remoteCount > 3 && @membershipManager.coreManager.detachedNodes.size > 2 )
+      return @defaultMinimumTasksLocal
+    end
+
     def flushDebugLog()
       return if !@log
       
@@ -199,7 +220,7 @@ private
     end
 
     def keepLocal()
-        @counter.getCount(@nodeRepository.selfNode) < @minimumTasksLocal
+        @counter.getCount(@nodeRepository.selfNode) < getCurrentLocalMinimum()
     end
     
     def findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
@@ -225,7 +246,7 @@ private
       # TODO: Consider how long has the task already been on local node.. prefer to emigrate shorter time tasks as they may have been migrated home and hence required less memory shift (not all memory is loaded immediately)
       #In addition we may simply consider moving tasks with less volume of absolute memory
       plan = {}   
-      maxEmigrateCount = pids.size - @minimumTasksLocal
+      maxEmigrateCount = pids.size - getCurrentLocalMinimum()
       pids.each { |pid|
 	  task = @taskRepository.getTask(pid)
 	  if task && task.hasClassification(MigrateableLongTermTaskClassification.new())
