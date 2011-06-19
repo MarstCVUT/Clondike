@@ -13,7 +13,7 @@ class ExecuteCommand < MeasurementCommand
    pid = fork { 
      closeFds()
      Dir.chdir @path     
-     exec @command 
+     exec "#{@command} > /tmp/measure-execution-#{Process.pid} 2>&1"
    }
    Process.waitpid(pid, 0) 
   end
