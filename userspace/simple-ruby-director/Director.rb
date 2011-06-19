@@ -76,6 +76,8 @@ class Director
 		@managerMonitor = ManagerMonitor.new(@interconnection, @membershipManager, @nodeRepository, @filesystemConnector)
                 @taskRepository = TaskRepository.new(@nodeRepository, @membershipManager)
 		@taskRepository.addClassificator(CompileNameClassificator.new())
+		# Classify all "mandel" (mandelbrot calc) tasks as long term migrateable tasks
+		@taskRepository.addClassificator(ExecNameConfigurableClassificator.new("mandel", MigrateableLongTermTaskClassification.new))
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		
