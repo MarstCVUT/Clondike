@@ -8,7 +8,7 @@ class Classification
   def initialize(surviveFork, surviveExec)
     @surviveFork = surviveFork
     @surviveExec = surviveExec
-  end
+  end   
 end
 
 # Classifies a task with name of "c" file being compiled.. applies to cc1 only
@@ -47,12 +47,12 @@ class CompileNameClassificator
   end
 end
 
-# Marker of task that are expected to run long time and can be migrated
-class MigrateableLongTermTaskClassification<Classification
-  def initialize()
-    super(true, false)
+# Base class for all classifications with no parameters, provides ready to use implementation of equals and hash
+class NonparametricClassification<Classification
+  def initialize(surviveFork, surviveExec)
+    super(surviveFork, surviveExec
   end
-
+  
   def ==(other)
     other.class == self.class
   end  
@@ -63,7 +63,15 @@ class MigrateableLongTermTaskClassification<Classification
   
   def hash()
     self.class.hash
-  end  
+  end    
+end
+
+# Marker of task that are expected to run long time and can be migrated
+class MigrateableLongTermTaskClassification<NonparametricClassification
+  def initialize()
+    super(true, false)
+  end
+    
 end
 
 # Simple configurable classificator that assigns provided classification to all tasks with name matching execName pattern
