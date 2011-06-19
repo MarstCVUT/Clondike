@@ -7,8 +7,8 @@
 #include <fcntl.h>
 #include <sys/timeb.h>
 
-#define HEIGHT 5000
-#define WIDTH 5000
+#define DEFAULT_HEIGHT 5000
+#define DEFAULT_WIDTH 5000
 
 int main(int argc, char *argv[])
 {
@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
   //  ColorRGB color; //the RGB color value for the pixel
     int maxIterations = 1000;//after how much iterations the function should stop
     int x, y, i;
-    int width = WIDTH;
-    int height = HEIGHT;
+    int width = DEFAULT_WIDTH;
+    int height = DEFAULT_HEIGHT;
     int widthPerProc = width;
     int widthStart = 0;
     
@@ -30,7 +30,12 @@ int main(int argc, char *argv[])
     int* lineDataBuffer = NULL;
     
     struct timeb beg, end;     
-    
+
+    if ( argc > 3 ) {
+      width = atoi(argv[2]);
+      height = atoi(argv[3]);
+    }
+
     if ( argc > 1 ) {
       procs = atoi(argv[1]);
       if ( procs < 1 )
@@ -39,7 +44,7 @@ int main(int argc, char *argv[])
       widthPerProc = width/procs;
     }
     
-    printf("Procs: %d Height: %d, Width: %d\n", procs, HEIGHT, WIDTH);
+    printf("Procs: %d, Width: %d, Height: %d\n", procs, width, height);
     
     if ( procs > 1 ) {
       children = malloc(sizeof(pid_t)*(procs-1));
