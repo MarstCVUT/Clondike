@@ -81,7 +81,7 @@ class Director
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		
-                balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
+                balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager, @taskRepository)
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy, @taskRepository, @filesystemConnector)                
                 @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, idResolver.getCurrentId)
