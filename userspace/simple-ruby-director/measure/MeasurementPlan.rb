@@ -101,11 +101,13 @@ class NodeUsageRecord
   attr_reader :timestamp
   attr_reader :cpuUsage
   attr_reader :cpuLoad
+  attr_reader :immigratedTaskCount
   
-  def initialize(timestamp, cpuUsage, cpuLoad)
+  def initialize(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
     @timestamp = timestamp
     @cpuUsage = cpuUsage
     @cpuLoad = cpuLoad
+    @immigratedTaskCount = immigratedTaskCount
   end
 end
 
@@ -126,8 +128,8 @@ class NodeMeasurementPlan
     @tasks[taskIndex].setResult(result)
   end
   
-  def addNodeUsageRecord(timestamp, cpuUsage, cpuLoad)
-    @nodeUsage << NodeUsageRecord.new(timestamp, cpuUsage, cpuLoad)
+  def addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
+    @nodeUsage << NodeUsageRecord.new(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
   end
   
   def execute(planStartTime, resultListener)                
@@ -158,7 +160,7 @@ class NodeMeasurementPlan
   def saveStatsToFile(file, nodeName)
     file.puts("Name: #{nodeName}")
     @nodeUsage.each { |usage|
-	file.puts("  #{usage.timestamp} -> #{usage.timestamp.to_f}, #{usage.cpuLoad}, #{usage.cpuUsage}")
+	file.puts("  #{usage.timestamp} -> #{usage.timestamp.to_f}, #{usage.cpuLoad}, #{usage.cpuUsage}, #{usage.immigratedTaskCount}")
     }
   end
 private
@@ -218,9 +220,9 @@ class MeasurementPlan
     $log.debug("Got result. Now has #{@receivedResultCount} results out of #{@requiredResultCount} required")
   end
   
-  def addNodeUsageRecord(nodeId, timestamp, cpuUsage, cpuLoad)
+  def addNodeUsageRecord(nodeId, timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
     plan = getOrCreateNodeMeasurementPlan(nodeId)
-    plan.addNodeUsageRecord(timestamp, cpuUsage, cpuLoad)
+    plan.addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
   end  
     
   def hasAllResults()
