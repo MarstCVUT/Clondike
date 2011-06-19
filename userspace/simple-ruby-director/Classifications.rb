@@ -52,6 +52,18 @@ class MigrateableLongTermTaskClassification<Classification
   def initialize()
     super(true, false)
   end
+
+  def ==(other)
+    other.class == self.class
+  end  
+
+  def eql?(other)
+    other.class == self.class
+  end  
+  
+  def hash()
+    self.class.hash
+  end  
 end
 
 # Simple configurable classificator that assigns provided classification to all tasks with name matching execName pattern
@@ -63,7 +75,6 @@ class ExecNameConfigurableClassificator
   
   def classify(task)
     return false if !(task.name =~ @execPattern)
-    
     task.addClassification(@classification)
   end
 end
