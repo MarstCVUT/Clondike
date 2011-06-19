@@ -162,7 +162,8 @@ retry:
 		} else {
 			free(msg.msg_control);
 			free(*buf);
-			return nl_error(errno);
+			printf("Recvmsg failed with error: %d\n", errno);
+			return -errno;
 		}
 	}
 
@@ -186,7 +187,8 @@ retry:
 	if (msg.msg_namelen != sizeof(struct sockaddr_nl)) {
 		free(msg.msg_control);
 		free(*buf);
-		return nl_error(EADDRNOTAVAIL);
+		printf("Addr no avail in packet %d vs %d\n", msg.msg_namelen, sizeof(struct sockaddr_nl));
+		return -EADDRNOTAVAIL;
 	}
 
 
