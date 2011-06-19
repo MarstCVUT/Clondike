@@ -70,7 +70,7 @@ class PerNodeTaskCounter
         @lock.synchronize { 
             pids = @counters[node.id]
             if ( !pids )
-                res = 0
+                res = nil
             else 
                 res = pids.clone()
             end    
@@ -83,9 +83,10 @@ end
 # of tasks send to individual nodes
 class QuantityLoadBalancingStrategy
 
-    def initialize(nodeRepository, membershipManager)
+    def initialize(nodeRepository, membershipManager, taskRepository)
         @nodeRepository = nodeRepository
         @membershipManager = membershipManager
+	@taskRepository = taskRepository
         # Minimum tasks running locally we want .. currently equals to core counts, could consider core count + 1?
         @minimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
 #        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop
@@ -116,10 +117,12 @@ class QuantityLoadBalancingStrategy
     
     # Try to rebalance only in case there are more local tasks than 
     def findRebalancing()
+	  detachedNodes = @membershipManager.coreManager.detachedNodes
+	  
 	  rebalancePlan = nil
-	  pids = @counter.getPidsSnapshot(@localNode)
+	  pids = @counter.getPidsSnapshot(@nodeRepository.selfNode)
 	  if ( pids && pids.size() > @minimumTasksLocal )
-	    rebalancePlan = generateRebalancePlan(pids)
+	    rebalancePlan = generateRebalancePlan(pids, detachedNodes)
 	  end      
 	  return rebalancePlan	 
     end
@@ -200,20 +203,41 @@ private
     def findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Local task count #{@counter.getCount(@nodeRepository.selfNode)}"
         return nil if !emigPreferred && keepLocal()
-        best = TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|
-	    taskCount = @counter.getCount(node)
-            # Note that taskCount has to be returned negative, so that less tasks is better candidate!
-            taskCount < @minimumTasksRemote ? -taskCount : nil
-        }                
-        
+        best = findBestTargetRemoteOnly(pid, uid, name, detachedNodes)
         # Not found best? Delegate further	
         return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp, emigPreferred) if !best
         # Found best
         return best
     end                
     
-    def generateRebalancePlan(pids)
-      # TODO: Finds those local tasks, that could be send preemptively to some other node
-      #       Initial idea is to use classificaitons for tasks that are preemptively migrateable
+    def findBestTargetRemoteOnly(pid, uid, name, detachedNodes)
+        best = TargetMatcher.performMatch(pid, uid, name, detachedNodes) { |node|
+	    taskCount = @counter.getCount(node)
+            # Note that taskCount has to be returned negative, so that less tasks is better candidate!
+            taskCount < @minimumTasksRemote ? -taskCount : nil
+        }                      
+	return best
+    end
+    
+    def generateRebalancePlan(pids, detachedNodes)
+      # TODO: Consider how long has the task already been on local node.. prefer to emigrate shorter time tasks as they may have been migrated home and hence required less memory shift (not all memory is loaded immediately)
+      #In addition we may simply consider moving tasks with less volume of absolute memory
+      plan = {}   
+      maxEmigrateCount = pids.size > @minimumTasksLocal
+      pids.each { |pid|
+	  task = @taskRepository.getTask(pid)
+	  if task && task.hasClassification(MigrateableLongTermTaskClassification.new())
+	      target = findBestTargetRemoteOnly(pid, task.uid, task.name, detachedNodes)	          
+	      if ( target )
+		pids.delete(pid)
+		plan[pid] = target	
+                maxEmigrateCount = maxEmigrateCount - 1
+	      end
+                
+              break if maxEmigrateCount < 1
+	  end	    	    
+      }
+	
+      return plan      
     end    
 end
