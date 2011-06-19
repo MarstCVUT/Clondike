@@ -162,6 +162,7 @@ retry:
 		} else {
 			free(msg.msg_control);
 			free(*buf);
+			*buf = 0;
 			printf("Recvmsg failed with error: %d\n", errno);
 			return -errno;
 		}
