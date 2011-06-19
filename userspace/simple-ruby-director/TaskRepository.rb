@@ -53,6 +53,10 @@ class TaskInfo
 	@classifications.add(classification)
     end
     
+    def hasClassification(classification)
+	@classifications.include?(classification)
+    end
+    
     def copySurviveForkClassifications(toTask)
 	@classifications.each { |classification|
 	    toTask.addClassification(classification) if classification.surviveFork
