@@ -34,7 +34,7 @@ class ExecutionPlanHandler
   
   def handle(message)
       $log.debug("Received execution plan message.")
-      
       message.executionPlan.execute(@localNodeId, ExecutionResultListener.new(@localNodeId, message.initiatingNodeId, @interconnect))
+      $log.debug("Measurement plan execution started in back-ground.")
   end  
 end
