@@ -105,7 +105,6 @@ class QuantityLoadBalancingStrategy
     def findMigrationTarget(pid, uid, name, args, envp, emigPreferred)        
         return nil if !@membershipManager.coreManager # Not a core node?
         detachedNodes = @membershipManager.coreManager.detachedNodes
-        
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
 	
         #puts "Best target #{bestTarget} for name #{name}."
@@ -116,12 +115,15 @@ class QuantityLoadBalancingStrategy
     end
     
     # Try to rebalance only in case there are more local tasks than 
-    def findRebalancing()
+    def findRebalancing()	  
 	  detachedNodes = @membershipManager.coreManager.detachedNodes
 	  
 	  rebalancePlan = nil
 	  pids = @counter.getPidsSnapshot(@nodeRepository.selfNode)
-	  if ( pids && pids.size() > @minimumTasksLocal )
+	  pidsCount = 0
+	  pidsCount = pids.size if pids
+#	  $log.debug("Find rebalance with local load pids count #{pidsCount}")
+	  if ( pidsCount > @minimumTasksLocal )
 	    rebalancePlan = generateRebalancePlan(pids, detachedNodes)
 	  end      
 	  return rebalancePlan	 
@@ -223,7 +225,7 @@ private
       # TODO: Consider how long has the task already been on local node.. prefer to emigrate shorter time tasks as they may have been migrated home and hence required less memory shift (not all memory is loaded immediately)
       #In addition we may simply consider moving tasks with less volume of absolute memory
       plan = {}   
-      maxEmigrateCount = pids.size > @minimumTasksLocal
+      maxEmigrateCount = pids.size - @minimumTasksLocal
       pids.each { |pid|
 	  task = @taskRepository.getTask(pid)
 	  if task && task.hasClassification(MigrateableLongTermTaskClassification.new())
