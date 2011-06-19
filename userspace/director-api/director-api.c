@@ -187,7 +187,7 @@ static int initialize_netlink_family(void) {
 	int ret_val = 0;
 
 	hndl = nl_handle_alloc();
-	nl_set_buffer_size(hndl, 100000, 100000);
+	nl_set_buffer_size(hndl, 500000, 500000);
 	
 	//nl_handle_set_peer_pid(hndl, 0);
 	//nl_set_passcred(hndl, 1);
@@ -196,7 +196,7 @@ static int initialize_netlink_family(void) {
 	if ( (ret_val=nl_connect(hndl, NETLINK_GENERIC)) )
 		goto init_return;
 	
-	nl_set_buffer_size(hndl, 100000, 100000);
+	nl_set_buffer_size(hndl, 500000, 500000);
   
 	if ( (ret_val=prepare_request_message(hndl, CTRL_CMD_GETFAMILY, GENL_ID_CTRL, &msg) ) != 0 ) {
 		goto init_return;
