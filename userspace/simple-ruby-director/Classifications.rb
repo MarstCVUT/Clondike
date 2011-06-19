@@ -11,6 +11,7 @@ class Classification
   end
 end
 
+# Classifies a task with name of "c" file being compiled.. applies to cc1 only
 class CompileNameClassification<Classification
   attr_reader :compileFileName
   
@@ -23,7 +24,6 @@ class CompileNameClassification<Classification
     "CompileFile: #{@compileFileName}"
   end
 end
-
 
 class CompileNameClassificator
   def initialize
@@ -44,5 +44,26 @@ class CompileNameClassificator
     if ( fileName )
       task.addClassification(CompileNameClassification.new(fileName))
     end
+  end
+end
+
+# Marker of task that are expected to run long time and can be migrated
+class MigrateableLongTermTaskClassification<Classification
+  def initialize()
+    super(true, false)
+  end
+end
+
+# Simple configurable classificator that assigns provided classification to all tasks with name matching execName pattern
+class ExecNameConfigurableClassificator
+  def initialize(execName, classification)
+    @classification = classification
+    @execPattern = Regexp.new(execName)
+  end
+  
+  def classify(task)
+    return false if !(task.name =~ @execPattern)
+    
+    task.addClassification(classification)
   end
 end
