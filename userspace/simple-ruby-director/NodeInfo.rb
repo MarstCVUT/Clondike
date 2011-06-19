@@ -10,16 +10,19 @@ class NodeInfo
     attr_reader :cpuUsage
     # Current maximum accept count of the node
     attr_reader :maximumAccept
+    # Count of currently immigrated remoted tasks
+    attr_reader :immigratedTasks
     
-    def initialize (load, cpuUsage, maximumAccept)
+    def initialize (load, cpuUsage, maximumAccept, immigratedTasks)
         @load = load
         @cpuUsage = cpuUsage
         @maximumAccept = maximumAccept
+	@immigratedTasks = immigratedTasks
         @timestamp = Time.now()
     end
     
     def to_s
-        "Load: #{@load} Cpu usage: #{@cpuUsage} Timestamp: #{@timestamp} Max accept: #{@maximumAccept}"
+        "Load: #{@load} Cpu usage: #{@cpuUsage} Timestamp: #{@timestamp} Max accept: #{@maximumAccept} Immigrated: #{@immigratedTasks}"
     end    
 end
 

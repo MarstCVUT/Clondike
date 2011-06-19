@@ -66,7 +66,7 @@ class Director
 
 		#idResolver = IpBasedNodeIdResolver.new
 		idResolver = PublicKeyNodeIdResolver.new(@trustManagement)
-                @nodeInfoProvider = NodeInfoProvider.new(idResolver)
+                @nodeInfoProvider = NodeInfoProvider.new(idResolver, @immigratedTasksController)
                 currentNode = CurrentNode.createCurrentNode(@nodeInfoProvider)
 
 		$log.info("Starting director on node with id #{currentNode.id}")    

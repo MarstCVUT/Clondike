@@ -23,7 +23,8 @@ end
 # - it pushes this data to the registered listeners
 # - it provides data on request
 class NodeInfoProvider
-    def initialize(idResolver)        
+    def initialize(idResolver, immigratedTasksController)        
+	@immigratedTasksController = immigratedTasksController
 	@idResolver = idResolver
         @listeners = Set.new
         @cpuUsageParser = CpuUsageParser.new
@@ -40,7 +41,7 @@ class NodeInfoProvider
     end
 
     def getCurrentInfoWithId
-        NodeInfoWithId.new(getCurrentId, getCurrentInfo)    
+        NodeInfoWithId.new(getCurrentId, getCurrentInfo)
     end
     
     def getCurrentStaticInfo        
@@ -71,7 +72,7 @@ class NodeInfoProvider
     
 private
      def getCurrentInfo
-         NodeInfo.new(getCurrentLoad, getCurrentCpuUsage, getCurrentMaximumAccept)
+         NodeInfo.new(getCurrentLoad, getCurrentCpuUsage, getCurrentMaximumAccept, @immigratedTasksController.immigratedTaskCount())
      end    
 
      # Finds minimal maximum-accept count. (nil = unlimited)
