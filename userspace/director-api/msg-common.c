@@ -162,7 +162,7 @@ retry:
 		} else {
 			free(msg.msg_control);
 			free(*buf);
-			return nl_error(errno, "recvmsg failed");
+			return nl_error(errno);
 		}
 	}
 
@@ -186,7 +186,7 @@ retry:
 	if (msg.msg_namelen != sizeof(struct sockaddr_nl)) {
 		free(msg.msg_control);
 		free(*buf);
-		return nl_error(EADDRNOTAVAIL, "socket address size mismatch");
+		return nl_error(EADDRNOTAVAIL);
 	}
 
 
