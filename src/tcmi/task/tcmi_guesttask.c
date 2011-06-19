@@ -39,6 +39,7 @@
 
 #include <proxyfs/proxyfs_helper.h>
 
+#include <director/director.h>
 
 /** 
  * \<\<public\>\> Instance constructor.
