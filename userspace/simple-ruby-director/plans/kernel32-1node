@@ -3,7 +3,7 @@ Nodes count:
   6
 
 Tasks:
-  makekernel: exec "time make -j 40" /mnt/ext/linux-2.6.32.5
+  makekernel: exec "time make -j 40 vmlinux" /mnt/ext/linux-2.6.32.5
 
 Nodes: 
   LocalNode: makekernel
