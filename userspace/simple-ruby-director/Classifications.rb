@@ -64,6 +64,6 @@ class ExecNameConfigurableClassificator
   def classify(task)
     return false if !(task.name =~ @execPattern)
     
-    task.addClassification(classification)
+    task.addClassification(@classification)
   end
 end
