@@ -51,7 +51,8 @@ int handle_generic_user_message(struct nl_msg *req_msg) {
 		nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_USER_DATA);
 		if (nla == NULL)
 			return  -EBADMSG;
-		user_data = nl_data_get(nla_get_data(nla));
+		//user_data = nl_data_get(nla_get_data(nla));
+		user_data = nla_data(nla);
 	} else {
 		user_data = NULL;
 	}

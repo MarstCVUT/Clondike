@@ -59,13 +59,16 @@ int handle_npm_check(struct nl_msg *req_msg) {
 	if (nla == NULL)
 		return  -EBADMSG;
 
-	name = nl_data_get(nla_get_data(nla));
+	//name = nl_data_get(nla_get_data(nla));
+	name = nla_data(nla);
 
 	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_RUSAGE);
-	if (nla == NULL) 
+	if (nla == NULL) {
 		rusage = NULL;
-	else
-		rusage = nl_data_get(nla_get_data(nla));
+	} else {
+		//rusage = nl_data_get(nla_get_data(nla));
+		rusage = nla_data(nla);
+	}
 
 	//printf("NPM CALLED FOR NAME: %s\n", name);
 	if ( npm_callback )
@@ -127,7 +130,8 @@ static char** parse_chars(struct nl_msg *req_msg, int type, int nested_type) {
 		if ( attr_type != nested_type )
 			continue;
 
-		res[i] = nl_data_get(nla_get_data(iter));
+		//res[i] = nl_data_get(nla_get_data(iter));
+		res[i] = nla_data(iter);
 		//printf("STR: %s\n", res[i]);
 		i++;
 	}
@@ -179,7 +183,8 @@ int handle_npm_check_full(struct nl_msg *req_msg) {
 	if (nla == NULL)
 		return  -EBADMSG;
 
-	name = nl_data_get(nla_get_data(nla));
+	//name = nl_data_get(nla_get_data(nla));
+	name = nla_data(nla);
 
 	args = parse_chars(req_msg, DIRECTOR_A_ARGS, DIRECTOR_A_ARG);
 	if ( args == NULL ) {
@@ -220,9 +225,9 @@ int handle_npm_check_full(struct nl_msg *req_msg) {
 	goto done;	
 
 error_del_resp:
-	free(args);
-	free(envp);
 	nlmsg_free(msg);
 done:	
+	free(args);
+	free(envp);
 	return ret;
 }

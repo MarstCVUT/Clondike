@@ -37,7 +37,8 @@ int handle_node_connected(struct nl_msg *req_msg) {
 	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_ADDRESS);
 	if (nla == NULL)
 		return  -EBADMSG;
-	address = nl_data_get(nla_get_data(nla));
+	//address = nl_data_get(nla_get_data(nla));
+	address = nla_data(nla);
 
 	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_LENGTH);
 	if (nla == NULL)

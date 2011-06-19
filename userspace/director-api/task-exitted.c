@@ -39,7 +39,9 @@ int handle_task_exitted(struct nl_msg *req_msg) {
 	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_RUSAGE);
 	if (nla == NULL)
 		return  -EBADMSG;
-	rusage = nl_data_get(nla_get_data(nla));
+	
+	//rusage = nl_data_get(nla_get_data(nla));
+	rusage = nla_data(nla);
 
 	if ( task_exitted_callback )
         	task_exitted_callback(pid, exit_code, rusage);

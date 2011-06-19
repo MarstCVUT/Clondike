@@ -41,7 +41,8 @@ int handle_immigration_request(struct nl_msg *req_msg) {
 	nla = nlmsg_find_attr(nlmsg_hdr(req_msg), sizeof(struct genlmsghdr), DIRECTOR_A_NAME);
 	if (nla == NULL)
 		return  -EBADMSG;
-	name = nl_data_get(nla_get_data(nla));
+	//name = nl_data_get(nla_get_data(nla));
+	name = nla_data(nla);
 
 	//printf("NPM CALLED FOR NAME: %s\n", name);
 	if ( immigration_request_callback )
