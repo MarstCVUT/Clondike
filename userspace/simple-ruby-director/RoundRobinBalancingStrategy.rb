@@ -25,7 +25,7 @@ class RoundRobinBalancingStrategy
 	
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, @membershipManager.coreManager.detachedNodes)
 	
-        $log.debug("Task #{pid} best target is #{bestTarget}")
+        $log.debug("RoundRobin: Task #{pid} best target is #{bestTarget}")
         bestTarget
     end    
     
