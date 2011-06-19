@@ -11,7 +11,8 @@ class ExecuteCommand < MeasurementCommand
   
   def runCommand()    
    pid = fork { 
-     Dir.chdir @path
+     closeFds()
+     Dir.chdir @path     
      exec @command 
    }
    Process.waitpid(pid, 0) 
@@ -19,6 +20,27 @@ class ExecuteCommand < MeasurementCommand
   
   def to_s
     @command
+  end
+  
+private
+  # This is an ugly quick fix solution for measurement execution. Basically, ruby is keeping some open sockets and when we fork and try to migrate we are not able to migrate those open sockets
+  # So we want to close them... a MUCH cleaner solution would be to introspectively find open sockets and close them!
+  def closeFds
+    if io = IO::new(3)
+        io.close
+    end    
+    
+    if io = IO::new(5)
+        io.close
+    end        
+    
+    if io = IO::new(6)
+        io.close
+    end            
+    
+    if io = IO::new(7)
+        io.close
+    end                    
   end
 end
 
