@@ -182,11 +182,6 @@ do {											\
 	  	printk(MDBG_KERN_##type __APP_NAME MDBG_DESC_##type ":" fmt "\n", ## args);\
 } while(0)
 #define debug_enabled (tcmi_dbg)
-#else // CONFIG_TCMI_DEBUG
-#define mdbg(type, fmt, args...) do {} while (0)
-#define minfo(type, fmt, args...) do {} while (0)
-#define debug_enabled 0
-#endif
 
 /**
  * This function just allocs and frees various size memory blocks. It is intended to collaborate with kernel memory access check functions
@@ -213,5 +208,11 @@ do {													\
 	kfree(memtest);												\
 } while(0)
 
+#else // CONFIG_TCMI_DEBUG
+#define mdbg(type, fmt, args...) do {} while (0)
+#define minfo(type, fmt, args...) do {} while (0)
+#define debug_enabled 0
+#define memory_sanity_check(msg) do {} while (0)
+#endif
 
 #endif /* DBG_H */
