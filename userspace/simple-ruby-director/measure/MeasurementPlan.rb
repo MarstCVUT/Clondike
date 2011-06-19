@@ -109,22 +109,18 @@ class NodeMeasurementPlan
   end
   
   def execute(planStartTime, resultListener)                
-    Thread.new() {
-      begin
-	$log.debug "Looking for a best task to execute"
+    ExceptionAwareThread.new() {
+      $log.debug "Looking for a best task to execute"
+      nextTaskIndex = findNextTaskToExecute(planStartTime)
+      while nextTaskIndex do
+	waitSeconds = planStartTime + @tasks[nextTaskIndex].startTimeOffset - Time.now.to_f
+	$log.debug "Best task to execute: #{@tasks[nextTaskIndex]} -> Wait time: #{waitSeconds} sec."
+	sleep waitSeconds if waitSeconds > 0
+	@tasks[nextTaskIndex].execute(nextTaskIndex, resultListener)
+	@executedTaskIndexes.add(nextTaskIndex)
+	    
 	nextTaskIndex = findNextTaskToExecute(planStartTime)
-	while nextTaskIndex do
-	  waitSeconds = planStartTime + @tasks[nextTaskIndex].startTimeOffset - Time.now.to_f
-	  $log.debug "Best task to execute: #{@tasks[nextTaskIndex]} -> Wait time: #{waitSeconds} sec."
-	  sleep waitSeconds if waitSeconds > 0
-	  @tasks[nextTaskIndex].execute(nextTaskIndex, resultListener)
-	  @executedTaskIndexes.add(nextTaskIndex)
-	      
-	  nextTaskIndex = findNextTaskToExecute(planStartTime)
-	end    
-      rescue => err
-	$log.error "Error in plan execution thread: #{err.message} \n#{err.backtrace.join("\n")}"
-      end  
+      end    
     
       $log.debug "No more tasks to be executed on this machine"
     }
