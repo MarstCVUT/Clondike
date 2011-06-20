@@ -249,11 +249,12 @@ private
       maxEmigrateCount = pids.size - getCurrentLocalMinimum()
       pids.each { |pid|
 	  task = @taskRepository.getTask(pid)
-	  if task && task.hasClassification(MigrateableLongTermTaskClassification.new())
+	  if task && task.hasClassification(MigrateableLongTermTaskClassification.new()) && !task.hasClassification(MasterTaskClassification.new())
 	      target = findBestTargetRemoteOnly(pid, task.uid, task.name, detachedNodes)	          
 	      if ( target )
 		pids.delete(pid)
-		plan[pid] = target	
+		plan[pid] = target
+                @counter.addPid(target, detachedNodes[target]) # Move task in tracking to a new node.. if emigration fails we'll get notified later
                 maxEmigrateCount = maxEmigrateCount - 1
 	      end
                 
