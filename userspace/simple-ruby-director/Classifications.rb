@@ -50,7 +50,7 @@ end
 # Base class for all classifications with no parameters, provides ready to use implementation of equals and hash
 class NonparametricClassification<Classification
   def initialize(surviveFork, surviveExec)
-    super(surviveFork, surviveExec
+    super(surviveFork, surviveExec)
   end
   
   def ==(other)
@@ -70,19 +70,37 @@ end
 class MigrateableLongTermTaskClassification<NonparametricClassification
   def initialize()
     super(true, false)
-  end
-    
+  end    
+  
+  def to_s
+    return "MigrateableLongTermTask"
+  end  
 end
+         
+         
+# Marker for tasks that serve as a "Master" of master worker calculation
+# Such a tasks may not be a good candidates for migration so we mark them separately         
+class MasterTaskClassification<NonparametricClassification
+  def initialize()
+    super(false, false)
+  end    
+  
+  def to_s
+    return "MasterTask"
+  end
+end         
 
 # Simple configurable classificator that assigns provided classification to all tasks with name matching execName pattern
 class ExecNameConfigurableClassificator
-  def initialize(execName, classification)
-    @classification = classification
+  def initialize(execName, classifications)
+    @classifications = classifications
     @execPattern = Regexp.new(execName)
   end
   
   def classify(task)
     return false if !(task.name =~ @execPattern)
-    task.addClassification(@classification)
+    @classifications.each { |classification|
+	task.addClassification(classification)
+    }    
   end
 end
