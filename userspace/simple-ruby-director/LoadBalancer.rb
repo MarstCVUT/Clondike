@@ -4,7 +4,7 @@ require 'ConfigurablePatternMatcher'
 #Non-preemptive decisions are made on exec time
 #Preemptive are periodically evaluated (once per REBALANCING_INTERVAL seconds) and acted upon
 class LoadBalancer
-    REBALANCING_INTERVAL = 10
+    REBALANCING_INTERVAL = 1
     
     def initialize(balancingStrategy, taskRepository, filesystemConnector)
         loadPatterns("migrateable.patterns")
