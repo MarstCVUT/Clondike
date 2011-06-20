@@ -68,6 +68,12 @@ class TaskInfo
 	    toTask.addClassification(classification) if classification.surviveExec
 	}
     end
+    
+    # Returns string representation of associated classifications
+    def classifications_to_s	
+	taskClassificationsString = @classifications.to_a.join(", ")
+	return taskClassificationsString
+    end
 
     def ==(other)
         @pid == other.pid && @startTime == other.startTime
@@ -87,15 +93,20 @@ class TaskRepository
         @nodeRepository = nodeRepository
         @membershipManager = membershipManager
         @listeners = []
-	@classificators = []
+	@forkClassificators = []
+	@execClassificators = []
     end
 
     def registerListener(listener)
         @listeners << listener
     end
     
-    def addClassificator(classificator)
-        @classificators << classificator
+    def addForkClassificator(classificator)
+        @forkClassificators << classificator
+    end
+    
+    def addExecClassificator(classificator)
+        @execClassificators << classificator
     end
     
     def onFork(pid, parentPid)
@@ -107,7 +118,7 @@ class TaskRepository
 	if ( task ) 
 	  child = task.addForkedChild(pid)
 	  task.copySurviveForkClassifications(child)
-	  classifyNewTask(child)
+	  classifyNewTaskOnFork(child)
 	  @lock.synchronize {	
 	      @tasks[pid] = child
 	  }
@@ -133,7 +144,7 @@ class TaskRepository
         
         newTask, oldTask = registerTask(pid, uid, name, args, @nodeRepository.selfNode())
 	oldTask.copySurviveExecClassifications(newTask) if oldTask
-	classifyNewTask(newTask)
+	classifyNewTaskOnExec(newTask)
         nil
     end
     
@@ -243,9 +254,15 @@ private
            notifyTaskExit(task, exitCode)
         end        
     end    
-    
-    def classifyNewTask(task)
-      @classificators.each{ |classificator|
+
+    def classifyNewTaskOnExec(task)
+      @execClassificators.each{ |classificator|
+         classificator.classify(task) 
+      }
+    end    
+
+    def classifyNewTaskOnFork(task)
+      @forkClassificators.each{ |classificator|
          classificator.classify(task) 
       }
     end    

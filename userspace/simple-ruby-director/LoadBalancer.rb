@@ -77,9 +77,11 @@ private
         migrationTarget = getEmigrationTarget(pid, uid, name, args, envp)
         if ( migrationTarget )
 	  task = @taskRepository.getTask(pid)
-	  taskClassificationsString = nil
-	  taskClassificationsString = task.classifications.collect() { |i| i }.to_s if ( task )
-	  $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget} (#{taskClassificationsString})")
+	  if ( task )
+	    $log.info("LoadBalancer decided to emigrate #{name}:#{pid} to node #{migrationTarget} (#{task.classifications_to_s})")
+	  else
+	    $log.warn("LoadBalancer cannot find info about task pid #{pid}")
+	  end	  
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
           [DirectorNetlinkApi::DO_NOT_MIGRATE]
