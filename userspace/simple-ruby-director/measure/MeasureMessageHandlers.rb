@@ -27,14 +27,31 @@ class ExecutionResultListener
 end
 
 class ExecutionPlanHandler
-  def initialize(localNodeId, interconnect)
+  def initialize(localNodeId, interconnect, measurementDirector)
     @localNodeId = localNodeId
     @interconnect = interconnect
+    @measurementDirector = measurementDirector
   end
   
   def handle(message)
       $log.debug("Received execution plan message.")
-      message.executionPlan.execute(@localNodeId, ExecutionResultListener.new(@localNodeId, message.initiatingNodeId, @interconnect))
-      $log.debug("Measurement plan execution started in back-ground.")
+      if message.nodesToBlock.include?(@localNodeId)
+	  $log.debug("Suspending node for the time of measurement.")
+	  @measurementDirector.suspendNode
+      else
+	  message.executionPlan.execute(@localNodeId, ExecutionResultListener.new(@localNodeId, message.initiatingNodeId, @interconnect))
+	  $log.debug("Measurement plan execution started in back-ground.")
+      end      
   end  
+end
+
+class MeasurementFinishedHandler
+    def initialize(measurementDirector)
+      @measurementDirector = measurementDirector
+    end
+    
+    def handle(message)
+        $log.debug("Resuming node after calculation completition.")
+        @measurementDirector.resumeNode
+    end  
 end

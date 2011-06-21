@@ -16,13 +16,16 @@ require 'measure/MeasurementPlan.rb'
 #  ALL: gcc2 60
 
 class MeasurementPlanParser
+  # Delay how long to wait before starting to get remote nodes time to block accepting of events
+  SAFETY_DELAY_FOR_BLOCKING = 5
+  
   def initialize(nodeRepository)
     @nodeRepository = nodeRepository   
   end
   
   def initializeMeasurement(fileName, startTime, outputFileName)      
       @commands = {}
-      measurement = Measurement.new(startTime, outputFileName)
+      measurement = Measurement.new(startTime + SAFETY_DELAY_FOR_BLOCKING, outputFileName)
       
       # Will read all lines in memory.. no issues since we do not assume large files
       lines = []      

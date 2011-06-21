@@ -274,12 +274,15 @@ end
 
 class Measurement
   attr_reader :measurementPlan
+  # Ids of nodes that should be excluded from measurement (and will be blocked for the time of measurement)
+  attr_reader :nodesToBlock
            
   def initialize(startTime, outputFileName)
     # Used to assign unique ids to tasks    
     @measurementPlan = MeasurementPlan.new(startTime)
     @outputFileName = outputFileName
     @nodeMapping = {}    
+    @nodesToBlock = Set.new
   end
   
   def buildNodeMappingForAllKnownNodes(nodeRepository)
@@ -290,17 +293,19 @@ class Measurement
     nodeCount = 0
     availableNodes = nodeRepository.knownNodesCount + 1 # +1 for "self"
     raise "Not enough nodes. Available #{availableNodes}, but required #{requiredNodeCount}" if availableNodes < requiredNodeCount
-    
+
     name = "LocalNode"
     @nodeMapping[name] = nodeRepository.selfNode
     nodeCount = nodeCount + 1
     
     nodeRepository.eachNode { |node|
-      break if requiredNodeCount > 0 and requiredNodeCount == nodeCount
-                                        
-      name = "RemoteNode#{nodeCount}"
-      @nodeMapping[name] = node                             
-      nodeCount = nodeCount + 1                            
+      if requiredNodeCount > nodeCount
+	name = "RemoteNode#{nodeCount}"
+	@nodeMapping[name] = node                             
+	nodeCount = nodeCount + 1                            
+      else
+        @nodesToBlock.add(node.id)
+      end
     }        
     
     # Secondary check, in case known nodes count has decreased during the iteration
@@ -320,12 +325,17 @@ class Measurement
     }
   end
   
+  def registerFinishCallback(callback)
+    @finishCallback = callback
+  end
+  
   def addResult(nodeId, taskIndex, result)
     @measurementPlan.addResult(nodeId, taskIndex, result)
                     
     if ( hasAllResults() )
       saveResults()
       $log.info "Results saved and measurement finished"
+      @finishCallback.measurementFinished(self) if @finishCallback
     end
   end                      
   

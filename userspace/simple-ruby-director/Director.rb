@@ -39,6 +39,7 @@ require 'ProcTrace.rb'
 
 require 'TestMakeAcceptLimiter'
 require 'TaskNameBasedAcceptLimiter'
+require 'MeasurementAcceptLimiter'
 require 'LimitersImmigrationController'
 #require "xray/thread_dump_signal_handler"
 
@@ -59,7 +60,8 @@ class Director
 		  		  		
 		@immigratedTasksController = ImmigratedTasksController.new(@filesystemConnector)
 		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep"], @immigratedTasksController)
-		@immigrationController = LimitersImmigrationController.new([acceptLimiter], @immigratedTasksController)
+		@measurementLimiter = MeasurementAcceptLimiter.new()
+		@immigrationController = LimitersImmigrationController.new([acceptLimiter, @measurementLimiter], @immigratedTasksController)
 
 		@interconnection = Interconnection.new(InterconnectionUDPMessageDispatcher.new(), CONF_DIR)
 		initializeTrust()
@@ -90,6 +92,7 @@ class Director
                 @nodeInfoProvider.addListener(SignificanceTracingFilter.new(@informationDistributionStrategy))
                 @nodeInfoProvider.addListener(currentNode)
                 @nodeInfoProvider.addLimiter(acceptLimiter)
+		@nodeInfoProvider.addLimiter(@measurementLimiter)
                 
                 #@taskRepository.registerListener(ExecutionTimeTracer.new)
                 @taskRepository.registerListener(balancingStrategy)
@@ -170,7 +173,7 @@ private
         end
 	
 	def initializeMeasurements()
-	      @measurementDirector = MeasurementDirector.new(@nodeInfoProvider.getCurrentId, @interconnection) 
+	      @measurementDirector = MeasurementDirector.new(@nodeInfoProvider.getCurrentId, @interconnection, @measurementLimiter) 
 	      @nodeInfoConsumer.registerUpdateListener(@measurementDirector)
 	      @nodeInfoProvider.addListener(@measurementDirector)
 	end
