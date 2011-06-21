@@ -13,7 +13,13 @@ class ExecuteCommand < MeasurementCommand
    pid = fork { 
      closeFds()
      Dir.chdir @path     
-     exec "#{@command} > /tmp/measure-execution-#{Process.pid} 2>&1"
+     commandTokens = @command.split(' ')
+     execName = commandTokens[0]
+     args = commandTokens[1, commandTokens.size]
+     
+     $stdout.reopen("/tmp/#{execName.split('/')[-1]}-#{Process.pid}", 'w' )
+     $stderr.reopen("/tmp/#{execName.split('/')[-1]}-#{Process.pid}", 'w' )
+     exec(execName, *args)
    }
    Process.waitpid(pid, 0) 
   end
