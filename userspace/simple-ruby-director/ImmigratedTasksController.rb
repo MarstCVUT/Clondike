@@ -39,6 +39,9 @@ private
 	# Wait 10 seconds before migrating home just to give locally running remote tasks some chance to finish
 	sleep(10)
         @immigratedTasks.each_key { |pid|
+	    task = @taskRepository.getTask(pid)
+	    # Currently we send home only long-term tasks
+	    next if task && !task.hasClassification(MigrateableLongTermTaskClassification.new())
 	    $log.info("Requesting migrated home for #{pid}")
 	    @filesystemConnector.migrateHome(DETACHED_MANAGER_SLOT ,pid)
 	}
