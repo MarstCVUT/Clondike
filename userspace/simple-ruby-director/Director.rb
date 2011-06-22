@@ -81,6 +81,7 @@ class Director
 		@taskRepository.addExecClassificator(CompileNameClassificator.new())
 		# Classify all "mandel" (mandelbrot calc) tasks as long term migrateable tasks
 		@taskRepository.addExecClassificator(ExecNameConfigurableClassificator.new("mandel", [MigrateableLongTermTaskClassification.new, MasterTaskClassification.new]))
+		@immigratedTasksController.registerTaskRepository(@taskRepository)
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		

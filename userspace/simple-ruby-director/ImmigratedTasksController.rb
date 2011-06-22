@@ -4,7 +4,7 @@
 class ImmigratedTasksController
   def initialize(filesystemConnector)
     @immigratedTasks = {}
-    @filesystemConnector = filesystemConnector
+    @filesystemConnector = filesystemConnector   
   end
   
   def onImmigrationConfirmed(node, name, localPid, remotePid)
@@ -25,6 +25,10 @@ class ImmigratedTasksController
   
   def immigratedTaskCount()
     return @immigratedTasks.size
+  end
+  
+  def registerTaskRepository(taskRepository)
+    @taskRepository = taskRepository
   end
   
   def migrateAllHome()
