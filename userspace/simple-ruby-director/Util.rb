@@ -54,7 +54,7 @@ def timedExecution(name)
   result = yield
   endTime = Time.now.to_f
   
-  $log.debug "Execution of '#{name}' took: #{endTime - startTime} sec"
+  $log.debug "Execution of '#{name}' took: #{1000*(endTime - startTime)} ms"
   return result
 end
 
