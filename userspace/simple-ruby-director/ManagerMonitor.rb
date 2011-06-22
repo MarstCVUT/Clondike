@@ -8,7 +8,7 @@ class ManagerMonitor
 	def initialize(interconnection, membershipManager, nodeRepository, filesystemConnector)
 		@interconnection = interconnection
 		@membershipManager = membershipManager
-		@currentNodeId = nodeRepository.selfNode.id
+		@currentNodeId = nodeRepository.selfNode.id		
 		@filesystemConnector = filesystemConnector
 		# In seconds
 		@heartBeatPeriod = 10
@@ -118,7 +118,7 @@ class HeartBeatHandler
 	end
 
 	# TODO: Proper sync of this method?
-	def handleFrom(heartBeatMessage, fromManagerSlot)
+	def handleFrom(heartBeatMessage, fromManagerSlot)	        
 		nodeId = heartBeatMessage.nodeId
 		if ( fromManagerSlot.slotType == CORE_MANAGER_SLOT )
 			node = @membershipManager.coreManager.detachedNodes[fromManagerSlot.slotIndex]
@@ -139,6 +139,6 @@ class HeartBeatHandler
 			end
 			
 			node.updateLastHeartBeatTime();
-		end		
+		end
 	end
 end

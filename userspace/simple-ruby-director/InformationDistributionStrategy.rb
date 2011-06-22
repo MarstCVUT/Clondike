@@ -52,9 +52,11 @@ private
     def recvInfoThread
         while true
             begin
-              recvData, addr = @socket.recvfrom(60000)            
-              recvElement = Marshal.load(recvData)
-              @informationConsumer.infoReceived(addr[2], recvElement) if @informationConsumer
+              recvData, addr = @socket.recvfrom(60000)
+#	      timedExecution("LS") {
+		recvElement = Marshal.load(recvData)
+		@informationConsumer.infoReceived(addr[2], recvElement) if @informationConsumer
+#	      }
               #puts "Received from #{addr[2]} Element: #{recvElement}"
             rescue => err
                 $log.error "Error in recvInfoThread #{err.backtrace.join("\n")}"                

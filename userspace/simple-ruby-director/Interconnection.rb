@@ -1,5 +1,6 @@
 require 'PersistentIdSequence.rb'
 require 'trust/TrustManagement.rb'
+require 'Util.rb'
 
 # Class for handling inter node message exchanges
 # TODO: This is now a duplicite mechanism with InformationDistributionStrategy -> Rewrite that class to use this class?
@@ -17,7 +18,8 @@ class Interconnection
 	@messageQueue = BlockingQueue.new
     end
     
-    def start(trustManagement, netlinkConnector)
+    def start(trustManagement, netlinkConnector, identityProvider)
+      	@identityProvider = identityProvider
 	@netlinkConnector = netlinkConnector
         @trustManagement = trustManagement
         @recvThread = Thread.new() { recvMessageThread()  }
@@ -80,16 +82,15 @@ private
     def handle(message)
         case message
             when MessageWrapper                
-                # TODO: Ugly ugly.. direct working with publicKey? It would be nicer to be shielded from such details..
-                localPublicKey = @trustManagement.localIdentity.publicKey
+                currentId = @identityProvider.getCurrentId
                 # Ignore non-broadcast message that are not sent for us
-                return if (message.target != nil && message.target != localPublicKey)
+                return if (message.target != nil && message.target != currentId)
                                 
-                doDispatch(message.target, AckMessage.new(message.messageId, localPublicKey, @trustManagement)) if message.requiresAck
+                doDispatch(message.target, AckMessage.new(message.messageId, currentId, @trustManagement)) if message.requiresAck
 		# TODO: Extend wrapper by key of sender and pass the key here
 		@messageQueue.enqueue([message.message, nil])
             when AckMessage
-                @ackTracking.ackReceived(message.messageId, message.recipient) if ( message.verifySignature(@trustManagement))
+                @ackTracking.ackReceived(message.messageId, message.recipientId) if ( message.verifySignature(@trustManagement))
         else
             $log.error "Unexpected message class arrived -> #{message.class}"
         end        
@@ -338,19 +339,21 @@ class AckMessage
    attr_reader :timestamp
    # Signature confiruming valid ack
    attr_reader :signature
-   # Public key of node that recieved the message
-   attr_reader :recipient
+   # Id of node that recieved the message
+   attr_reader :recipientId
 
-   def initialize(messageId, recipient, trustManagement)
+   def initialize(messageId, recipientId, trustManagement)
        @timestamp = Time.now
-       @recipient = recipient
+       @recipientId = recipientId
        @messageId = messageId
        sign(trustManagement)
    end      
    
    def verifySignature(trustManagement)
        return false if (!signature)
-       trustManagement.verifySignature(dataToSign(), @signature, @recipient)
+       recipientKey = trustManagement.getKey(@recipientId)
+       raise "Cannot verify signature, recipient key uknown: #{@recipientId}" if !recipientKey
+       trustManagement.verifySignature(dataToSign(), @signature, recipientKey)
    end
 private
    def dataToSign

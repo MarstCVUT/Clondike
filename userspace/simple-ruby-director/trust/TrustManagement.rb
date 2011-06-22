@@ -16,18 +16,26 @@ class TrustManagement
         @dataStore = TrustInMemoryDataStore.newDataStore(localIdentity)
         @interconnection = interconnection                
         @interconnection.addReceiveHandler(CertificateMessage, CertificateHandler.new(self)) if ( interconnection )        
+	@interconnection.addReceiveHandler(PublicKeyDisseminationMessage, PublicKeyDisseminationMessageHandler.new(self)) if ( interconnection )        
         
         @authenticationDispatcher = AuthenticationDispatcher.new(localIdentity, interconnection)
         
+	# Maps nodeId -> public key of that node as known from periodic broadcast
+	@keyMap = {}
+	
         #@localIdentity.certificateStore.changeListener.addListener(BroadcastCertificateChangeListener.new(@interconnection))        
+	
+	ExceptionAwareThread.new() {
+	  publicKeyBroadcastingThread();
+	}
     end
         
     # Called by a "client" when he wants to establish session with a remote node.
     # This method pre-establishes secret needed to authenticate.
     # If succeeded, returns authentication data to be used by the client
-    def authenticate(publicKey)
+    def authenticate(nodeId, publicKey)
         begin 
-	  proof = @authenticationDispatcher.prepareSession(publicKey)
+	  proof = @authenticationDispatcher.prepareSession(@idProvider.getCurrentId(), nodeId, publicKey)
 	  if !proof then
 	      $log.debug("Authentication negotiation has failed (Peer: #{publicKey.undecorated_to_s})!")
 	      return nil
@@ -53,6 +61,18 @@ class TrustManagement
         end
         #TODO Fill remote session! Get it back from checkNewSessionRequest?
         Session.new(nil, proof)
+    end
+    
+    def registerKey(nodeId, publicKey)
+	@keyMap[nodeId] = publicKey
+    end
+    
+    def getKey(nodeId)
+      return @keyMap[nodeId]
+    end
+    
+    def registerIdProvider(idProvider)
+      @idProvider = idProvider
     end
     
     # Method that checks permission to perform operation on object
@@ -112,7 +132,17 @@ private
         }
         
         return false
-    end    
+    end
+    
+    # Thread to periodically broadcast full public key (mapped to nodeId)
+    def publicKeyBroadcastingThread
+       while true do
+	   sleep(10)
+	   next if !@idProvider
+	   message = PublicKeyDisseminationMessage.new(@idProvider.getCurrentId, @localIdentity.publicKey)
+	   @interconnection.dispatch(nil, message) if @interconnection
+       end
+    end
 end
 
 class CertificateHandler
@@ -133,7 +163,7 @@ class CertificateHandler
         @trustManagement.localIdentity.certificateStore.insertNewCertificate(message.certificate, true)
         # Immediately sents ack.. the cert should be persisted by now..
         #@trustMaganegemt.interconnection.dispatch(message.certificate.issuer, CertificateAckMessage.new(@trustManagement.localIdentity.publicKey, message.certificate.issuer, message.certificate.id))
-    end
+    end    
 end
 
 # HACKY certificate listener. Broadcast all certificates to everybody
@@ -156,10 +186,25 @@ end
 
 class PublicKeyNodeIdResolver
     def initialize(trustManagement)
-        @publicKey = trustManagement.localIdentity.publicKey
+        @identity = trustManagement.localIdentity.publicKey.to_s
     end
     
     def getCurrentId()
-        @publicKey
+        @identity
+    end
+    
+    def requiredIdentityClass()
+	return String.class
+    end
+end
+
+
+class PublicKeyDisseminationMessageHandler
+    def initialize(trustManagement)
+	@trustManagement = trustManagement		
+    end
+
+    def handle(message)            
+	@trustManagement.registerKey(message.nodeId, message.publicKey)
     end
 end

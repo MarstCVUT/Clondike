@@ -67,8 +67,9 @@ class Director
 		initializeTrust()
 
 		#idResolver = IpBasedNodeIdResolver.new
-		idResolver = PublicKeyNodeIdResolver.new(@trustManagement)
-                @nodeInfoProvider = NodeInfoProvider.new(idResolver, @immigratedTasksController)
+		@idResolver = PublicKeyNodeIdResolver.new(@trustManagement)
+                @nodeInfoProvider = NodeInfoProvider.new(@idResolver, @immigratedTasksController)
+		@trustManagement.registerIdProvider(@idResolver)
                 currentNode = CurrentNode.createCurrentNode(@nodeInfoProvider)
 
 		$log.info("Starting director on node with id #{currentNode.id}")    
@@ -86,7 +87,7 @@ class Director
                 balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager, @taskRepository)
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy, @taskRepository, @filesystemConnector)		
-                @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, idResolver.getCurrentId)
+                @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, @idResolver.getCurrentId)
                 @nodeInfoConsumer.registerNewNodeListener(@membershipManager)		
                 @informationDistributionStrategy = InformationDistributionStrategy.new(@nodeInfoProvider, @nodeInfoConsumer)
                 @nodeInfoProvider.addListener(SignificanceTracingFilter.new(@informationDistributionStrategy))
@@ -121,18 +122,18 @@ class Director
 		cacheFSController = CacheFSController.new
 		procTrace = ProcTrace.new(['/usr/bin/make','/usr/bin/gcc'])
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
-                @netlinkConnector.pushNpmHandlers(procTrace)
+                @netlinkConnector.pushNpmHandlers(procTrace) if $useProcTrace
                 @netlinkConnector.pushNpmHandlers(ExecDumper.new())
                 @netlinkConnector.pushNpmHandlers(@loadBalancer)
 
 		@netlinkConnector.pushExitHandler(@taskRepository)
 		@netlinkConnector.pushExitHandler(@immigratedTasksController)		
-                @netlinkConnector.pushExitHandler(procTrace)
+                @netlinkConnector.pushExitHandler(procTrace) if $useProcTrace
 		
 		@netlinkConnector.pushForkHandler(@immigratedTasksController)
 		@netlinkConnector.pushForkHandler(@taskRepository)
 		@netlinkConnector.pushForkHandler(@immigratedTasksController)		
-		@netlinkConnector.pushForkHandler(procTrace)
+		@netlinkConnector.pushForkHandler(procTrace) if $useProcTrace
 		
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		
@@ -145,13 +146,13 @@ class Director
 		@netlinkConnector.pushEmigrationFailedHandler(@taskRepository)
 		@netlinkConnector.startProcessingThread                                
 		
-		@loadBalancer.registerMigrationListener(procTrace)
+		@loadBalancer.registerMigrationListener(procTrace) if $useProcTrace
                 
                 #Start notification thread
                 @nodeInfoProvider.startNotifyThread
                 
                 @informationDistributionStrategy.start  
-                @interconnection.start(@trustManagement, @netlinkConnector)
+                @interconnection.start(@trustManagement, @netlinkConnector, @idResolver)
 		@managerMonitor.start()
 	end
 
@@ -193,6 +194,8 @@ end
 
 $log = Logger.new(STDOUT)
 $log.level = Logger::DEBUG;
+
+$useProcTrace = false
     
 director = Director.new
 director.start

@@ -115,7 +115,7 @@ class QuantityLoadBalancingStrategy
     end
     
     # Return ID of the node where the process shall be migrated
-    # Returns nil, if no migration should be performed        
+    # Returns nil, if no migration should be performed            
     def findMigrationTarget(pid, uid, name, args, envp, emigPreferred)        
         return nil if !@membershipManager.coreManager # Not a core node?
         detachedNodes = @membershipManager.coreManager.detachedNodes

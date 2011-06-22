@@ -78,19 +78,24 @@ class MembershipManager
             # The connection attempt is done in a separate thread so that we do not block receiving
             # Better would be to make connection non-blocking (especially the auth-negotiation which actually uses message interconnect)
             ExceptionAwareThread.new() {
-                nodeIpAddress = node.ipAddress
-                $log.debug("Trying to connect to #{nodeIpAddress}")
-                session = @trustManagement.authenticate(node.id)
-                
-                if session then
-                    # TODO: Devel proof
-                    succeeded = @filesystemConnector.connect(nodeIpAddress, session.authenticationProof)
-                    $log.info("Connection attempt to #{nodeIpAddress} with proof #{session.authenticationProof} #{succeeded ? 'succeeded' : 'failed'}.")
-                    if succeeded
-                        slotIndex = @filesystemConnector.findDetachedManagerSlot(nodeIpAddress)
-                        @detachedManagers[slotIndex] = DetachedNodeManager.new(node, slotIndex)
-                    end
-                end
+                nodeIpAddress = node.ipAddress                
+		nodePublicKey = @trustManagement.getKey(node.id);
+		
+		# Do not know the key yet
+		if nodePublicKey then
+		  $log.debug("Trying to connect to #{nodeIpAddress}")
+		  session = @trustManagement.authenticate(node.id, nodePublicKey)
+		  
+		  if session then
+		      # TODO: Devel proof
+		      succeeded = @filesystemConnector.connect(nodeIpAddress, session.authenticationProof)
+		      $log.info("Connection attempt to #{nodeIpAddress} with proof #{session.authenticationProof} #{succeeded ? 'succeeded' : 'failed'}.")
+		      if succeeded
+			  slotIndex = @filesystemConnector.findDetachedManagerSlot(nodeIpAddress)
+			  @detachedManagers[slotIndex] = DetachedNodeManager.new(node, slotIndex)
+		      end
+		  end
+		end
             }
         end
 
