@@ -30,14 +30,14 @@ class MeasurementDirector
   
   def notifyUpdate(node, nodeInfo)
     if ( @currentMeasurement )
-      @currentMeasurement.measurementPlan.addNodeUsageRecord(node.id, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load, nodeInfo.immigratedTasks)
+      @currentMeasurement.measurementPlan.addNodeUsageRecord(node.id, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load, nodeInfo.immigratedTasks, nodeInfo.localTasks)
     end
   end
   
   def notifyChange(localNodeInfoWithId)
     if ( @currentMeasurement )
       nodeInfo = localNodeInfoWithId.nodeInfo
-      @currentMeasurement.measurementPlan.addNodeUsageRecord(localNodeInfoWithId.nodeId, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load, nodeInfo.immigratedTasks)
+      @currentMeasurement.measurementPlan.addNodeUsageRecord(localNodeInfoWithId.nodeId, nodeInfo.timestamp, nodeInfo.cpuUsage, nodeInfo.load, nodeInfo.immigratedTasks, nodeInfo.localTasks)
     end    
   end
   

@@ -108,12 +108,14 @@ class NodeUsageRecord
   attr_reader :cpuUsage
   attr_reader :cpuLoad
   attr_reader :immigratedTaskCount
+  attr_reader :localTaskCount
   
-  def initialize(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
+  def initialize(timestamp, cpuUsage, cpuLoad, immigratedTaskCount, localTaskCount)
     @timestamp = timestamp
     @cpuUsage = cpuUsage
     @cpuLoad = cpuLoad
     @immigratedTaskCount = immigratedTaskCount
+    @localTaskCount = localTaskCount
   end
 end
 
@@ -134,8 +136,8 @@ class NodeMeasurementPlan
     @tasks[taskIndex].setResult(result)
   end
   
-  def addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
-    @nodeUsage << NodeUsageRecord.new(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
+  def addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount, localTaskCount)
+    @nodeUsage << NodeUsageRecord.new(timestamp, cpuUsage, cpuLoad, immigratedTaskCount, localTaskCount)
   end
   
   def execute(planStartTime, resultListener)                
@@ -166,7 +168,7 @@ class NodeMeasurementPlan
   def saveStatsToFile(file, nodeName)
     file.puts("Name: #{nodeName}")
     @nodeUsage.each { |usage|
-	file.puts("  #{usage.timestamp} -> #{usage.timestamp.to_f}, #{usage.cpuLoad}, #{usage.cpuUsage}, #{usage.immigratedTaskCount}")
+	file.puts("  #{usage.timestamp} -> #{usage.timestamp.to_f}, #{usage.cpuLoad}, #{usage.cpuUsage}, #{usage.immigratedTaskCount}|#{usage.localTaskCount}")
     }
   end
 private
@@ -226,9 +228,9 @@ class MeasurementPlan
     $log.debug("Got result. Now has #{@receivedResultCount} results out of #{@requiredResultCount} required")
   end
   
-  def addNodeUsageRecord(nodeId, timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
+  def addNodeUsageRecord(nodeId, timestamp, cpuUsage, cpuLoad, immigratedTaskCount, localTaskCount)
     plan = getOrCreateNodeMeasurementPlan(nodeId)
-    plan.addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount)
+    plan.addNodeUsageRecord(timestamp, cpuUsage, cpuLoad, immigratedTaskCount, localTaskCount)
   end  
     
   def hasAllResults()
