@@ -30,24 +30,19 @@ class ExecuteCommand < MeasurementCommand
   
 private
   # This is an ugly quick fix solution for measurement execution. Basically, ruby is keeping some open sockets and when we fork and try to migrate we are not able to migrate those open sockets
-  # So we want to close them... a MUCH cleaner solution would be to introspectively find open sockets and close them!
-  def closeFds
-    if io = IO::new(3)
-        io.close
+  # So we want to close them... a MUCH cleaner solution would be to introspectively find open sockets and close them, we now just try 3-10 and checking for mode does not seem to work :(
+  def closeFds    
+    for i in 3..10 do
+      begin
+        if io = IO::new(i)
+	  io.close if !io.closed?
+	end
+      rescue
+	  # Ignore.. this FD may be open or closed depending on debug status of LoadBalancer?
+      end
     end    
-    
-    if io = IO::new(5)
-        io.close
-    end        
-    
-    if io = IO::new(6)
-        io.close
-    end            
-    
-    if io = IO::new(7)
-        io.close
-    end                    
   end
+  
 end
 
 class DisconnectCommand < MeasurementCommand
