@@ -258,7 +258,7 @@ private
 	      if ( target )
 		pids.delete(pid)
 		plan[pid] = target
-                @counter.addPid(target, detachedNodes[target]) # Move task in tracking to a new node.. if emigration fails we'll get notified later
+                @counter.addPid(detachedNodes[target], pid) # Move task in tracking to a new node.. if emigration fails we'll get notified later
                 maxEmigrateCount = maxEmigrateCount - 1
 	      end
                 
