@@ -27,7 +27,7 @@ class NodeInfoProvider
 	@immigratedTasksController = immigratedTasksController
 	@idResolver = idResolver
         @listeners = Set.new
-        @cpuUsageParser = CpuUsageParser.new
+        @cpuUsageParser = CpuUsageParser.new	
         # Collection of limiters for accepted tasks
         @acceptLimiters = []
     end
@@ -38,6 +38,10 @@ class NodeInfoProvider
     
     def addLimiter(limiter)
         @acceptLimiters << limiter
+    end
+    
+    def registerLocalTaskCountProvider(localTaskCountProvider)
+      @localTaskCountProvider = localTaskCountProvider
     end
 
     def getCurrentInfoWithId
@@ -72,7 +76,9 @@ class NodeInfoProvider
     
 private
      def getCurrentInfo
-         NodeInfo.new(getCurrentLoad, getCurrentCpuUsage, getCurrentMaximumAccept, @immigratedTasksController.immigratedTaskCount())
+	 localTaskCount = -1
+	 localTaskCount = @localTaskCountProvider.localTaskCount() if @localTaskCountProvider
+         NodeInfo.new(getCurrentLoad, getCurrentCpuUsage, getCurrentMaximumAccept, @immigratedTasksController.immigratedTaskCount(), localTaskCount)
      end    
 
      # Finds minimal maximum-accept count. (nil = unlimited)

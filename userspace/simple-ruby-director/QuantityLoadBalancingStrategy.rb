@@ -173,6 +173,10 @@ class QuantityLoadBalancingStrategy
       @log = nil
     end
     
+    # Callback method as a local task count provider (used in NodeInfoProvider)
+    def localTaskCount()
+      @counter.getCount(@nodeRepository.selfNode)
+    end
 private
     def getCurrentLocalMinimum()      
       remoteCount = @counter.getRemoteCount(@nodeRepository.selfNode)

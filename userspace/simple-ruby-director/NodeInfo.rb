@@ -10,19 +10,26 @@ class NodeInfo
     attr_reader :cpuUsage
     # Current maximum accept count of the node
     attr_reader :maximumAccept
+    
+    # NOTE: The following 2 pieces of information may or may not be broadcasted in real world scenario.. the other nodes can benefit from those
+    # on the other hand they cannot be trusted and node may want to keep them local.. we broadcast them in order to track those data in statistics, but it can be removed
+    
     # Count of currently immigrated remoted tasks
     attr_reader :immigratedTasks
+    # Count of local MIGRATEABLE tasks.. i.e. tasks that would be considered for migration, but were kept locally
+    attr_reader :localTasks
     
-    def initialize (load, cpuUsage, maximumAccept, immigratedTasks)
+    def initialize (load, cpuUsage, maximumAccept, immigratedTasks, localTasks)
         @load = load
         @cpuUsage = cpuUsage
         @maximumAccept = maximumAccept
 	@immigratedTasks = immigratedTasks
+	@localTasks = localTasks
         @timestamp = Time.now()
     end
     
     def to_s
-        "Load: #{@load} Cpu usage: #{@cpuUsage} Timestamp: #{@timestamp} Max accept: #{@maximumAccept} Immigrated: #{@immigratedTasks}"
+        "Load: #{@load} Cpu usage: #{@cpuUsage} Timestamp: #{@timestamp} Max accept: #{@maximumAccept} Immigrated: #{@immigratedTasks} Local: #{@localTasks}"
     end    
 end
 
