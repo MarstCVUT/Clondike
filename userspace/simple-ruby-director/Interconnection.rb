@@ -131,7 +131,7 @@ class InterconnectionUDPMessageDispatcher
     # TO: Either null (broadcast) or a nodeId (publicKey) of the target node
     # MESSAGE: Message object to be sent
     def dispatch(to, message)
-        $log.debug("Interconnect is dispatching message to #{to}.")
+#        $log.debug("Interconnect is dispatching message to #{to}.")
         # Dummy implementation -> Broadcast everything
         @socket.send(Marshal.dump(message), 0, "255.255.255.255", @port)
     end
@@ -144,7 +144,7 @@ class InterconnectionUDPMessageDispatcher
             #$log.debug("Ignoring message from local IP (#{addr})")
           end
           message = Marshal.load(recvData)        
-          $log.debug("Interconnect received message.")
+ #         $log.debug("Interconnect received message.")
           return message
     end
 end
