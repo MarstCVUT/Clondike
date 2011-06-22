@@ -11,7 +11,7 @@ class ManagerMonitor
 		@currentNodeId = nodeRepository.selfNode.id
 		@filesystemConnector = filesystemConnector
 		# In seconds
-		@heartBeatPeriod = 5
+		@heartBeatPeriod = 10
 
 	        @interconnection.addReceiveHandler(HeartBeatMessage, HeartBeatHandler.new(membershipManager, nodeRepository)) if ( interconnection )
 	end
