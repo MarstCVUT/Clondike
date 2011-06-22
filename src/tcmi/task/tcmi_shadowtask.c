@@ -211,7 +211,7 @@ static int tcmi_shadowtask_emigrate_p(struct tcmi_task *self, struct tcmi_npm_pa
 		exec_name = npm_params->file_name;
 	} else {
 		// TODO: Detect this from current in case of PPM.. how? ;)	
-		exec_name = "TODO: UNKNOWN";
+		exec_name = current->comm;
 	}
 
 	mdbg(INFO2, "Process '%s' - local PID %d, emigrating",
