@@ -171,7 +171,7 @@ class NetlinkConnector
         end
 	
 	def connectorMigratedHomeCallbackFunction(pid)
-	    $log.info("Migrating home: #{pid}")
+	    $log.info("Migrated home: #{pid}")
 	    
 	    @migratedHomeHandlers.each do |handler|
 		handler.onMigratedHome(pid)
