@@ -13,6 +13,8 @@ class TaskInfo
     # Time in millis, when the task was started (actually the time, when it was
     # registered to this component). Float, in seconds with millis as floating point fration
     attr_reader :startTime
+    # Set on exit, can be used by exit listeners
+    attr_accessor :endTime
     # Node, where the task originated from   
     attr_reader :homeNode    
     # Node, where is the task being executed at the moment (as far as we can say)    
@@ -69,10 +71,26 @@ class TaskInfo
 	}
     end
     
+    def getClassificationOfType(classificationClass)
+	result = nil;
+	@classifications.each { |classification|
+	    if classification.class == classificationClass then
+		result = classification
+	        break;
+	    end	             
+	}
+	return result
+    end
+    
     # Returns string representation of associated classifications
     def classifications_to_s	
 	taskClassificationsString = @classifications.to_a.join(", ")
 	return taskClassificationsString
+    end
+    
+    def duration
+      return nil if !@endTime
+      return @endTime.to_f - @startTime.to_f
     end
 
     def ==(other)
@@ -149,7 +167,7 @@ class TaskRepository
     end
     
     # Callback on task exit
-    def onExit(pid, exitCode, rusage)
+    def onExit(pid, exitCode, rusage)	
         deregisterTask(pid, exitCode)
     end
     
@@ -251,6 +269,7 @@ private
         }
         
         if ( task )
+	   task.endTime = Time.now
            notifyTaskExit(task, exitCode)
         end        
     end    

@@ -23,6 +23,18 @@ class CompileNameClassification<Classification
   def to_s()
     "CompileFile: #{@compileFileName}"
   end
+  
+  def ==(other)
+    other.class == self.class && @compileFileName == other.compileFileName
+  end  
+
+  def eql?(other)
+    other.class == self.class && @compileFileName == other.compileFileName
+  end  
+  
+  def hash()
+    @compileFileName.hash
+  end      
 end
 
 class CompileNameClassificator

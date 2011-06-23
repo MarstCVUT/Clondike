@@ -97,10 +97,11 @@ end
 # of tasks send to individual nodes
 class QuantityLoadBalancingStrategy
 
-    def initialize(nodeRepository, membershipManager, taskRepository)
+    def initialize(nodeRepository, membershipManager, taskRepository, predictor)
         @nodeRepository = nodeRepository
         @membershipManager = membershipManager
 	@taskRepository = taskRepository
+	@predictor = predictor
         # Minimum tasks running locally we want .. currently equals to core counts, could consider core count + 1?
         @defaultMinimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
 #        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop

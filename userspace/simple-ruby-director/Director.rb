@@ -41,6 +41,7 @@ require 'TestMakeAcceptLimiter'
 require 'TaskNameBasedAcceptLimiter'
 require 'MeasurementAcceptLimiter'
 require 'LimitersImmigrationController'
+require 'ExecutionTimePredictor'
 #require "xray/thread_dump_signal_handler"
 
 
@@ -82,10 +83,13 @@ class Director
 		# Classify all "mandel" (mandelbrot calc) tasks as long term migrateable tasks
 		@taskRepository.addExecClassificator(ExecNameConfigurableClassificator.new("mandel", [MigrateableLongTermTaskClassification.new, MasterTaskClassification.new]))
 		@immigratedTasksController.registerTaskRepository(@taskRepository)
+		
+		predictor = ExecutionTimePredictor.new(CONF_DIR, false)
+		
                 #balancingStrategy = RandomBalancingStrategy.new(@nodeRepository, @membershipManager)
                 #balancingStrategy = CpuLoadBalancingStrategy.new(@nodeRepository, @membershipManager)
 		#balancingStrategy = RoundRobinBalancingStrategy.new(@nodeRepository, @membershipManager)		
-                balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager, @taskRepository)
+                balancingStrategy = QuantityLoadBalancingStrategy.new(@nodeRepository, @membershipManager, @taskRepository, predictor)
 		balancingStrategy.startDebuggingToFile("LoadBalancer.log")
                 @loadBalancer = LoadBalancer.new(balancingStrategy, @taskRepository, @filesystemConnector)		
                 @nodeInfoConsumer = NodeInfoConsumer.new(@nodeRepository, @idResolver.getCurrentId)
@@ -100,6 +104,7 @@ class Director
                 #@taskRepository.registerListener(ExecutionTimeTracer.new)
                 @taskRepository.registerListener(balancingStrategy)
                 @taskRepository.registerListener(acceptLimiter)
+		@taskRepository.registerListener(predictor)
                 @loadBalancer.registerMigrationListener(@taskRepository)		
                                                 
 		initializeMeasurements()
