@@ -1,0 +1,17 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  6
+
+Tasks:
+  mandel: exec "/root/test/mandel 200 10000 10000" /root/test/mandel
+  user-sleep-short: exec "/root/test/test-sleep 30" /root/tes
+  user-sleep-long: exec "/root/test/test-sleep 120" /root/test
+  user-busy-short: exec "/root/test/test-busy 30" /root/tes
+  user-busy-long: exec "/root/test/test-busy 120" /root/test
+
+Nodes: 
+  LocalNode: mandel
+  RemoteNode4: mandel 10
+  RemoteNode1: user-busy-long 20
+  RemoteNode2: user-busy-long 40
+  RemoteNode3: user-busy-long 60

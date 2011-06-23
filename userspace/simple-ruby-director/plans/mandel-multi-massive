@@ -1,0 +1,15 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  6
+
+Tasks:
+  mandel: exec "/root/test/mandel 200 10000 10000" /root/test/mandel
+
+Nodes: 
+  LocalNode: mandel
+  RemoteNode1: mandel 1
+  RemoteNode2: mandel 2
+  RemoteNode3: mandel 3
+  RemoteNode4: mandel 4
+  RemoteNode5: mandel 5
+  RemoteNode6: mandel 6
