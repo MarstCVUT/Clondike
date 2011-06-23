@@ -52,7 +52,7 @@ class ExecutionTimePredictor
   end
   
   def taskExit(task, exitCode)
-     outputPredictionMatch(task)
+     #outputPredictionMatch(task)
       
      return if !@learningMode
      compileClassification = task.getClassificationOfType(CompileNameClassification)
