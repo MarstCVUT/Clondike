@@ -102,17 +102,43 @@ class MasterTaskClassification<NonparametricClassification
   end
 end         
 
+class ChildNoClassification<Classification
+   def initialize(childNo)
+    super(false, false)
+    
+    @childNo = childNo
+  end    
+
+  def ==(other)
+    other.class == self.class && @childNo == other.childNo
+  end  
+
+  def eql?(other)
+    other.class == self.class && @childNo == other.childNo
+  end  
+  
+  def hash()
+    @childNo.hash
+  end      
+end
+
 # Simple configurable classificator that assigns provided classification to all tasks with name matching execName pattern
 class ExecNameConfigurableClassificator
-  def initialize(execName, classifications)
+  def initialize(execName, classifications, classifyChildrenByNo = false)
     @classifications = classifications
     @execPattern = Regexp.new(execName)
+    # If true, children tasks get ChildNoClassification
+    @classifyChildrenByNo = classifyChildrenByNo
   end
   
   def classify(task)
     return false if !(task.name =~ @execPattern)
     @classifications.each { |classification|
 	task.addClassification(classification)
-    }    
+        parent = task.parent
+        if ( parent ) then
+	    task.addClassification(ChildNoClassification.new(parent.forkCount)) if parent.hasClassificiation(classification )
+        end
+    }                               
   end
 end
