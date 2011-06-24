@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     double newRe, newIm, oldRe, oldIm;   //real and imaginary parts of new and old z
     double zoom = 1, moveX = -0.5, moveY = 0; //you can change these to zoom and change position
   //  ColorRGB color; //the RGB color value for the pixel
-    int maxIterations = 1000;//after how much iterations the function should stop
+    int maxIterations = 5000;//after how much iterations the function should stop
     int x, y, i;
     int width = DEFAULT_WIDTH;
     int height = DEFAULT_HEIGHT;
@@ -67,6 +67,8 @@ int main(int argc, char *argv[])
 	widthStart = procId * widthPerProc;	
       }
     }
+
+    sleep(3);
 
     printf("Starting calculation of pid %d\n", getpid());
     ftime(&beg);
