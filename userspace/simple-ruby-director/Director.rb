@@ -106,7 +106,9 @@ class Director
                 @taskRepository.registerListener(acceptLimiter)
 		@taskRepository.registerListener(predictor)
                 @loadBalancer.registerMigrationListener(@taskRepository)		
-                                                
+                   
+		@cacheFSController = CacheFSController.new(@interconnection)
+		
 		initializeMeasurements()
                 initializeCliServer()
 	end
@@ -124,8 +126,7 @@ class Director
                 rescue => err
                     $log.warn "Creating mock netlink connector as a real connector cannot be created! Problem with creation of the real connector:\n #{err.backtrace.join("\n")}"
                     @netlinkConnector = MockNetlinkConnector.new(@membershipManager)                  
-                end
-		cacheFSController = CacheFSController.new
+                end		
 		procTrace = ProcTrace.new(['/usr/bin/make','/usr/bin/gcc'])
                 @netlinkConnector.pushNpmHandlers(@taskRepository)
                 @netlinkConnector.pushNpmHandlers(procTrace) if $useProcTrace
@@ -143,7 +144,7 @@ class Director
 		
 		@netlinkConnector.pushUserMessageHandler(@interconnection)
 		
-		@netlinkConnector.pushImmigrationHandler(cacheFSController)
+		@netlinkConnector.pushImmigrationHandler(@cacheFSController)
 		@netlinkConnector.pushImmigrationHandler(@immigrationController)
 		
 		@netlinkConnector.pushImmigrationConfirmedHandler(@immigratedTasksController)
@@ -190,9 +191,11 @@ private
             parser = CliParser.new            
             registerAllTrustParsers(parser)
 	    registerAllMeasurementParsers(parser)
+	    registerAllCcfsParsers(parser);
             interpreter = CliInterpreter.new(parser)
             registerAllTrustHandler(@trustManagement, interpreter)
 	    registerAllMeasureHandlers(MeasurementPlanParser.new(@nodeRepository), @measurementDirector, interpreter)
+	    registerAllCcfsHandlers(@cacheFSController, @interconnection, interpreter)
             server = CliServer.new(interpreter, 4223)
             server.start            
         end

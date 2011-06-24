@@ -1,8 +1,15 @@
 # Class controlling mounting and unmounting of ccfs
 # TODO: The controller should keep track of LRU set of mounted peers and eventually unmount some long time not used filesystems
 class CacheFSController
-  def initialize
+  def initialize(interconnection)
     # Set of IP addresses of mounted cache file systems
+    @mountedSystems = Set.new()
+    interconnection.addReceiveHandler(ResetCacheFsMessage, ResetCacheFsHandler.new(self)) if ( interconnection )
+  end
+
+  # Resets state of mounting.. this effectivelly means a ccfs mounting will be performed anew on next immigration request (and all ccfs cache will be flushed)
+  def reset()
+    $log.debug("CacheFS being resetted.")
     @mountedSystems = Set.new()
   end
   
@@ -48,6 +55,51 @@ private
       system("umount #{prefix + path}")
       system("mount -t ccfs -o cache_filter=OLD #{prefix + path} #{prefix + path}")      
     }
-  end
-    
+  end    
 end
+
+###################### CLI RELATED SECTION ###############################
+
+class ResetCcfsCliHandler
+    def initialize(cacheFsController, interconnection)      
+      @cacheFsController = cacheFsController
+      @interconnection = interconnection
+    end
+    
+    def handle(command)
+	 @interconnection.dispatch(nil, ResetCacheFsMessage.new()) if @interconnection != nil
+	 @cacheFsController.reset()
+      
+        return "Reset performed"
+    end
+end
+
+def prepareResetCcfsCliHandlerParser()
+    ccfsParser = CommandParser.new("resetCcfs")
+    return ccfsParser
+end
+
+def registerAllCcfsParsers(parser)    
+    parser.addCommandParser(prepareResetCcfsCliHandlerParser())
+end
+
+def registerAllCcfsHandlers(cacheFsController, interconnection, interpreter)
+    interpreter.addHandler("resetCcfs", ResetCcfsCliHandler.new(cacheFsController, interconnection))
+end
+
+###################### Messages related section###############################
+
+# Message used for distribution of execution plans
+class ResetCacheFsMessage
+end
+
+class ResetCacheFsHandler
+    def initialize(cacheFsController)
+      @cacheFsController = cacheFsController
+    end
+    
+    def handle(message)        
+        @cacheFsController.reset
+    end  
+end
+
