@@ -21,6 +21,8 @@ class TaskInfo
     attr_reader :executionNode
     # Child tasks of this task
     attr_reader :children
+    # Total count of forks of this task during its lifetime
+    attr_reader :forkCount
     # Set of classifications assigned to task
     attr_reader :classifications
     
@@ -42,6 +44,7 @@ class TaskInfo
     end
         
     def addForkedChild(childPid)
+	@forkCount = @forkCount + 1
 	childTask = TaskInfo.new(childPid, @uid, self, @name, @args, @homeNode)
 	@children.add(childTask)
 	return childTask
