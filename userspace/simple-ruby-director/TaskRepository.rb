@@ -37,6 +37,7 @@ class TaskInfo
         @startTime = Time.now.to_f
 	@children = Set.new
 	@classifications = Set.new
+	@forkCount = 0
     end
     
     def updateExecutionNode(node)
