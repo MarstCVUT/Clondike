@@ -352,7 +352,11 @@ class AckMessage
    def verifySignature(trustManagement)
        return false if (!signature)
        recipientKey = trustManagement.getKey(@recipientId)
-       raise "Cannot verify signature, recipient key uknown: #{@recipientId}" if !recipientKey
+       if !recipientKey then
+	 $log.warn("Cannot verify signature, recipient key uknown: #{@recipientId}")
+	 return false
+       end
+       
        trustManagement.verifySignature(dataToSign(), @signature, recipientKey)
    end
 private
