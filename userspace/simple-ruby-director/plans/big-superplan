@@ -1,0 +1,4 @@
+single-kernel, /root/results/final/r1.txt
+cleanup-kernel
+single-kernel, /root/results/final/r2.txt
+cleanup-kernel
