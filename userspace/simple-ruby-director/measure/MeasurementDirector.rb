@@ -12,6 +12,10 @@ class MeasurementDirector
     @interconnection.addReceiveHandler(MeasurementFinished, MeasurementFinishedHandler.new(self)) if ( interconnection )    
     @measurementAcceptLimiter = measurementAcceptLimiter
     @currentMeasurement = nil
+    
+    # Used for waiting for execution termination
+    @monitor = Monitor.new
+    @condition = @monitor.new_cond
   end
   
   def startMeasurement(measurement)
@@ -26,6 +30,17 @@ class MeasurementDirector
   def measurementFinished(measurement)
     $log.debug "Measurement finished, going to resume all suspended nodes"
     @interconnection.dispatch(nil, MeasurementFinished.new) if @interconnection != nil
+    
+    @monitor.synchronize {
+	    @condition.broadcast()
+	    @currentMeasurement = nil
+    }    
+  end
+  
+  def waitForMeasurementFinished()
+    @monitor.synchronize {
+	    @condition.wait() if @currentMeasurement
+    }            
   end
   
   def notifyUpdate(node, nodeInfo)

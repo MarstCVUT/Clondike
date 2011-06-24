@@ -21,7 +21,34 @@ class MeasureHandler
     end
 end
 
+class MultiMeasureHandler
+    def initialize(measurementPlanParser, measurementDirector)
+      @measurementPlanParser = measurementPlanParser
+      @measurementDirector = measurementDirector
+    end
+    
+    def handle(command)
+        fileName = command.attributes['planFilename'].value
+	path = command.attributes['path'].value
+	
+	IO.foreach(fileName) do |line| 
+	      plan, resultFileName = line.split(",")
+	      resultFileName = "/tmp/dummy" if !resultFileName
+	      plan.strip!
+	      resultFileName.strip!
+	      startTime = Time.now.to_f + 3
+	      fileName = "#{path}/#{plan}"	      
+	      measurement = @measurementPlanParser.initializeMeasurement(fileName, startTime, resultFileName)
+	      @measurementDirector.startMeasurement(measurement)
+	      @measurementDirector.waitForMeasurementFinished()
+	      # Just a short safety period
+	      sleep(2)
+	end	
+    end
+end
+
 # Helper method to register all know measurement related cli interpreter handlers
 def registerAllMeasureHandlers(measurementPlanParser, measurementDirector, interpreter)
     interpreter.addHandler("measure", MeasureHandler.new(measurementPlanParser, measurementDirector))
+    interpreter.addHandler("multimeasure", MultiMeasureHandler.new(measurementPlanParser, measurementDirector))
 end

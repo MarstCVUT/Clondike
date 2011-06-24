@@ -24,6 +24,7 @@ class MeasurementPlanParser
   end
   
   def initializeMeasurement(fileName, startTime, outputFileName)      
+      $log.debug("Parsing measurement plan #{fileName}. Will output result to #{outputFileName}")
       @commands = {}
       measurement = Measurement.new(startTime + SAFETY_DELAY_FOR_BLOCKING, outputFileName)
       
