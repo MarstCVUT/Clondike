@@ -1,0 +1,9 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  7
+
+Tasks:
+  makekernel: exec "make -j 60 vmlinux" /mnt/ext/linux-2.6.32.5
+
+Nodes: 
+  LocalNode: makekernel
