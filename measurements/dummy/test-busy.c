@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     
     printf("Going to be busy for %d seconds\n", busySeconds);
     ftime(&beg);
-    while (true) {
+    while (1) {
       for ( i = 0; i < 1000; i++ )
 	dummyNum += i*i;
       
