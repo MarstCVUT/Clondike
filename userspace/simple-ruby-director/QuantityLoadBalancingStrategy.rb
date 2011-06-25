@@ -231,6 +231,10 @@ private
     def findBestTarget(pid, uid, name, args, envp, emigPreferred, detachedNodes)
         #puts "Local task count #{@counter.getCount(@nodeRepository.selfNode)}"
         return nil if !emigPreferred && keepLocal()
+	task = @taskRepository.getTask(pid)
+	# Do not emigrate non-preemptively master tasks (it may be worth considering, but now we have a problems with it)
+	return nil if task and task.hasClassification(MasterTaskClassification.new()) 
+	
         best = findBestTargetRemoteOnly(pid, uid, name, detachedNodes)
         # Not found best? Delegate further	
         return @nestedLoadBalancer.findMigrationTarget(pid, uid, name, args, envp, emigPreferred) if !best
