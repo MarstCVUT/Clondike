@@ -248,12 +248,12 @@ class MeasurementPlan
                 
   def saveToFile(file, nodeId, nodeName)
     plan = @nodePlanMapping[nodeId]
-    plan.saveToFile(file, @startTime, nodeName)
+    plan.saveToFile(file, @startTime, nodeName) if plan
   end  
   
   def saveStatsToFile(file, nodeId, nodeName)
     plan = @nodePlanMapping[nodeId]
-    plan.saveStatsToFile(file, nodeName)
+    plan.saveStatsToFile(file, nodeName) if plan
   end    
 private
 
