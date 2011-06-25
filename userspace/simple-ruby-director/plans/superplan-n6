@@ -1,0 +1,6 @@
+kernel-plan-n6-j60, /root/results/final/kernel-plan-n6-j60-cold
+cleanup-local-kernel
+kernel-plan-n6-j60, /root/results/final/kernel-plan-n6-j60-hot
+cleanup-local-kernel
+kernel-plan-n6-j60, /root/results/final/kernel-plan-n6-j60-hot
+cleanup-local-kernel
