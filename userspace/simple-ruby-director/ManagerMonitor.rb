@@ -3,7 +3,7 @@ require 'MonitoringMessages'
 # This class is responsible for monitoring node connectivity
 class ManagerMonitor	
 	# Time withouth heartbeat in second when node is considered dead
-	DEAD_TIMEOUT = 30
+	DEAD_TIMEOUT = 60
   
 	def initialize(interconnection, membershipManager, nodeRepository, filesystemConnector)
 		@interconnection = interconnection
