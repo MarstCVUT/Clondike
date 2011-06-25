@@ -12,6 +12,7 @@ class ExecuteCommand < MeasurementCommand
   def runCommand()    
    pid = fork { 
      closeFds()
+     Process.setpriority(Process::PRIO_PROCESS, 0, 10)
      Dir.chdir @path     
      commandTokens = @command.split(' ')
      execName = commandTokens[0]
