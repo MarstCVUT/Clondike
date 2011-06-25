@@ -30,6 +30,14 @@ class NodeRepository
         }
     end
     
+    def getNodeWithIp(nodeIp)
+        @lock.synchronize {
+	    @nodes.values.each { |node|
+		return node if ( node.ipAddress == nodeIp )
+	    }
+        }		      
+    end
+    
     # Iterates all 'remote' nodes
     def eachNode
         nodesClone = nil
@@ -40,6 +48,12 @@ class NodeRepository
         nodesClone.values.each() { |node|  
             yield(node)
         }        
+    end
+    
+    def getNodesCopy()
+        @lock.synchronize {
+          nodesClone = @nodes.dup
+        }      
     end
 
     # Count of known 'remote' nodes. Does not include self

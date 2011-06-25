@@ -38,7 +38,7 @@ class MeasurementPlanParser
             
       raise "Config file should not be empty" if ( lines.empty? )
       
-      buildNodeMapping(measurement, lines)
+      buildNodeMapping(measurement, lines)      
       parseTasks(measurement, lines)
       parseNodes(measurement, lines)
       
@@ -51,12 +51,34 @@ private
       lines.shift
       line = lines.shift
       nodeCount = line.gsub(/\n/,'').to_i
-      measurement.buildNodeMapping(@nodeRepository, nodeCount)
+      
+      preferredBinding = parseStaticBinding(measurement, lines)      
+      measurement.buildNodeMapping(@nodeRepository, preferredBinding, nodeCount)
     else
-      measurement.buildNodeMappingForAllKnownNodes(@nodeRepository)
+      preferredBinding = parseStaticBinding(measurement, lines)
+      measurement.buildNodeMappingForAllKnownNodes(@nodeRepository, preferredBinding)
     end
    end
-   
+
+   def parseStaticBinding(measurement, lines)      
+     preferredBinding = {}
+     if ( lines[0] =~ /^Bind/ )
+       lines.shift
+       line = lines.shift
+        while ( !lines.empty? and !line.strip.empty? )
+	  groups = line.match(/([^:]+): ([\d\.]+)/)  
+	  break if !groups 
+	  nodeName = groups[1].strip
+	  nodeIp = groups[2]
+	  preferredBinding[nodeIp] = nodeName
+
+	  line = lines.shift
+	end       
+     end
+     
+     return preferredBinding
+   end
+
    def parseTasks(measurement, lines)      
      while ( !lines.empty?  )
        line = lines.shift

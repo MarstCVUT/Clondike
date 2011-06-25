@@ -289,11 +289,11 @@ class Measurement
     @nodesToBlock = Set.new
   end
   
-  def buildNodeMappingForAllKnownNodes(nodeRepository)
-    buildNodeMapping(nodeRepository, -1)
+  def buildNodeMappingForAllKnownNodes(nodeRepository, preferredBinding)
+    buildNodeMapping(nodeRepository, preferredBinding, -1)
   end
   
-  def buildNodeMapping(nodeRepository, requiredNodeCount)
+  def buildNodeMapping(nodeRepository, preferredBinding, requiredNodeCount)
     nodeCount = 0
     availableNodes = nodeRepository.knownNodesCount + 1 # +1 for "self"
     raise "Not enough nodes. Available #{availableNodes}, but required #{requiredNodeCount}" if availableNodes < requiredNodeCount
@@ -302,10 +302,21 @@ class Measurement
     @nodeMapping[name] = nodeRepository.selfNode
     nodeCount = nodeCount + 1
     
-    nodeRepository.eachNode { |node|
+    # TODO: We are not checking for limits when processing preferred nodes!
+    candidateNodes = nodeRepository.getNodesCopy()
+    preferredBinding.each { |nodeIp, nodeName|
+         node = nodeRepository.getNodeWithIp(nodeIp)
+         if ( node ) then
+            candidateNodes.delete(node.id)
+            @nodeMapping[nodeName] = node
+	    nodeCount = nodeCount + 1
+         end
+    }    
+    
+    candidateNodes.each { |nodeId, node|
       if requiredNodeCount > nodeCount
 	name = "RemoteNode#{nodeCount}"
-	@nodeMapping[name] = node                             
+	@nodeMapping[name] = node
 	nodeCount = nodeCount + 1                            
       else
         @nodesToBlock.add(node.id)
