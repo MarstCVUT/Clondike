@@ -36,6 +36,8 @@ class MultiMeasureHandler
 	      resultFileName = "/tmp/dummy" if !resultFileName
 	      plan.strip!
 	      resultFileName.strip!
+	      
+	      next if plan.empty? # Ignore empty lines in config
 	      startTime = Time.now.to_f + 3
 	      fileName = "#{path}/#{plan}"	      
 	      measurement = @measurementPlanParser.initializeMeasurement(fileName, startTime, resultFileName)
