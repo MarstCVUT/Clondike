@@ -1,0 +1,9 @@
+# This plan just resets state of calculation on all nodes
+Nodes count: 
+  1
+
+Tasks:
+  ls: exec "ls" /root/mandel
+
+Nodes: 
+  LocalNode: ls
