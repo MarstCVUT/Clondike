@@ -49,7 +49,7 @@ private
     # Return slot index of the node where the process shall be migrated
     # Returns nil, if no migration should be performed    
     def getEmigrationTarget(pid, uid, name, args, envp)        
-        return nil if !canMigrate(name, uid)
+        #return nil if !canMigrate(name, uid)
 	emigPreferred = isEmigrationPrefered(envp)
         return @balancingStrategy.findMigrationTarget(pid, uid, name, args, envp, emigPreferred);
     end
@@ -84,6 +84,7 @@ private
 	  end	  
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
+	  $log.info("LoadBalancer decided to keep #{name}:#{pid} home (#{task.classifications_to_s})")
           [DirectorNetlinkApi::DO_NOT_MIGRATE]
         end
     end
