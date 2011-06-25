@@ -1,4 +1,16 @@
-single-kernel, /root/results/final/r1.txt
-cleanup-kernel
-single-kernel, /root/results/final/r2.txt
-cleanup-kernel
+kernel-plan-n5-j30, /root/results/final/kenerl-plan-n5-j30-hot
+cleanup-local-kernel
+kernel-plan-n5-j30, /root/results/final/kenerl-plan-n5-j30-hot
+cleanup-local-kernel
+kernel-plan-n5-j40, /root/results/final/kenerl-plan-n5-j40-hot
+cleanup-local-kernel
+kernel-plan-n5-j40, /root/results/final/kenerl-plan-n5-j40-hot
+cleanup-local-kernel
+kernel-plan-n5-j50, /root/results/final/kenerl-plan-n5-j50-hot
+cleanup-local-kernel
+kernel-plan-n5-j50, /root/results/final/kenerl-plan-n5-j50-hot
+cleanup-local-kernel
+kernel-plan-n5-j60, /root/results/final/kenerl-plan-n5-j60-hot
+cleanup-local-kernel
+kernel-plan-n5-j60, /root/results/final/kenerl-plan-n5-j60-hot
+cleanup-local-kernel

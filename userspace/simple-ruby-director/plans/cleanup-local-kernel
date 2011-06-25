@@ -1,9 +1,9 @@
 # Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
 Nodes count: 
-  2
+  1
 
 Tasks:
-  makekernel: exec "make clean" /usr/src/linux-2.6.33.1
+  cleankernel: exec "make clean" /mnt/ext/linux-2.6.32.5
 
 Nodes: 
-  LocalNode: makekernel
+  LocalNode: cleankernel
