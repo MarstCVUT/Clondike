@@ -106,7 +106,7 @@ class QuantityLoadBalancingStrategy
         @defaultMinimumTasksLocal = @nodeRepository.selfNode.staticNodeInfo.coresCount
 #        @minimumTasksLocal = 0 # Comment this out, testing only.. prefered way for testing is to use EMIG=1 env prop
         # Minimum tasks runnign on a remote node we want
-        @minimumTasksRemote = 5
+        @minimumTasksRemote = 10
         # Fallback load balancing strategy, in case minimum task guarantees are satisfied
         @nestedLoadBalancer = RoundRobinBalancingStrategy.new(nodeRepository, membershipManager)
         
