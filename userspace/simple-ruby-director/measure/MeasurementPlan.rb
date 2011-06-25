@@ -352,7 +352,13 @@ class Measurement
     
 private                
   def saveResults()
-    File.open(@outputFileName, "w") { |file|            
+    fileName = @outputFileName
+    i = 1
+    while ( File.exist?(fileName) ) do
+            fileName = "#{@outputFileName}-v#{i}"
+	    i = i + 1
+    end    
+    File.open(fileName, "w") { |file|            
 	file.puts("-------------------- Execution results ----------------------")
 	@nodeMapping.each { |name, node|
             @measurementPlan.saveToFile(file, node.id, name)	    
