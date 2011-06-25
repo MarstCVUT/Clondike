@@ -156,7 +156,7 @@ class NodeMeasurementPlan
   def saveToFile(file, planStartTime, nodeName)
     file.puts("Name: #{nodeName}")
     @tasks.each { |task|
-        file.puts("  Command: #{task.command} Should start: #{Time.at(planStartTime + task.startTimeOffset)} Started: #{Time.at(task.result.startTime)} Finished: #{Time.at(task.result.endTime)} Duration: #{task.result.endTime.to_f - task.result.startTime.to_f}")
+        file.puts("  Command: #{task.command} Should start: #{Time.at(planStartTime + task.startTimeOffset)} Started: #{Time.at(task.result.startTime)} Finished: #{Time.at(task.result.endTime)} Duration: #{formattedDuration(task.result.startTime, task.result.endTime)}")
     }    
   end
   
