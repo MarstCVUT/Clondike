@@ -1,0 +1,10 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  1
+
+Tasks:
+  cc: exec "ruby /root/clondike/scripts/clear-checkpoints.rb" /root/clondike/scripts
+
+Nodes: 
+  LocalNode: cc
+
