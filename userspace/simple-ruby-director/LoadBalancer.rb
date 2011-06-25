@@ -84,7 +84,12 @@ private
 	  end	  
           [DirectorNetlinkApi::MIGRATE, migrationTarget]
         else
-	  $log.info("LoadBalancer decided to keep #{name}:#{pid} home (#{task.classifications_to_s})")
+	  task = @taskRepository.getTask(pid)
+	  if ( task )
+	    $log.info("LoadBalancer decided to keep #{name}:#{pid} home (#{task.classifications_to_s})")
+	  else
+	    $log.warn("LoadBalancer cannot find info about task pid #{pid} (kept home)")
+	  end
           [DirectorNetlinkApi::DO_NOT_MIGRATE]
         end
     end
