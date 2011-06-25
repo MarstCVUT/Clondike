@@ -49,6 +49,15 @@ def isLocalIp(ipAddress)
   return local_ip() == ipAddress
 end
 
+def formattedDuration(startTime, endTime)
+  millisDiff = 1000*(endTime.to_f - startTime.to_f)
+  millis = millisDiff%1000
+  secondsDiff = millisDiff/1000
+  seconds = secondsDiff%60
+  minutes = secondsDiff/60
+  return sprintf("%02d:%02d.%04d", minutes, seconds, millis)
+end
+
 def timedExecution(name)
   startTime = Time.now.to_f
   result = yield
