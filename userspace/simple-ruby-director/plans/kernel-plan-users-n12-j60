@@ -5,9 +5,9 @@ Nodes count:
 Tasks:
   makekernel: exec "make -j 60 vmlinux" /mnt/ext/linux-2.6.32.5
   user-sleep-short: exec "/root/test-sleep 30" /root/
-  user-sleep-long: exec "/root/test-sleep 120" /root/
+  user-sleep-long: exec "/root/test-sleep 240" /root/
   user-busy-short: exec "/root/test-busy 30" /root/
-  user-busy-long: exec "/root/test-busy 120" /root/
+  user-busy-long: exec "/root/test-busy 240" /root/
 
 Nodes: 
   LocalNode: makekernel
