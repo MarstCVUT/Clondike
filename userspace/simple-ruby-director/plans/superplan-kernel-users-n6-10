@@ -1,0 +1,12 @@
+kernel-plan-users-n10-j60, /root/results/final/kernel-plan-users-n10-j60-cold
+cleanup-local-kernel
+kernel-plan-users-n10-j60, /root/results/final/kernel-plan-users-n10-j60-hot
+cleanup-local-kernel
+kernel-plan-users-n9-j60, /root/results/final/kernel-plan-users-n9-j60-hot
+cleanup-local-kernel
+kernel-plan-users-n8-j60, /root/results/final/kernel-plan-users-n8-j60-hot
+cleanup-local-kernel
+kernel-plan-users-n7-j60, /root/results/final/kernel-plan-users-n7-j60-hot
+cleanup-local-kernel
+kernel-plan-users-n6-j60, /root/results/final/kernel-plan-users-n6-j60-hot
+cleanup-local-kernel
