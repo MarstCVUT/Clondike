@@ -26,7 +26,7 @@ class RoundRobinBalancingStrategy
         bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, @membershipManager.coreManager.detachedNodes)
 	
 	# Reeavaluate RR.. we really want to be sure if we need to leave node locally when we do not want to!
-	if ( !includeLocal and bestTarget == nil ) then
+	if ( !@includeLocal and bestTarget == nil ) then
 	    if ( @detachedNodesCandidates == nil || @detachedNodesCandidates.empty? ) then
 	      @detachedNodesCandidates = extractIndexes(@membershipManager.coreManager.detachedNodes)
 	      bestTarget = findBestTarget(pid, uid, name, args, envp, emigPreferred, @membershipManager.coreManager.detachedNodes)
