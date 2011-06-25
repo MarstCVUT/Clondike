@@ -1,6 +1,6 @@
 # Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
 Nodes count: 
-  6
+  2
 
 Tasks:
   mandel: exec "/root/mandel 100 3500 3500" /root/
