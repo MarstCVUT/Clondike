@@ -19,7 +19,7 @@ class MeasurementDirector
   end
   
   def startMeasurement(measurement)
-    @currentMeasurement = measurement
+    @currentMeasurement = measurement    
     measurementMessage = ExecutionPlanMessage.new(@localNodeId, measurement.measurementPlan, measurement.nodesToBlock)    
     $log.debug "Distributing execution plan"
     @interconnection.dispatch(nil, measurementMessage) if @interconnection != nil
