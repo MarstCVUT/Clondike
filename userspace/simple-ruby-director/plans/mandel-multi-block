@@ -10,7 +10,7 @@ Bind:
 
 Tasks:
   mandel: exec "/root/mandel 100 3500 3500" /root/
-  user-busy-long: exec "/root/test/test-busy 120" /root/test-busy
+  user-busy-long: exec "/root/test/test-busy 120" /root/
 
 Nodes: 
   LocalNode: mandel
