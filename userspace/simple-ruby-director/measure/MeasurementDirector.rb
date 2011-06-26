@@ -19,6 +19,7 @@ class MeasurementDirector
   end
   
   def startMeasurement(measurement)
+    raise "Cannot start measurement while other measurement is in progress!" if @currentMeasurement
     @currentMeasurement = measurement    
     measurementMessage = ExecutionPlanMessage.new(@localNodeId, measurement.measurementPlan, measurement.nodesToBlock)    
     $log.debug "Distributing execution plan"
