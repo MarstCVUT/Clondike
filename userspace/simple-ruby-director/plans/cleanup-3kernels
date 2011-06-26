@@ -4,7 +4,7 @@ Nodes count:
 
 Bind:
   SecondMaster: 192.168.45.135
-  ThirdMaster: 192.168.45.155
+  ThirdMaster: 192.168.45.150
 
 Tasks:
   cleankernel: exec "make clean" /mnt/ext/linux-2.6.32.5
