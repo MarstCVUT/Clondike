@@ -1,0 +1,19 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  14
+
+Bind:
+  SecondMaster: 192.168.45.135
+  ThirdMaster: 192.168.45.150
+  FourthMaster: 192.168.45.140
+  FifthMaster: 192.168.45.155
+
+Tasks:
+  mandel: exec "/root/mandel 100 3500 3500" /root/
+
+Nodes: 
+  LocalNode: mandel
+  SecondMaster: mandel
+  ThirdMaster: mandel
+  FourthMaster: mandel
+  
