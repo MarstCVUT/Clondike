@@ -314,6 +314,7 @@ class Measurement
     }    
     
     candidateNodes.each { |nodeId, node|
+      next if !node                        
       if requiredNodeCount > nodeCount
 	name = "RemoteNode#{nodeCount}"
 	@nodeMapping[name] = node
