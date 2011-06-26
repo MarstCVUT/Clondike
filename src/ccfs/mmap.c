@@ -122,8 +122,8 @@ static int ccfs_write_end(struct file *file,
 	if (pos + copied > i_size_read(ccfsinode)) {
 		// TODO: DO we need to update lower file metadata?
 		i_size_write(ccfsinode, pos + copied);
-		printk(KERN_DEBUG "Expanded file size to "
-				"[0x%.16x], required (%lld)\n", (u16)i_size_read(ccfsinode), pos + copied);
+		//printk(KERN_DEBUG "Expanded file size to "
+		//		"[0x%.16x], required (%lld)\n", (u16)i_size_read(ccfsinode), pos + copied);
 	}
 
 	unlock_page(page);
