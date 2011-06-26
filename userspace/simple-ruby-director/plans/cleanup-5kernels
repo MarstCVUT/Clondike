@@ -1,0 +1,19 @@
+# Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
+Nodes count: 
+  5
+
+Bind:
+  SecondMaster: 192.168.45.135
+  ThirdMaster: 192.168.45.150
+  FourthMaster: 192.168.45.140
+  FifthMaster: 192.168.45.155
+
+Tasks:
+  cleankernel: exec "make clean" /mnt/ext/linux-2.6.32.5
+
+Nodes: 
+  LocalNode: cleankernel
+  SecondMaster: cleankernel
+  ThirdMaster: cleankernel
+  FourthMaster: cleankernel
+  FifthMaster: cleankernel
