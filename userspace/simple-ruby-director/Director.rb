@@ -1,4 +1,4 @@
-# require 'FilesystemConnector'
+require 'FilesystemConnector'
 require 'FilesystemNodeBuilder'
 require 'MockNetlinkConnector'
 require 'NetlinkConnector'
