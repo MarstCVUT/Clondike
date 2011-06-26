@@ -76,6 +76,9 @@ static int tcmi_ckptcom_checkpoint(struct file *file, struct pt_regs *regs,
 {
 	struct tcmi_ckpt *ckpt;
 	int is_npm = npm_params != NULL;
+	u64 beg_time, end_time;
+	
+	beg_time = cpu_clock(smp_processor_id());
 
 	mdbg(INFO3, "Start checkpointing. Is_npm: %d", is_npm);
 	if ( !regs ) {
@@ -141,6 +144,11 @@ static int tcmi_ckptcom_checkpoint(struct file *file, struct pt_regs *regs,
 		}	
 	}
 
+	end_time = cpu_clock(smp_processor_id());
+	mdbg(INFO3, "Checkpoint (npm: %d) took '%llu' ms.'", is_npm, (end_time - beg_time) / 1000000);
+	printk("Checkpoint (npm: %d) took '%llu' ms.\n'", is_npm, (end_time - beg_time) / 1000000);
+
+
 	tcmi_ckpt_put(ckpt);
 	return 0;
 
@@ -185,6 +193,10 @@ int tcmi_ckptcom_restart(struct linux_binprm *bprm, struct pt_regs *regs)
 	struct tcmi_ckpt *ckpt;
 	struct pt_regs* original_regs;	
 //	int i;	
+	u64 beg_time, end_time;
+	
+	beg_time = cpu_clock(smp_processor_id());
+	
 
 	memory_sanity_check("Start");
 	
@@ -320,6 +332,10 @@ memory_sanity_check("Post mm");
 			return -EFAULT;
 		}
 
+		end_time = cpu_clock(smp_processor_id());
+		mdbg(INFO3, "Checkpoint NPM took '%llu' ms.'", (end_time - beg_time) / 1000000);
+		printk("Checkpoint NPM took '%llu' ms.\n'", (end_time - beg_time) / 1000000);
+
 		return 0;
 	} else {
 		// Restart fixup is performed only in PPM
@@ -331,6 +347,9 @@ memory_sanity_check("Post mm");
 	tcmi_ckpt_put(ckpt);
 	/* successul execution of the image - need to set the format */
 	set_binfmt(&tcmi_ckptcom_format);
+
+	mdbg(INFO3, "Checkpoint PPM took '%llu' ms.'", (end_time - beg_time) / 1000000);
+	printk("Checkpoint PPM took '%llu' ms.\n'", (end_time - beg_time) / 1000000);
 
 	/* Something went wrong, return the inode and free the argument pages*/
 /* 

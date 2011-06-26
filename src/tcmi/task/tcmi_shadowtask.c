@@ -204,7 +204,10 @@ static void tcmi_shadowtask_vfork_done(struct tcmi_task *self) {
 /** Internal helper method that can perform both NPM and PPM physical emigration */
 static int tcmi_shadowtask_emigrate_p(struct tcmi_task *self, struct tcmi_npm_params* npm_params) {
 	struct tcmi_msg *req, *resp;
-	char* exec_name; 
+	char* exec_name;
+	u64 beg_time, end_time;
+	
+	beg_time = cpu_clock(smp_processor_id());
 	
 	if ( npm_params ) {
 		// For NPM, the exec name is name of the file being executed
@@ -242,6 +245,10 @@ static int tcmi_shadowtask_emigrate_p(struct tcmi_task *self, struct tcmi_npm_pa
 		goto exit2;
 	}
 
+	end_time = cpu_clock(smp_processor_id());
+	mdbg(INFO3, "Emigration (npm: %d) took '%llu' ms.'", npm_params != NULL, (end_time - beg_time) / 1000000);
+	printk("Emigration (npm: %d) took '%llu' ms.\n'", npm_params != NULL, (end_time - beg_time) / 1000000);
+	
 	/* 
 	   Files are flushed only after we have confirmation that the migration have succeeded.
  	   Otherwise we keep them open so that we can eventually continue execution of the current
