@@ -97,6 +97,10 @@ class MeasurementTask
       end  
     }
   end
+  
+  def to_s
+    "Command: #{@command} -> Start offset: #{@startTimeOffset}"
+  end
 end
 
 class NodeUsageRecord
