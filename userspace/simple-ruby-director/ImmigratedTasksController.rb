@@ -2,9 +2,10 @@
 #
 # TODO: Make thread safe
 class ImmigratedTasksController
-  def initialize(filesystemConnector)
+  def initialize(filesystemConnector, enforcedMigrationHome)
     @immigratedTasks = {}
-    @filesystemConnector = filesystemConnector   
+    @filesystemConnector = filesystemConnector
+    @enforcedMigrationHome = enforcedMigrationHome
   end
   
   def onImmigrationConfirmed(node, name, localPid, remotePid)
@@ -39,6 +40,7 @@ class ImmigratedTasksController
   
 private
     def migrateHomeThread
+	return if !@enforcedMigrationHome
 	$log.info("Preparing to request migrate home")
 	# Wait 10 seconds before migrating home just to give locally running remote tasks some chance to finish
 	sleep(10)
