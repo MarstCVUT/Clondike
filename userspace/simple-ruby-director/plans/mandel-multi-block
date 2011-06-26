@@ -1,6 +1,6 @@
 # Specifies how many nodes will participate in the measurements. There must be enough nodes in a cluster
 Nodes count: 
-  14
+  5
 
 Bind:
   SecondMaster: 192.168.45.135
@@ -10,9 +10,9 @@ Bind:
 
 Tasks:
   mandel: exec "/root/mandel 100 3500 3500" /root/
-  user-busy-long: exec "/root/test/test-busy 120" /root/test
+  user-busy-long: exec "/root/test/test-busy 120" /root/test-busy
 
 Nodes: 
   LocalNode: mandel
-  SecondMaster: user-busy-long
-  ThirdMaster: user-busy-long
+  SecondMaster: user-busy-long 5
+  ThirdMaster: user-busy-long 5
