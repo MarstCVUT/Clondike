@@ -60,7 +60,7 @@ class Director
                 #acceptLimiter = TestMakeAcceptLimiter.new();
 		  		  		
 		@immigratedTasksController = ImmigratedTasksController.new(@filesystemConnector)
-		acceptLimiter = TaskNameBasedAcceptLimiter.new(["Make", "test-nosleep", "test-sleep", "test-busy"], @immigratedTasksController)
+		acceptLimiter = TaskNameBasedAcceptLimiter.new(["make", "test-nosleep", "test-sleep", "test-busy"], @immigratedTasksController)
 		@measurementLimiter = MeasurementAcceptLimiter.new()
 		@immigrationController = LimitersImmigrationController.new([acceptLimiter, @measurementLimiter], @immigratedTasksController)
 
