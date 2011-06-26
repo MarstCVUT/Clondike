@@ -10,7 +10,7 @@ class ExecutionHistory
   end
   
   def addObservation(duration)
-    @totalDuration = @totalDuration * duration
+    @totalDuration = @totalDuration + duration
     @count = count + 1
   end
   
